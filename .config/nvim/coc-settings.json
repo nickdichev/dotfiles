@@ -8,7 +8,7 @@
       "filetypes": ["go"]
     },
     "elixir": {
-      "command": "~/.elixir-ls/release/language_server.sh",
+      "command": "~/.ls/elixir-ls/release/language_server.sh",
       "filetypes": ["elixir", "eelixir"]
     }
   }
