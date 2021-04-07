@@ -4,6 +4,7 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
   Plug 'junegunn/fzf.vim'
   Plug 'tpope/vim-fugitive'
+  Plug 'tpope/vim-rhubarb'
   Plug 'itchyny/lightline.vim'
   Plug 'kana/vim-textobj-user'
   Plug 'direnv/direnv.vim'
@@ -72,6 +73,7 @@ xnoremap J :move '>+1<CR>gv-gv
 nnoremap <leader>fg :GFiles<CR>
 nnoremap <leader>ff :Files<CR>
 nnoremap <leader>fr :Rg<CR>
+nnoremap <leader>fb :Buffers<CR>
 
 " NetRW
 let g:netrw_banner = 0
