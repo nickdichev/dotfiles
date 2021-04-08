@@ -1,4 +1,5 @@
 source $(brew --prefix asdf)/asdf.sh
+eval "$(asdf exec direnv hook zsh)"
 
 autoload -Uz compinit && compinit
 
