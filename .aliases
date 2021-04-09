@@ -14,6 +14,7 @@ alias glcm="git log --oneline | cut -d\" \" -f 2- | head -n 1"
 alias gpsu="git push --set-upstream origin HEAD"
 alias gp="git push"
 alias gpf="git push --force-with-lease"
+alias gs="git switch"
 
 alias vim="nvim"
 
