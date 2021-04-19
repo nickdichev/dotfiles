@@ -5,11 +5,14 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'junegunn/fzf.vim'
   Plug 'tpope/vim-fugitive'
   Plug 'tpope/vim-rhubarb'
+  Plug 'tpope/vim-eunuch'
+  Plug 'tpope/vim-commentary'
   Plug 'itchyny/lightline.vim'
   Plug 'kana/vim-textobj-user'
   Plug 'direnv/direnv.vim'
   Plug 'qpkorr/vim-bufkill'
   Plug 'APZelos/blamer.nvim'
+  Plug 'vim-test/vim-test'
   " Languages
   " Elixir
   Plug 'elixir-editors/vim-elixir'
