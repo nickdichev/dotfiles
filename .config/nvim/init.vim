@@ -92,6 +92,17 @@ let g:netrw_browse_split = 4
 let g:netrw_altv = 1
 let g:netrw_winsize = 25
 
+" Scratch
+function! Scratch()
+  split
+  noswapfile hide enew
+  setlocal buftype=nofile
+  setlocal bufhidden=hide
+  "setlocal nobuflisted
+  "lcd ~
+  file scratch
+endfunction
+
 " ## Plugin Configuration
 source ~/.config/nvim/plugins/coc.vim
 source ~/.config/nvim/plugins/vim-gitgutter.vim
