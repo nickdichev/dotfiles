@@ -35,9 +35,6 @@ highlight ColorColumn ctermbg=4 guibg=lightblue
 highlight MatchParen cterm=none ctermfg=lightblue ctermbg=none
 highlight clear SignColumn
 
-"Kotlin
-au BufReadPost *.kt set syntax=kotlin
-
 " ## Keybinds
 let mapleader=" "
 
