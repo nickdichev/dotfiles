@@ -79,6 +79,12 @@ nnoremap <leader>ff :Files<CR>
 nnoremap <leader>fr :Rg<CR>
 nnoremap <leader>fb :Buffers<CR>
 
+" Vim-test
+nnoremap <leader>tf :TestFile<CR>
+nnoremap <leader>tn :TestNearest<CR>
+nnoremap <leader>tt :TestLast<CR>
+nnoremap <leader>tv :TestVisit<CR>
+
 " NetRW
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
@@ -92,3 +98,4 @@ source ~/.config/nvim/plugins/vim-gitgutter.vim
 source ~/.config/nvim/plugins/lightline.vim
 source ~/.config/nvim/plugins/vim-mix-format.vim
 source ~/.config/nvim/plugins/blamer.vim
+source ~/.config/nvim/plugins/vim-test.vim
