@@ -82,6 +82,9 @@ nnoremap <leader>tn :TestNearest<CR>
 nnoremap <leader>tt :TestLast<CR>
 nnoremap <leader>tv :TestVisit<CR>
 
+" Elixir
+nnoremap <leader>mf :w<CR>:MixFormat<CR>
+
 " NetRW
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
