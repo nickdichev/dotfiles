@@ -55,11 +55,13 @@ ssh-add "$HOME/.ssh/personal_github"
 [[ -d "$HOME/.config" ]] || mkdir -p "$HOME/.config"
 [[ -d "$HOME/Workspace/dotfiles" ]] || git clone git@github.com:nickdichev/dotfiles.git "$HOME/Workspace/dotfiles"
 
-[[ -f "$HOME/.config/nvim" ]] || ln -s "$HOME/Workspace/dotfiles/nvim" "$HOME/.config/nvim"
+[[ -f "$HOME/.config/nvim" ]] || ln -s "$HOME/Workspace/dotfiles/.config/nvim" "$HOME/.config/nvim"
+[[ -f "$HOME/.config/git" ]] || ln -s "$HOME/Workspace/dotfiles/.config/git" "$HOME/.config/git"
 
-[[ -f "$HOME/.zshrc" ]] || ln -s "$HOME/Workspace/dotfiles/.zshrc" "$HOME/.zshrc"
 [[ -d "$HOME/.scripts" ]] ||  ln -s "$HOME/Workspace/dotfiles/.scripts" "$HOME/.scripts"
+[[ -f "$HOME/.zshrc" ]] || ln -s "$HOME/Workspace/dotfiles/.zshrc" "$HOME/.zshrc"
 [[ -f "$HOME/.aliases" ]] ||  ln -s "$HOME/Workspace/dotfiles/.aliases" "$HOME/.aliases"
+[[ -f "$HOME/.exports" ]] ||  ln -s "$HOME/Workspace/dotfiles/.exports" "$HOME/.exports"
 
 # ASDF
 [[ -d "$HOME/.asdf" ]] || git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.8.0
