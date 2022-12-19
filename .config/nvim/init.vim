@@ -6,6 +6,7 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'tpope/vim-rhubarb'
   Plug 'tpope/vim-eunuch'
   Plug 'tpope/vim-commentary'
+  Plug 'tpope/vim-surround'
   Plug 'kana/vim-textobj-user'
   Plug 'direnv/direnv.vim'
   Plug 'qpkorr/vim-bufkill'
