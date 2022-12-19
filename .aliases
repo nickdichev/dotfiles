@@ -11,5 +11,8 @@ alias ..5="cd ../../../../.."
 alias glo="git log --oneline"
 alias glc="git log --oneline | cut -d\" \" -f 1 | head -n 1"
 alias glcm="git log --oneline | cut -d\" \" -f 2 | head -n 1"
+alias gpsu="git push --set-upstream origin HEAD"
 
 alias vim="nvim"
+
+alias lis="listening"
