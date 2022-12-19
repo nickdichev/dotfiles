@@ -10,6 +10,9 @@ elixir.setup({
     suggestSpecs = false,
   }),
 
+  
+  capabilities = require('cmp_nvim_lsp').default_capabilities(),
+
   on_attach = function(client, bufnr)
     local map_opts = { buffer = true, noremap = true}
 

@@ -55,7 +55,7 @@ cmp.setup.cmdline(':', {
 })
 
 -- Set up lspconfig.
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
-require('lspconfig')['elixir'].setup {
-  capabilities = capabilities
-}
+-- local capabilities = require('cmp_nvim_lsp').default_capabilities()
+-- require('lspconfig')['REPLACE_ME'].setup {
+--   capabilities = capabilities
+-- }
