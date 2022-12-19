@@ -8,6 +8,7 @@ return require('packer').startup(function(use)
   use 'tpope/vim-surround'
   use 'tpope/vim-projectionist'
   use 'andymass/vim-matchup'
+  use 'mhinz/vim-sayonara'
 
   use 'navarasu/onedark.nvim'
   use 'nvim-lualine/lualine.nvim'

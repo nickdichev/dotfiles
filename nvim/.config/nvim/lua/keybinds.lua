@@ -47,3 +47,9 @@ map('n', '<C-l>', '<cmd>noh<CR>')
 
 -- Insert a newline in normal mode
 map('n', '<leader>o', 'm`o<Esc>``')
+
+-- Buffer management
+map('n', '<leader>bn', ':bn<CR>')
+map('n', '<leader>bp', ':bp<CR>')
+map('n', '<leader>bd', ':Sayonara!<CR>')
+

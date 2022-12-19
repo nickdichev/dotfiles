@@ -179,6 +179,11 @@ _G.packer_plugins = {
     path = "/Users/firework/.local/share/nvim/site/pack/packer/start/vim-projectionist",
     url = "https://github.com/tpope/vim-projectionist"
   },
+  ["vim-sayonara"] = {
+    loaded = true,
+    path = "/Users/firework/.local/share/nvim/site/pack/packer/start/vim-sayonara",
+    url = "https://github.com/mhinz/vim-sayonara"
+  },
   ["vim-surround"] = {
     loaded = true,
     path = "/Users/firework/.local/share/nvim/site/pack/packer/start/vim-surround",
