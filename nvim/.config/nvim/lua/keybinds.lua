@@ -41,7 +41,7 @@ map('x', 'K', ':move \'<-2<CR>gv=gv')
 map('x', 'J', ':move \'>+1<CR>gv=gv')
 
 -- Projectionist
-map('n', '<leader>a', ':A')
+map('n', '<leader>a', ':A<CR>')
 
 -- Copy to clipboard
 map('', '<leader>c', '"+y')
