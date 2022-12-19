@@ -21,7 +21,7 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
   " Languages
   " Elixir
-  " Plug 'elixir-editors/vim-elixir'
+  Plug 'elixir-editors/vim-elixir'
   Plug 'amiralies/vim-textobj-elixir'
   Plug 'renderedtext/vim-elixir-alternative-files'
 call plug#end()
