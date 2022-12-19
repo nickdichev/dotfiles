@@ -32,10 +32,6 @@ map('n', '<leader>j', '<C-W>j')
 map('n', '<leader>k', '<C-W>k')
 map('n', '<leader>l', '<C-W>l')
 
--- Jumplist
-map('n', '<leader>jo', '<C-o>')
-map('n', '<leader>ji', '<C-i>')
-
 -- Shift hunks by line
 map('x', 'K', ':move \'<-2<CR>gv=gv')
 map('x', 'J', ':move \'>+1<CR>gv=gv')
