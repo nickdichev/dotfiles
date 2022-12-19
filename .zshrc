@@ -22,9 +22,10 @@ SPACESHIP_PROMPT_ORDER=(
   char          # Prompt character
 )
 
+[ -r "$HOME/.functions" ] && source "$HOME/.functions"
 [ -r "$HOME/.aliases" ] && source "$HOME/.aliases"
-
 [ -r "$HOME/.exports" ] && source "$HOME/.exports"
 
 [ -d "$HOME/.scripts" ] && export PATH="$HOME/.scripts":"$PATH"
+
 source ${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/zshrc

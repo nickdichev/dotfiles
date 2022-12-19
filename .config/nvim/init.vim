@@ -103,8 +103,8 @@ nnoremap <leader>gg :LazyGit<CR>
 
 " Elixir
 nnoremap <leader>a :call ElixirAlternateFile()<CR>
-autocmd BufWritePre *.ex lua vim.lsp.buf.formatting_sync(nil, 1000)
-autocmd BufWritePre *.exs lua vim.lsp.buf.formatting_sync(nil, 1000)
+autocmd BufWritePre *.ex lua vim.lsp.buf.formatting_sync({timeout_ms = 1000})
+autocmd BufWritePre *.exs lua vim.lsp.buf.formatting_sync({timeout_ms = 1000})
 
 " NetRW
 let g:netrw_banner = 0
@@ -152,7 +152,7 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '<space>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
   buf_set_keymap('n', '[e', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
   buf_set_keymap('n', ']e', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
-  buf_set_keymap('n', '<leader>mf', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
+  buf_set_keymap('n', '<leader>mf', '<cmd>lua vim.lsp.buf.format({ async = true })<CR>', opts)
 end
 
 nvim_lsp.elixirls.setup{
@@ -165,15 +165,23 @@ nvim_lsp.elixirls.setup{
   }
 }
 
+nvim_lsp.terraformls.setup{
+  cmd = { '/Users/kamana/.ls/terraform-ls/terraform-ls', 'serve' },
+  on_attach = on_attach,
+  settings = {}
+}
+
 require('nvim-treesitter.configs').setup({
   ensure_installed = {
     "elixir",
     "erlang",
-    "html",
+    "hcl",
     "heex",
+    "html",
     "javascript",
-    "markdown",
     "json",
+    "lua",
+    "markdown",
     "toml",
     "yaml"
   },
