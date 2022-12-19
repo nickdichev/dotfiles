@@ -84,5 +84,28 @@ require('nvim-treesitter.configs').setup({
   highlight = { enable = true },
   indent = { enable = true },
   matchup = { enable = true },
-  rainbow = { enable = true }
+  rainbow = { enable = true },
+  textobjects = {
+    select = {
+      enable = true,
+      lookahead = true,
+
+      keymaps = {
+        ["ab"] = "@block.outer",
+        ["ib"] = "@block.inner",
+        ["af"] = "@function.outer",
+        ["if"] = "@function.inner",
+        ["ac"] = "@class.outer",
+        ["ic"] = "@class.inner"
+      },
+
+      selection_modes = {
+        ['@parameter.outer'] = 'v', -- charwise
+        ['@function.outer'] = 'V', -- linewise
+        ['@class.outer'] = '<c-v>', -- blockwise
+      },
+
+      include_surrounding_whitespace = true,
+    },
+  },
 })

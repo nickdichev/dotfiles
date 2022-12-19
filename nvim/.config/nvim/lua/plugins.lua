@@ -15,6 +15,7 @@ return require('packer').startup(function(use)
 
   use 'neovim/nvim-lspconfig'
   use 'nvim-treesitter/nvim-treesitter-context'
+  use 'nvim-treesitter/nvim-treesitter-textobjects'
   use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
 
   use 'hrsh7th/cmp-nvim-lsp'
