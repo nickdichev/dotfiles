@@ -35,6 +35,7 @@ alias vim="nvim"
 alias lis="listening"
 
 alias k="cd ~/Workspace/kamana"
+alias ki="cd ~/Workspace/kamana-infra"
 
 alias pf="preview_file"
 alias pg="preview_git_commits"
