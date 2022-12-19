@@ -104,8 +104,8 @@ nnoremap <leader>gg :LazyGit<CR>
 
 " Elixir
 nnoremap <leader>a :call ElixirAlternateFile()<CR>
-autocmd BufWritePre *.ex lua vim.lsp.buf.formatting_sync({timeout_ms = 1000})
-autocmd BufWritePre *.exs lua vim.lsp.buf.formatting_sync({timeout_ms = 1000})
+autocmd BufWritePre *.ex lua vim.lsp.buf.format({timeout_ms = 1000})
+autocmd BufWritePre *.exs lua vim.lsp.buf.format({timeout_ms = 1000})
 
 " NetRW
 let g:netrw_banner = 0
