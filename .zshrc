@@ -1,4 +1,5 @@
-source $(brew --prefix asdf)/asdf.sh
+unset ASDF_DIR
+source $(brew --prefix asdf)/libexec/asdf.sh
 eval "$(asdf exec direnv hook zsh)"
 
 autoload -Uz compinit && compinit
@@ -26,3 +27,4 @@ SPACESHIP_PROMPT_ORDER=(
 [ -r "$HOME/.exports" ] && source "$HOME/.exports"
 
 [ -d "$HOME/.scripts" ] && export PATH="$HOME/.scripts":"$PATH"
+source ${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/zshrc

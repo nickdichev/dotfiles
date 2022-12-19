@@ -16,6 +16,7 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'vim-test/vim-test'
   Plug 'hoob3rt/lualine.nvim'
   Plug 'kyazdani42/nvim-web-devicons'
+  Plug 'navarasu/onedark.nvim'
   " LSP
   Plug 'neovim/nvim-lspconfig'
   Plug 'hrsh7th/nvim-compe'
@@ -97,8 +98,13 @@ nnoremap <leader>tn :TestNearest<CR>
 nnoremap <leader>tt :TestLast<CR>
 nnoremap <leader>tv :TestVisit<CR>
 
+" LazyGit
+nnoremap <leader>gg :LazyGit<CR>
+
 " Elixir
 nnoremap <leader>a :call ElixirAlternateFile()<CR>
+autocmd BufWritePre *.ex lua vim.lsp.buf.formatting_sync(nil, 1000)
+autocmd BufWritePre *.exs lua vim.lsp.buf.formatting_sync(nil, 1000)
 
 " NetRW
 let g:netrw_banner = 0
@@ -119,9 +125,7 @@ function! Scratch()
 endfunction
 
 " ## Plugin Configuration
-" source ~/.config/nvim/plugins/coc.vim
 source ~/.config/nvim/plugins/vim-gitgutter.vim
-source ~/.config/nvim/plugins/lightline.vim
 source ~/.config/nvim/plugins/vim-mix-format.vim
 source ~/.config/nvim/plugins/blamer.vim
 source ~/.config/nvim/plugins/vim-test.vim
@@ -162,9 +166,21 @@ nvim_lsp.elixirls.setup{
 }
 
 require('nvim-treesitter.configs').setup({
-  highlight = {
-    enable = true
+  ensure_installed = {
+    "elixir",
+    "erlang",
+    "html",
+    "heex",
+    "javascript",
+    "markdown",
+    "json",
+    "toml",
+    "yaml"
   },
+  highlight = { enable = true },
+  indent = { enable = true },
+  matchup = { enable = true },
+  rainbow = { enable = true }
 })
 
 require('compe').setup({
@@ -187,9 +203,14 @@ require('compe').setup({
   };
 })
 
+require('onedark').setup {
+   --  style = 'cool'
+}
+require('onedark').load()
+
 require('lualine').setup({
   options = {
-    theme = 'palenight',
+    theme = 'onedark',
     icons_enabled = false
   }
 })
