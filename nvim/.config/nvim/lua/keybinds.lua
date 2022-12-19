@@ -19,13 +19,24 @@ map('n', '<leader>fh', telescope_builtin.help_tags)
 map('n', '<leader>gg', ':LazyGit<CR>')
 
 -- Resize splits
-map('n', '<Up>', 'resize +2<CR>')
-map('n', '<Down>', 'resize -2<CR>')
-map('n', '<Left>', 'vertical resize +2<CR>')
-map('n', '<Right>', 'vertical resize -2<CR>')
+map('n', '<Up>', ':resize +2<CR>')
+map('n', '<Down>', ':resize -2<CR>')
+map('n', '<Left>', ':vertical resize +2<CR>')
+map('n', '<Right>', ':vertical resize -2<CR>')
 
 -- Move between splits
 map('n', '<leader>h', '<C-W>h')
 map('n', '<leader>j', '<C-W>j')
 map('n', '<leader>k', '<C-W>k')
 map('n', '<leader>l', '<C-W>l')
+
+-- Jumplist
+map('n', '<leader>o', '<C-o>')
+map('n', '<leader>i', '<C-i>')
+
+-- Shift hunks by line
+map('x', 'K', ':move \'<-2<CR>gv=gv')
+map('x', 'J', ':move \'>+1<CR>gv=gv')
+
+
+
