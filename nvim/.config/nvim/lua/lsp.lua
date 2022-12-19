@@ -96,12 +96,14 @@ require('lspconfig')['clojure_lsp'].setup{
   cmd = { os.getenv('HOME') .. '/.ls/clojure-lsp/clojure-lsp' },
   on_attach = on_attach,
   capabilities = capabilities,
-  settings = {
-    dialyzerEnabled = true,
-    fetchDeps = false,
-    enableTestLenses = true,
-    suggestSpecs = false,
-  }
+  settings = { }
+}
+
+require('lspconfig')['kotlin_language_server'].setup{
+  cmd = { os.getenv('HOME') .. '/.ls/kotlin-language-server/server/bin/kotlin-language-server' },
+  on_attach = on_attach,
+  capabilities = capabilities,
+  settings = { }
 }
 
 local null_ls = require("null-ls")
@@ -109,7 +111,7 @@ null_ls.setup({
     sources = {
         null_ls.builtins.formatting.fnlfmt,
         null_ls.builtins.formatting.mix,
-        null_ls.builtins.formatting.zprint
+        null_ls.builtins.diagnostics.ktlint
     },
     on_attach = on_attach,
 })
@@ -126,6 +128,7 @@ require('nvim-treesitter.configs').setup({
     "html",
     "javascript",
     "json",
+    "kotlin",
     "lua",
     "markdown",
     "toml",
