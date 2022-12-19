@@ -21,6 +21,7 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'neovim/nvim-lspconfig'
   Plug 'hrsh7th/nvim-compe'
   Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+  Plug 'nvim-treesitter/nvim-treesitter-context'
   " Languages
   " Elixir
   Plug 'elixir-editors/vim-elixir'
