@@ -22,4 +22,4 @@ SPACESHIP_PROMPT_ORDER=(
 
 [ -r "$HOME/.exports" ] && source "$HOME/.exports"
 
-[ -d "$HOME/.scripts" ] && export PATH="$HOME/.fly/bin":"$HOME/.scripts":"$PATH"
+[ -d "$HOME/.scripts" ] && export PATH="$HOME/.scripts":"$PATH"
