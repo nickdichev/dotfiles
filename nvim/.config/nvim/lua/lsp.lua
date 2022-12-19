@@ -62,7 +62,7 @@ require('lspconfig')['elixirls'].setup{
   settings = {
     dialyzerEnabled = true,
     fetchDeps = false,
-    enableTestLenses = false,
+    enableTestLenses = true,
     suggestSpecs = false,
   }
 }
