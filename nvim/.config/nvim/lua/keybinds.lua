@@ -40,3 +40,12 @@ map('x', 'J', ':move \'>+1<CR>gv=gv')
 
 -- Projectionist
 map('n', '<leader>a', ':A')
+
+-- Copy to clipboard
+map('', '<leader>c', '"+y')
+
+-- Clear highlights
+map('n', '<C-l>', '<cmd>noh<CR>')
+
+-- Insert a newline in normal mode
+map('n', '<leader>o', 'm`o<Esc>``')
