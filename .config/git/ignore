@@ -2,3 +2,4 @@
 .rgignore
 .fzfignore
 .envrc
+.DS_Store
