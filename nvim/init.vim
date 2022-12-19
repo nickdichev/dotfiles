@@ -6,6 +6,8 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'tpope/vim-fugitive'
   Plug 'itchyny/lightline.vim'
   Plug 'kana/vim-textobj-user'
+  Plug 'direnv/direnv.vim'
+  Plug 'qpkorr/vim-bufkill'
   " Languages
   " Elixir
   Plug 'elixir-editors/vim-elixir'
@@ -13,6 +15,8 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'amiralies/vim-textobj-elixir'
   " Go
   Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+  " One Plugin to Rule them All?
+  Plug 'sheerun/vim-polyglot'
 call plug#end()
 
 " ## General
@@ -25,9 +29,13 @@ set shiftwidth=2 autoindent smartindent tabstop=2 softtabstop=2 expandtab
 set splitbelow splitright
 set nobackup nowritebackup
 set colorcolumn=120
+set scrolloff=5
 highlight ColorColumn ctermbg=4 guibg=lightblue
 highlight MatchParen cterm=none ctermfg=lightblue ctermbg=none
 highlight clear SignColumn
+
+"Kotlin
+au BufReadPost *.kt set syntax=kotlin
 
 " ## Keybinds
 let mapleader=" "
@@ -42,6 +50,9 @@ nnoremap <Down> :resize -2<CR>
 nnoremap <Left> :vertical resize +2<CR>
 nnoremap <Right> :vertical resize -2<CR>
 
+" Allow mousescroll in normal mode
+set mouse=ah
+
 " Move between splits
 nnoremap <leader>h <C-W>h
 nnoremap <leader>j <C-W>j
@@ -51,15 +62,20 @@ nnoremap <leader>l <C-W>l
 " Move between buffers
 nnoremap <leader>n :bn<CR>
 nnoremap <leader>p :bp<CR>
+nnoremap <leader>b :buffers<CR>:buffer<Space>
+
+" Jumplist
+nnoremap <leader>o <C-o>
+nnoremap <leader>i <C-i>
 
 " Shift hunks by line
 xnoremap K :move '<-2<CR>gv-gv
 xnoremap J :move '>+1<CR>gv-gv
 
 " Fzf
-nnoremap <C-p> :GFiles<CR>
-nnoremap <C-o> :Files<CR>
-nnoremap <C-r> :Rg<CR>
+nnoremap <leader>fg :GFiles<CR>
+nnoremap <leader>ff :Files<CR>
+nnoremap <leader>fr :Rg<CR>
 
 " NetRW
 let g:netrw_banner = 0
