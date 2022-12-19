@@ -1,8 +1,13 @@
 export EDITOR="$(which nvim)"
-export FZF_DEFAULT_COMMAND='fd --type file --color=always'
-export FZF_DEFAULT_OPTS="--ansi"
-export ERL_AFLAGS="-kernel shell_history enabled"
-export HOMEBREW_FORCE_BREWED_CURL=1
 export TERM=xterm
 
+export ELIXIR_EDITOR="kitty @ launch --title Output --keep-focus nvim +__LINE__ __FILE__"
+export ERL_AFLAGS="-kernel shell_history enabled"
+
+export FZF_DEFAULT_COMMAND='fd --type file --color=always'
+export FZF_DEFAULT_OPTS="--ansi"
+
+export HOMEBREW_FORCE_BREWED_CURL=1
+
 export PATH="$HOME/Workspace/tmp/google-cloud-sdk/bin":"$PATH"
+
