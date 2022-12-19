@@ -34,13 +34,5 @@ alias vim="nvim"
 
 alias lis="listening"
 
-alias k="cd ~/Workspace/kamana"
-alias ki="cd ~/Workspace/kamana-infra"
-
 alias pf="preview_file"
 alias pg="preview_git_commits"
-alias grs="gigalixir_release_sha"
-
-alias jt="git log --oneline | rg -o '[A-Z]{1}[A-Z]+-\d+' | sort | uniq"
-
-alias kngrok="ngrok http --region=us --hostname=kamana-nick.ngrok.io https://dev.kamana.app:4443"
