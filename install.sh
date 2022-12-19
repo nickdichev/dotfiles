@@ -49,15 +49,22 @@ ssh-add "$HOME/.ssh/personal_github"
 
 # Language Servers
 [[ -d "$HOME/.ls" ]] || mkdir "$HOME/.ls"
-[[ -d "$HOME/.ls/elixir_ls" ]] || git clone git@github.com:elixir-lsp/elixir-ls.git "$HOME/.ls/elixir_ls"
+if [[ ! -d "$HOME/.ls/elixir-ls" ]]; then
+  mkdir -p "$HOME/.ls/elixir-ls/release"
+  cd "$HOME/.ls/elixir-ls/release"
+  wget "https://github.com/elixir-lsp/elixir-ls/releases/download/v0.6.5/elixir-ls-1.11.zip"
+  unzip "elixir-ls-1.11.zip"
+  rm "elixir-ls-1.11.zip"
+fi
 
 # Dotfiles
 [[ -d "$HOME/Workspace" ]] || mkdir -p "$HOME/Workspace"
 [[ -d "$HOME/.config" ]] || mkdir -p "$HOME/.config"
 [[ -d "$HOME/Workspace/dotfiles" ]] || git clone git@github.com:nickdichev/dotfiles.git "$HOME/Workspace/dotfiles"
 
-[[ -f "$HOME/.config/nvim" ]] || ln -s "$HOME/Workspace/dotfiles/.config/nvim" "$HOME/.config/nvim"
-[[ -f "$HOME/.config/git" ]] || ln -s "$HOME/Workspace/dotfiles/.config/git" "$HOME/.config/git"
+[[ -d "$HOME/.config/nvim" ]] || ln -s "$HOME/Workspace/dotfiles/.config/nvim" "$HOME/.config/nvim"
+[[ -d "$HOME/.config/git" ]] || ln -s "$HOME/Workspace/dotfiles/.config/git" "$HOME/.config/git"
+[[ -d "$HOME/.config/kitty" ]] || ln -s "$HOME/Workspace/dotfiles/.config/kitty" "$HOME/.config/kitty"
 
 [[ -d "$HOME/.scripts" ]] ||  ln -s "$HOME/Workspace/dotfiles/.scripts" "$HOME/.scripts"
 [[ -f "$HOME/.zshrc" ]] || ln -s "$HOME/Workspace/dotfiles/.zshrc" "$HOME/.zshrc"
