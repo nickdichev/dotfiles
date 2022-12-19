@@ -1,4 +1,4 @@
-source $HOME/.asdf/asdf.sh
+source $(brew --prefix asdf)/asdf.sh
 
 autoload -Uz compinit && compinit
 
