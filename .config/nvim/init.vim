@@ -9,6 +9,7 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'kana/vim-textobj-user'
   Plug 'direnv/direnv.vim'
   Plug 'qpkorr/vim-bufkill'
+  Plug 'APZelos/blamer.nvim'
   " Languages
   " Elixir
   Plug 'elixir-editors/vim-elixir'
@@ -87,3 +88,4 @@ source ~/.config/nvim/plugins/coc.vim
 source ~/.config/nvim/plugins/vim-gitgutter.vim
 source ~/.config/nvim/plugins/lightline.vim
 source ~/.config/nvim/plugins/vim-mix-format.vim
+source ~/.config/nvim/plugins/blamer.vim
