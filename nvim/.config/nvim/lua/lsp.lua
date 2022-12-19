@@ -20,6 +20,7 @@ local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
 local on_attach = function(client, bufnr)
+  print(vim.inspect(client.name))
   -- Enable completion triggered by <c-x><c-o>
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
@@ -91,17 +92,32 @@ require('lspconfig')['elixirls'].setup{
   }
 }
 
+require('lspconfig')['clojure_lsp'].setup{
+  cmd = { os.getenv('HOME') .. '/.ls/clojure-lsp/clojure-lsp' },
+  on_attach = on_attach,
+  capabilities = capabilities,
+  settings = {
+    dialyzerEnabled = true,
+    fetchDeps = false,
+    enableTestLenses = true,
+    suggestSpecs = false,
+  }
+}
+
 local null_ls = require("null-ls")
 null_ls.setup({
     sources = {
         null_ls.builtins.formatting.fnlfmt,
-        null_ls.builtins.formatting.mix
+        null_ls.builtins.formatting.mix,
+        null_ls.builtins.formatting.zprint
     },
     on_attach = on_attach,
 })
 
+
 require('nvim-treesitter.configs').setup({
   ensure_installed = {
+    "clojure",
     "elixir",
     "erlang",
     "fennel",
