@@ -4,6 +4,19 @@ vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 
+local lsp_formatting = function(bufnr)
+    vim.lsp.buf.format({
+        filter = function(client)
+            -- apply whatever logic you want (in this example, we'll only use null-ls)
+            return client.name == "null-ls"
+        end,
+        bufnr = bufnr,
+    })
+end
+
+local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+
+
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
 local on_attach = function(client, bufnr)
@@ -27,7 +40,18 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, bufopts)
   vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, bufopts)
   vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
-  vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format { async = true } end, bufopts)
+  vim.keymap.set('n', '<leader>mf', function() lsp_formatting(bufnr) end, bufopts)
+
+  if client.supports_method("textDocument/formatting") then
+    vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+    vim.api.nvim_create_autocmd("BufWritePre", {
+        group = augroup,
+        buffer = bufnr,
+        callback = function()
+            lsp_formatting(bufnr)
+        end,
+    })
+  end
 end
 
 local on_attach_elixir = function(client, bufnr)
@@ -67,10 +91,20 @@ require('lspconfig')['elixirls'].setup{
   }
 }
 
+local null_ls = require("null-ls")
+null_ls.setup({
+    sources = {
+        null_ls.builtins.formatting.fnlfmt,
+        null_ls.builtins.formatting.mix
+    },
+    on_attach = on_attach,
+})
+
 require('nvim-treesitter.configs').setup({
   ensure_installed = {
     "elixir",
     "erlang",
+    "fennel",
     "hcl",
     "heex",
     "html",

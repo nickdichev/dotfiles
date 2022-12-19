@@ -6,6 +6,7 @@ end
 
 -- Leader
 vim.g.mapleader = ' '
+vim.g.maplocalleader = ','
 
 -- Telescope
 local telescope_builtin = require('telescope.builtin')

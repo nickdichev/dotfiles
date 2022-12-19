@@ -1,0 +1,4 @@
+set enable-bracketed-paste on
+set blink-matching-paren on
+set show-all-if-ambiguous on
+set history-size 1000

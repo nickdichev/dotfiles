@@ -5,7 +5,9 @@ require('completion')
 require('keybinds')
 
 require('plugin/gitsigns')
-require('plugin/elixir')
 require('plugin/lazygit')
 require('plugin/onedark')
 require('plugin/lualine')
+
+require('plugin/elixir')
+require('plugin/fennel')

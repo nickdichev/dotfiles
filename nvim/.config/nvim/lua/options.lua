@@ -5,6 +5,7 @@ opt.encoding = 'UTF-8'
 opt.number = true
 opt.relativenumber = true
 opt.cursorline = true
+opt.signcolumn = 'yes:1'
 
 opt.shiftwidth = 2
 opt.autoindent = true

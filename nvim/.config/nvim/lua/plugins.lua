@@ -17,6 +17,7 @@ return require('packer').startup(function(use)
   use 'nvim-treesitter/nvim-treesitter-context'
   use 'nvim-treesitter/nvim-treesitter-textobjects'
   use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
+  use { 'jose-elias-alvarez/null-ls.nvim', requires = { 'nvim-lua/plenary.nvim' } }
 
   use 'hrsh7th/cmp-nvim-lsp'
   use 'hrsh7th/cmp-buffer'
@@ -27,5 +28,11 @@ return require('packer').startup(function(use)
   use 'hrsh7th/vim-vsnip'
 
   use { 'nvim-telescope/telescope.nvim', tag = '0.1.0', requires = { {'nvim-lua/plenary.nvim'} } }
-  use { 'mhanberg/elixir.nvim', requires = { {'nvim-lua/plenary.nvim', opt = true} } }
+
+  use { 'mhanberg/elixir.nvim', requires = { 'nvim-lua/plenary.nvim' } }
+  use 'jaawerth/fennel.vim'
+
+  use 'olical/conjure'
+  use 'p00f/nvim-ts-rainbow'
+  use { 'eraserhd/parinfer-rust', run = 'cargo build --release' }
 end)
