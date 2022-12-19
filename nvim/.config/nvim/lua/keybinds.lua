@@ -11,6 +11,8 @@ vim.g.mapleader = ' '
 local telescope_builtin = require('telescope.builtin')
 map('n', '<leader>ff', telescope_builtin.find_files)
 map('n', '<leader>fr', telescope_builtin.live_grep)
+map('n', '<leader>fg', telescope_builtin.git_files)
+map('n', '<leader>ft', telescope_builtin.treesitter)
 map('n', '<leader>fb', telescope_builtin.buffers)
 map('n', '<leader>fc', telescope_builtin.grep_string)
 map('n', '<leader>fh', telescope_builtin.help_tags)
