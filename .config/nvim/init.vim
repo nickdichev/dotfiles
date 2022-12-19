@@ -8,6 +8,7 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'tpope/vim-eunuch'
   Plug 'tpope/vim-commentary'
   Plug 'tpope/vim-surround'
+  Plug 'andymass/vim-matchup'
   Plug 'kana/vim-textobj-user'
   Plug 'direnv/direnv.vim'
   Plug 'qpkorr/vim-bufkill'
