@@ -13,10 +13,6 @@ call plug#begin('~/.config/nvim/plugged')
   Plug 'elixir-editors/vim-elixir'
   Plug 'mhinz/vim-mix-format'
   Plug 'amiralies/vim-textobj-elixir'
-  " Go
-  Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-  " One Plugin to Rule them All?
-  Plug 'sheerun/vim-polyglot'
 call plug#end()
 
 " ## General

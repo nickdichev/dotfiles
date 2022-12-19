@@ -15,11 +15,12 @@ sudo eopkg install -y \
 
 # Elixir / Erlang
 sudo eopkg it -yc system.devel
-sudo epokg install -y \
-  wxwidgets-devel \ 
-  mesalib-devel \
-  libglu-devel \ 
-  fop
+# WxWidgets (Observer)
+# sudo eopkg install -y \
+#  wxwidgets-devel \
+#  mesalib-devel \
+#  libglu-devel \
+#  fop
 
 # Docker
 sudo systemctl enable docker.service
