@@ -9,5 +9,3 @@ export FZF_DEFAULT_OPTS="--ansi"
 
 export HOMEBREW_FORCE_BREWED_CURL=1
 
-export PATH="$HOME/Workspace/tmp/google-cloud-sdk/bin":"$PATH"
-

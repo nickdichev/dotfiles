@@ -11,4 +11,4 @@ antidote load
 
 [ -r "$HOME/.firework/exports" ] && source "$HOME/.firework/exports"
 [ -r "$HOME/.firework/aliases" ] && source "$HOME/.firework/aliases"
-
+[ -r "$HOME/.firework/functions" ] && source "$HOME/.firework/functions"
