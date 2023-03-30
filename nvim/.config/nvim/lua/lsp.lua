@@ -1,3 +1,5 @@
+local lsp_helpers = require('lsp_helpers')
+
 local opts = { noremap=true, silent=true }
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
@@ -8,7 +10,8 @@ local lsp_formatting = function(bufnr)
     vim.lsp.buf.format({
         filter = function(client)
             -- apply whatever logic you want (in this example, we'll only use null-ls)
-            return client.name == "null-ls"
+            -- return client.name == "null-ls"
+            return true
         end,
         bufnr = bufnr,
     })
@@ -81,7 +84,7 @@ local lsp_flags = {
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
 require('lspconfig')['elixirls'].setup{
-  cmd = { os.getenv('HOME') .. '/.ls/elixir-ls/language_server.sh' },
+  cmd = { lsp_helpers.elixirls_cmd() },
   on_attach = on_attach_elixir,
   capabilities = capabilities,
   settings = {
@@ -100,7 +103,8 @@ require('lspconfig')['clojure_lsp'].setup{
 }
 
 require('lspconfig')['kotlin_language_server'].setup{
-  cmd = { os.getenv('HOME') .. '/.ls/kotlin-language-server/server/bin/kotlin-language-server' },
+  -- https://github.com/fwcd/kotlin-language-server built from source
+  cmd = { os.getenv('HOME') .. '/.ls/kotlin-language-server/server/build/install/server/bin/kotlin-language-server' },
   on_attach = on_attach,
   capabilities = capabilities,
   settings = { }
@@ -109,6 +113,8 @@ require('lspconfig')['kotlin_language_server'].setup{
 local null_ls = require("null-ls")
 null_ls.setup({
     sources = {
+        null_ls.builtins.diagnostics.clj_kondo,
+        null_ls.builtins.formatting.cljstyle,
         null_ls.builtins.formatting.fnlfmt,
         null_ls.builtins.formatting.mix,
         null_ls.builtins.diagnostics.ktlint
@@ -131,6 +137,7 @@ require('nvim-treesitter.configs').setup({
     "kotlin",
     "lua",
     "markdown",
+    "python",
     "toml",
     "yaml"
   },
