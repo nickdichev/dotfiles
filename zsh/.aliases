@@ -33,6 +33,7 @@ alias gs="git status"
 alias gsw="git switch"
 
 alias vim="nvim"
+alias watch="viddy"
 
 alias lis="listening"
 
