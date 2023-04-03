@@ -1,5 +1,3 @@
-source "$HOME"/.asdf/asdf.sh
-
 [ -r "$HOME/.functions" ] && source "$HOME/.functions"
 [ -r "$HOME/.aliases" ] && source "$HOME/.aliases"
 [ -r "$HOME/.exports" ] && source "$HOME/.exports"
