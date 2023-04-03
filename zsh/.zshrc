@@ -1,8 +1,5 @@
 source "$HOME"/.asdf/asdf.sh
 
-source "$HOME"/.antidote/antidote.zsh
-antidote load
-
 [ -r "$HOME/.functions" ] && source "$HOME/.functions"
 [ -r "$HOME/.aliases" ] && source "$HOME/.aliases"
 [ -r "$HOME/.exports" ] && source "$HOME/.exports"
@@ -12,3 +9,5 @@ antidote load
 [ -r "$HOME/.firework/exports" ] && source "$HOME/.firework/exports"
 [ -r "$HOME/.firework/aliases" ] && source "$HOME/.firework/aliases"
 [ -r "$HOME/.firework/functions" ] && source "$HOME/.firework/functions"
+
+eval "$(starship init zsh)"
