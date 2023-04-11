@@ -103,8 +103,7 @@ require('lspconfig')['clojure_lsp'].setup{
 }
 
 require('lspconfig')['kotlin_language_server'].setup{
-  -- https://github.com/fwcd/kotlin-language-server built from source
-  cmd = { os.getenv('HOME') .. '/.ls/kotlin-language-server/server/build/install/server/bin/kotlin-language-server' },
+  cmd = { lsp_helpers.kotlinls_cmd() },
   on_attach = on_attach,
   capabilities = capabilities,
   settings = { }
@@ -137,6 +136,7 @@ require('nvim-treesitter.configs').setup({
     "kotlin",
     "lua",
     "markdown",
+    "nix",
     "python",
     "toml",
     "yaml"
