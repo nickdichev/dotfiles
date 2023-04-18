@@ -29,7 +29,7 @@ return require('packer').startup(function(use)
 
   use { 'nvim-telescope/telescope.nvim', tag = '0.1.0', requires = { {'nvim-lua/plenary.nvim'} } }
 
-  use { 'mhanberg/elixir.nvim', requires = { 'nvim-lua/plenary.nvim' } }
+  use { 'elixir-tools/elixir-tools.nvim', requires = { 'nvim-lua/plenary.nvim' } }
   use 'jaawerth/fennel.vim'
 
   use 'olical/conjure'

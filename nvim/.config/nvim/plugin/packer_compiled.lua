@@ -104,10 +104,10 @@ _G.packer_plugins = {
     path = "/Users/firework/.local/share/nvim/site/pack/packer/start/conjure",
     url = "https://github.com/olical/conjure"
   },
-  ["elixir.nvim"] = {
+  ["elixir-tools.nvim"] = {
     loaded = true,
-    path = "/Users/firework/.local/share/nvim/site/pack/packer/start/elixir.nvim",
-    url = "https://github.com/mhanberg/elixir.nvim"
+    path = "/Users/firework/.local/share/nvim/site/pack/packer/start/elixir-tools.nvim",
+    url = "https://github.com/elixir-tools/elixir-tools.nvim"
   },
   ["fennel.vim"] = {
     loaded = true,
