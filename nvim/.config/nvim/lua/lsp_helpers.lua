@@ -18,4 +18,12 @@ local kotlinls_cmd = function()
   end
 end
 
-return { elixirls_cmd = elixirls_cmd, kotlinls_cmd = kotlinls_cmd }
+local pyright_cmd = function()
+  if is_devenv() then
+    return os.getenv('DEVENV_PROFILE') .. '/bin/pyright-langserver'
+  else
+    return os.getenv('HOME') .. './ls/pyright/pyright-langserver'
+  end
+end
+
+return { elixirls_cmd = elixirls_cmd, kotlinls_cmd = kotlinls_cmd, pyright_cmd = pyright_cmd }

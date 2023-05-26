@@ -109,6 +109,11 @@ require('lspconfig')['kotlin_language_server'].setup{
   settings = { }
 }
 
+require('lspconfig')['pyright'].setup{
+  cmd = { lsp_helpers.pyright_cmd(), "--stdio" },
+  on_attach = on_attach,
+}
+
 local null_ls = require("null-ls")
 null_ls.setup({
     sources = {
