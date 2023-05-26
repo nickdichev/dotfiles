@@ -113,10 +113,10 @@ local null_ls = require("null-ls")
 null_ls.setup({
     sources = {
         null_ls.builtins.diagnostics.clj_kondo,
+        null_ls.builtins.diagnostics.ktlint,
         null_ls.builtins.formatting.cljstyle,
         null_ls.builtins.formatting.fnlfmt,
         null_ls.builtins.formatting.mix,
-        null_ls.builtins.diagnostics.ktlint
     },
     on_attach = on_attach,
 })
