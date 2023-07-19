@@ -119,6 +119,7 @@ null_ls.setup({
     sources = {
         null_ls.builtins.diagnostics.clj_kondo,
         null_ls.builtins.diagnostics.ktlint,
+        null_ls.builtins.formatting.black,
         null_ls.builtins.formatting.cljstyle,
         null_ls.builtins.formatting.fnlfmt,
         null_ls.builtins.formatting.mix,

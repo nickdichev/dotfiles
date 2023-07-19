@@ -8,4 +8,6 @@
 [ -r "$HOME/.firework/aliases" ] && source "$HOME/.firework/aliases"
 [ -r "$HOME/.firework/functions" ] && source "$HOME/.firework/functions"
 
+eval "$(direnv hook zsh)"
 eval "$(starship init zsh)"
+eval "$(atuin init zsh)"

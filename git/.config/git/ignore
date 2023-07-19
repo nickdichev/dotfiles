@@ -3,3 +3,5 @@
 .fzfignore
 .envrc
 .DS_Store
+.direnv
+.elixir-tools
