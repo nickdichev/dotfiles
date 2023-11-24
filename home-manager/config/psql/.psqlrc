@@ -1,0 +1,5 @@
+\pset null 👻
+\set HISTFILE ~/.psql_history- :DBNAME
+
+\pset border 2
+\pset linestyle unicode
