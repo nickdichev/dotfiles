@@ -20,8 +20,9 @@ cmp.setup({
     ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
   }),
   sources = cmp.config.sources({
-    { name = 'nvim_lsp' },
-    { name = 'vsnip' },
+    { name = "copilot", group_index = 2 },
+    { name = 'nvim_lsp', group_index = 2 },
+    { name = 'vsnip', group_index = 2 },
   }, {
     { name = 'buffer' },
   })
@@ -59,3 +60,4 @@ cmp.setup.cmdline(':', {
 -- require('lspconfig')['REPLACE_ME'].setup {
 --   capabilities = capabilities
 -- }
+--

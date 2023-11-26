@@ -104,6 +104,11 @@ _G.packer_plugins = {
     path = "/Users/firework/.local/share/nvim/site/pack/packer/start/conjure",
     url = "https://github.com/olical/conjure"
   },
+  ["copilot.vim"] = {
+    loaded = true,
+    path = "/Users/firework/.local/share/nvim/site/pack/packer/start/copilot.vim",
+    url = "https://github.com/github/copilot.vim"
+  },
   ["elixir-tools.nvim"] = {
     loaded = true,
     path = "/Users/firework/.local/share/nvim/site/pack/packer/start/elixir-tools.nvim",
