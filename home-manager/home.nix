@@ -127,7 +127,7 @@
     enableZshIntegration = true;
   };
 
-  programs.exa = {
+  programs.eza = {
     enable = true;
     git = true;
     icons = true;
