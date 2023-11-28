@@ -1,10 +1,13 @@
 { config, pkgs, lib, ... }:
 
+let
+  fireworkConfigPath = ./firework.nix;
+  isFireworkMachine = builtins.pathExists (toString fireworkConfigPath);
+in
 {
-  # Home Manager needs a bit of information about you and the paths it should
-  # manage.
-  home.username = "kamana";
-  home.homeDirectory = "/Users/kamana";
+  imports =
+    [./username.nix]
+    ++ lib.optional isFireworkMachine fireworkConfigPath
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
