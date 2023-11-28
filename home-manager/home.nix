@@ -159,6 +159,7 @@ in
 
   programs.git = {
     enable = true;
+    lfs.enable = true;
 
     userEmail = "github@dichev.email";
     userName = "Nick Dichev";
