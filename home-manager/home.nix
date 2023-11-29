@@ -199,12 +199,14 @@ in
     settings = {
       "allow_remote_control" = "yes";
       "listen_on" = "unix:/tmp/kitty";
+      "confirm_os_window_on_close" = 1;
     };
     font = {
       name = "Fira Code";
     };
     keybindings = {
       "ctrl+shift+o" = "close_other_windows_in_tab";
+      "cmd+t" = "new_tab_with_cwd";
     };
   };
 
