@@ -44,6 +44,7 @@ in
     pkgs.lolcat
     pkgs.inetutils
     pkgs.neovim
+    pkgs.mediainfo
     # https://github.com/NixOS/nixpkgs/blob/nixos-22.11/pkgs/data/fonts/nerdfonts/shas.nix
     (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; })
     pkgs.ripgrep
