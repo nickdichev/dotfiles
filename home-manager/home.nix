@@ -6,7 +6,7 @@ let
 in
 {
   imports =
-    [./username.nix]
+    [./username.nix ./git.nix]
     ++ lib.optional isFireworkMachine fireworkConfigPath;
 
   # This value determines the Home Manager release that your configuration is
@@ -162,9 +162,6 @@ in
   programs.git = {
     enable = true;
     lfs.enable = true;
-
-    userEmail = "github@dichev.email";
-    userName = "Nick Dichev";
 
     extraConfig = {
       init = {
