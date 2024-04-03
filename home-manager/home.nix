@@ -38,6 +38,7 @@ in
     #   echo "Hello, ${config.home.username}!"
     # '')
     pkgs.curl
+    pkgs.devenv
     pkgs.fd
     pkgs.graphviz
     pkgs.htop
