@@ -49,4 +49,3 @@ map('n', '<leader>o', 'm`o<Esc>``')
 map('n', '<leader>bn', ':bn<CR>')
 map('n', '<leader>bp', ':bp<CR>')
 map('n', '<leader>bd', ':Sayonara!<CR>')
-
