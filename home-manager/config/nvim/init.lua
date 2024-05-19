@@ -10,4 +10,3 @@ require('plugin/onedark')
 require('plugin/lualine')
 
 require('plugin/elixir')
-require('plugin/fennel')
