@@ -154,6 +154,22 @@ in
   programs.starship = {
     enable = true;
     enableZshIntegration = true;
+    settings = {
+      character = {
+        success_symbol = "[~>](bold green)";
+        error_symbol = "[~>](bold red)";
+      };
+      elixir = {
+        format = "[$version OTP $otp_version]($style) ";
+        style = "bold red";
+      };
+      nix_shell = {
+        disabled = true;
+      };
+      package = {
+        disabled = true;
+      };
+    };
   };
 
   programs.jq = {
@@ -192,7 +208,7 @@ in
 
   programs.kitty = {
     enable = true;
-    theme = "Dark One Nuanced";
+    theme = "Dracula";
     environment = {
       "KITY_LISTEN_ON" = "unix:/tmp/kitty-$PPID";
     };
@@ -290,16 +306,6 @@ in
           sha256 = "iJdWopZwHpSyYl5/FQXEW7gl/SrKaYDEtTH9cGP7iPo=";
         };
       }
-
-      {
-        name = "zsh-you-should-use";
-        src = pkgs.fetchFromGitHub {
-          owner = "MichaelAquilina";
-          repo = "zsh-you-should-use";
-          rev = "1.7.4";
-          sha256 = "Jl3wZa/WIA+GtkUiCn0vKfd6N/GitOavwZ+uqfmzdps=";
-        };
-      }
     ];
   };
 
@@ -312,11 +318,12 @@ in
     baseIndex = 1;
     prefix = "C-Space";
     
-    plugins = with pkgs; [
-      tmuxPlugins.better-mouse-mode
-      tmuxPlugins.sensible
-      tmuxPlugins.vim-tmux-navigator
-      tmuxPlugins.yank
+    plugins = with pkgs.tmuxPlugins; [
+      dracula
+      better-mouse-mode
+      sensible
+      vim-tmux-navigator
+      yank
     ];
 
     extraConfig = ''
