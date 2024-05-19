@@ -42,10 +42,4 @@ return require('lazy').setup({
   { 'nvim-telescope/telescope.nvim', dependencies = { {'nvim-lua/plenary.nvim'} } },
 
   { 'elixir-tools/elixir-tools.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
-
-  'olical/conjure',
-  'p00f/nvim-ts-rainbow',
-  'janet-lang/janet.vim',
-  'jaawerth/fennel.vim',
-  { 'eraserhd/parinfer-rust', build = 'cargo build --release' },
 })
