@@ -1,8 +1,8 @@
-require('keybinds')
 require('plugins')
 require('lsp')
 require('options')
 require('completion')
+require('keybinds')
 
 require('plugin/gitsigns')
 require('plugin/lazygit')
