@@ -28,7 +28,6 @@ return require('lazy').setup({
   'nvim-treesitter/nvim-treesitter-context',
   'nvim-treesitter/nvim-treesitter-textobjects',
   { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
-  { 'jose-elias-alvarez/null-ls.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
 
   'hrsh7th/cmp-nvim-lsp',
   'hrsh7th/cmp-buffer',

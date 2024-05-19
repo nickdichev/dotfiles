@@ -9,8 +9,6 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
 local lsp_formatting = function(bufnr)
     vim.lsp.buf.format({
         filter = function(client)
-            -- apply whatever logic you want (in this example, we'll only use null-ls)
-            -- return client.name == "null-ls"
             return true
         end,
         bufnr = bufnr,
@@ -35,11 +33,6 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
   vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
   vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
-  vim.keymap.set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, bufopts)
-  vim.keymap.set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
-  vim.keymap.set('n', '<leader>wl', function()
-    print(vim.inspect(vim.lsp.buf.list_workleader_folders()))
-  end, bufopts)
   vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, bufopts)
   vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, bufopts)
   vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, bufopts)
@@ -108,19 +101,6 @@ require('lspconfig')['kotlin_language_server'].setup{
   capabilities = capabilities,
   settings = { }
 }
-
-local null_ls = require("null-ls")
-null_ls.setup({
-    sources = {
-        null_ls.builtins.diagnostics.clj_kondo,
-        null_ls.builtins.formatting.cljstyle,
-        null_ls.builtins.formatting.fnlfmt,
-        null_ls.builtins.formatting.mix,
-        null_ls.builtins.diagnostics.ktlint
-    },
-    on_attach = on_attach,
-})
-
 
 require('nvim-treesitter.configs').setup({
   ensure_installed = {
