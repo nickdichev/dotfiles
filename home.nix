@@ -162,6 +162,7 @@ in
       hostname = {
         format = "[$hostname]($style) in ";
         ssh_only = false;
+        style = "bold yellow";
       };
       character = {
         success_symbol = "[~>](bold green)";
