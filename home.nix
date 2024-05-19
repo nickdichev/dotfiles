@@ -25,14 +25,14 @@ in
     # # "Hello, world!" when run.
     # pkgs.hello
 
-    # # It is sometimes useful to fine-tune packages, for example, by applying
+    # # It is sometimes useful to fine-tune packages, for ezample, by applying
     # # overrides. You can do that directly here, just don't forget the
     # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
     # # fonts?
     # (pkgs.nerdfonts.override { fonts = [ "FantasqueSansMono" ]; })
 
     # # You can also create simple shell scripts directly inside your
-    # # configuration. For example, this adds a command 'my-hello' to your
+    # # configuration. For ezample, this adds a command 'my-hello' to your
     # # environment:
     # (pkgs.writeShellScriptBin "my-hello" ''
     #   echo "Hello, ${config.home.username}!"
@@ -228,11 +228,11 @@ in
     '';
 
     shellAliases = {
-      ls = "exa";
-      la = "exa -a";
-      ll = "exa -l";
-      lt = "exa --tree";
-      lla = "exa -la";
+      ls = "eza";
+      la = "eza -a";
+      ll = "eza -l";
+      lt = "eza --tree";
+      lla = "eza -la";
 
       ".." = "cd ..";
       "..2" = "cd ../..";
@@ -276,18 +276,8 @@ in
         src = pkgs.fetchFromGitHub {
           owner = "zsh-users";
           repo = "zsh-completions";
-          rev = "0.27.0";
-          sha256 = "1c2xx9bkkvyy0c6aq9vv3fjw7snlm0m5bjygfk5391qgjpvchd29";
-        };
-      }
-
-      {
-        name = "zsh-history-substring-search";
-        src = pkgs.fetchFromGitHub {
-          owner = "zsh-users";
-          repo = "zsh-history-substring-search";
-          rev = "47a7d416c652a109f6e8856081abc042b50125f4";
-          sha256 = "1mvilqivq0qlsvx2rqn6xkxyf9yf4wj8r85qrxizkf0biyzyy4hl";
+          rev = "0.35.0";
+          sha256 = "GFHlZjIHUWwyeVoCpszgn4AmLPSSE8UVNfRmisnhkpg=";
         };
       }
 
@@ -296,8 +286,18 @@ in
         src = pkgs.fetchFromGitHub {
           owner = "zsh-users";
           repo = "zsh-syntax-highlighting";
-          rev = "db6cac391bee957c20ff3175b2f03c4817253e60";
-          sha256 = "0d9nf3aljqmpz2kjarsrb5nv4rjy8jnrkqdlalwm2299jklbsnmw";
+          rev = "0.8.0";
+          sha256 = "iJdWopZwHpSyYl5/FQXEW7gl/SrKaYDEtTH9cGP7iPo=";
+        };
+      }
+
+      {
+        name = "zsh-you-should-use";
+        src = pkgs.fetchFromGitHub {
+          owner = "MichaelAquilina";
+          repo = "zsh-you-should-use";
+          rev = "1.7.4";
+          sha256 = "Jl3wZa/WIA+GtkUiCn0vKfd6N/GitOavwZ+uqfmzdps=";
         };
       }
     ];
