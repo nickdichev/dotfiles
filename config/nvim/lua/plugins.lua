@@ -15,7 +15,6 @@ return require('lazy').setup({
   'lewis6991/gitsigns.nvim',
   'kdheepak/lazygit.nvim',
   'tpope/vim-eunuch',
-  'tpope/vim-commentary',
   'tpope/vim-surround',
   'tpope/vim-projectionist',
   'andymass/vim-matchup',
@@ -40,6 +39,5 @@ return require('lazy').setup({
   'hrsh7th/vim-vsnip',
 
   { 'nvim-telescope/telescope.nvim', dependencies = { {'nvim-lua/plenary.nvim'} } },
-
   { 'elixir-tools/elixir-tools.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
 })
