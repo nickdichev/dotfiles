@@ -155,6 +155,14 @@ in
     enable = true;
     enableZshIntegration = true;
     settings = {
+      username = {
+        format = "[$user]($style)@";
+        show_always = true;
+      };
+      hostname = {
+        format = "[$hostname]($style) in ";
+        ssh_only = false;
+      };
       character = {
         success_symbol = "[~>](bold green)";
         error_symbol = "[~>](bold red)";
@@ -169,6 +177,8 @@ in
       package = {
         disabled = true;
       };
+      gcloud.disabled = true;
+      aws.disabled = true;
     };
   };
 
