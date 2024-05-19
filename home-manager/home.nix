@@ -214,7 +214,7 @@ in
     enable = true;
     dotDir = ".config/zsh";
     autocd = true;
-    enableAutosuggestions = true;
+    autosuggestion.enable = true;
     enableCompletion = true;
 
     # initExtra = lib.strings.concatLines [ "bindkey -e" ];
