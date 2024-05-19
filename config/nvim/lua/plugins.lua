@@ -14,7 +14,7 @@ vim.opt.rtp:prepend(lazypath)
 return require('lazy').setup({
   'lewis6991/gitsigns.nvim',
   'kdheepak/lazygit.nvim',
-  'tpope/vim-eunuch',
+  'tpope/vim-eunuch', -- sugar for unix shell commands
   'tpope/vim-surround',
   'tpope/vim-projectionist',
   'andymass/vim-matchup',
