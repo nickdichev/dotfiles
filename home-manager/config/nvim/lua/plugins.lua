@@ -1,40 +1,51 @@
-return require('packer').startup(function(use)
-  use 'wbthomason/packer.nvim'
-  use 'nvim-lua/plenary.nvim'
-  use 'lewis6991/gitsigns.nvim'
-  use 'kdheepak/lazygit.nvim'
-  use 'tpope/vim-eunuch'
-  use 'tpope/vim-commentary'
-  use 'tpope/vim-surround'
-  use 'tpope/vim-projectionist'
-  use 'andymass/vim-matchup'
-  use 'mhinz/vim-sayonara'
-  use {'christoomey/vim-tmux-navigator', lazy = false }
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable", -- latest stable release
+    lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
 
-  use 'navarasu/onedark.nvim'
-  use 'nvim-lualine/lualine.nvim'
+return require('lazy').setup({
+  'lewis6991/gitsigns.nvim',
+  'kdheepak/lazygit.nvim',
+  'tpope/vim-eunuch',
+  'tpope/vim-commentary',
+  'tpope/vim-surround',
+  'tpope/vim-projectionist',
+  'andymass/vim-matchup',
+  'mhinz/vim-sayonara',
+  {'christoomey/vim-tmux-navigator', lazy = false },
 
-  use 'neovim/nvim-lspconfig'
-  use 'nvim-treesitter/nvim-treesitter-context'
-  use 'nvim-treesitter/nvim-treesitter-textobjects'
-  use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
-  use { 'jose-elias-alvarez/null-ls.nvim', requires = { 'nvim-lua/plenary.nvim' } }
+  'navarasu/onedark.nvim',
+  'nvim-lualine/lualine.nvim',
 
-  use 'hrsh7th/cmp-nvim-lsp'
-  use 'hrsh7th/cmp-buffer'
-  use 'hrsh7th/cmp-path'
-  use 'hrsh7th/cmp-cmdline'
-  use 'hrsh7th/nvim-cmp'
-  use 'hrsh7th/cmp-vsnip'
-  use 'hrsh7th/vim-vsnip'
+  'neovim/nvim-lspconfig',
+  'nvim-treesitter/nvim-treesitter-context',
+  'nvim-treesitter/nvim-treesitter-textobjects',
+  { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
+  { 'jose-elias-alvarez/null-ls.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
 
-  use { 'nvim-telescope/telescope.nvim', tag = '0.1.4', requires = { {'nvim-lua/plenary.nvim'} } }
+  'hrsh7th/cmp-nvim-lsp',
+  'hrsh7th/cmp-buffer',
+  'hrsh7th/cmp-path',
+  'hrsh7th/cmp-cmdline',
+  'hrsh7th/nvim-cmp',
+  'hrsh7th/cmp-vsnip',
+  'hrsh7th/vim-vsnip',
 
-  use { 'elixir-tools/elixir-tools.nvim', requires = { 'nvim-lua/plenary.nvim' } }
+  { 'nvim-telescope/telescope.nvim', dependencies = { {'nvim-lua/plenary.nvim'} } },
 
-  use 'olical/conjure'
-  use 'p00f/nvim-ts-rainbow'
-  use 'janet-lang/janet.vim'
-  use 'jaawerth/fennel.vim'
-  use { 'eraserhd/parinfer-rust', run = 'cargo build --release' }
-end)
+  { 'elixir-tools/elixir-tools.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
+
+  'olical/conjure',
+  'p00f/nvim-ts-rainbow',
+  'janet-lang/janet.vim',
+  'jaawerth/fennel.vim',
+  { 'eraserhd/parinfer-rust', build = 'cargo build --release' },
+})
