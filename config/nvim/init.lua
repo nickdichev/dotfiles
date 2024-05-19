@@ -12,8 +12,6 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-hello world
-
 -- Leader
 -- Must be done before lazy is loaded
 vim.g.mapleader = ' '
