@@ -1,4 +1,4 @@
 {
-  home.username = "";
-  home.homeDirectory = "";
+  home.username = "firework";
+  home.homeDirectory = "/Users/firework";
 }

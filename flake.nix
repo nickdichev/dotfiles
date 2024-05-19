@@ -15,7 +15,7 @@
       system = "x86_64-darwin";
       pkgs = nixpkgs.legacyPackages.${system};
     in {
-      homeConfigurations.kamana = home-manager.lib.homeManagerConfiguration {
+      homeConfigurations.firework = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
 
         # Specify your home configuration modules here, for example,

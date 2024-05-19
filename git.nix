@@ -1,4 +1,4 @@
 {
-  programs.git.userEmail = "";
-  programs.git.userName = "";
+  programs.git.userEmail = "nickdichev-firework";
+  programs.git.userName = "nick.dichev@fireworkhq.com";
 }
