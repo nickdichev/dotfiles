@@ -26,5 +26,3 @@ require('lsp')
 require('options')
 require('completion')
 require('keybinds')
-
--- require('plugin/elixir')

@@ -10,12 +10,4 @@ local elixirls_cmd = function()
   end
 end
 
-local kotlinls_cmd = function()
-  if is_devenv() then
-    return os.getenv('DEVENV_PROFILE') .. '/bin/kotlin-language-server'
-  else
-    return os.getenv('HOME') .. '/.ls/kotlin-language-server/server/build/install/server/bin/kotlin-language-server'
-  end
-end
-
-return { elixirls_cmd = elixirls_cmd, kotlinls_cmd = kotlinls_cmd }
+return { elixirls_cmd = elixirls_cmd}

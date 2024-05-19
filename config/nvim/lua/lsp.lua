@@ -32,6 +32,7 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, bufopts)
   vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, bufopts)
   vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, bufopts)
+  vim.keymap.set("n", "<leader>r",  vim.lsp.codelens.run, map_opts)
   vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
   vim.keymap.set('n', '<leader>mf', function() lsp_formatting(bufnr) end, bufopts)
 
@@ -47,70 +48,15 @@ local on_attach = function(client, bufnr)
   end
 end
 
-local on_attach_elixir = function(client, bufnr)
-  local map_opts = { buffer = true, noremap = true}
-
-  -- run the codelens under the cursor
-  vim.keymap.set("n", "<leader>r",  vim.lsp.codelens.run, map_opts)
-  -- remove the pipe operator
-  vim.keymap.set("n", "<leader>fp", ":ElixirFromPipe<cr>", map_opts)
-  -- add the pipe operator
-  vim.keymap.set("n", "<leader>tp", ":ElixirToPipe<cr>", map_opts)
-  vim.keymap.set("v", "<leader>em", ":ElixirExpandMacro<cr>", map_opts)
-
-  -- keybinds for vim-vsnip: https://github.com/hrsh7th/vim-vsnip
-  vim.cmd([[imap <expr> <C-l> vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : '<C-l>']])
-  vim.cmd([[smap <expr> <C-l> vsnip#available(1) ? '<Plug>(vsnip-expand-or-jump)' : '<C-l>']])
-
-  return on_attach(client, bufnr)
-end
-
-local lsp_flags = {
-  -- This is the default in Nvim 0.7+
-  debounce_text_changes = 150,
-}
-
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-require('lspconfig')['elixirls'].setup{
-  cmd = { lsp_helpers.elixirls_cmd() },
-  on_attach = on_attach_elixir,
-  capabilities = capabilities,
-  settings = {
-    dialyzerEnabled = true,
-    fetchDeps = false,
-    enableTestLenses = true,
-    suggestSpecs = false,
-  }
-}
-
-require('lspconfig')['clojure_lsp'].setup{
-  cmd = { os.getenv('HOME') .. '/.ls/clojure-lsp/clojure-lsp' },
-  on_attach = on_attach,
-  capabilities = capabilities,
-  settings = { }
-}
-
-require('lspconfig')['kotlin_language_server'].setup{
-  cmd = { lsp_helpers.kotlinls_cmd() },
-  on_attach = on_attach,
-  capabilities = capabilities,
-  settings = { }
-}
-
 require('nvim-treesitter.configs').setup({
   ensure_installed = {
-    "clojure",
     "elixir",
     "erlang",
-    "fennel",
     "hcl",
     "heex",
     "html",
-    "janet_simple",
     "javascript",
     "json",
-    "kotlin",
     "lua",
     "markdown",
     "nix",
