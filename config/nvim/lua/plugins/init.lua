@@ -1,5 +1,5 @@
 return {
-  'lewis6991/gitsigns.nvim',
+  {'lewis6991/gitsigns.nvim', config = true},
   'kdheepak/lazygit.nvim',
   'tpope/vim-eunuch', -- sugar for unix shell commands
   'tpope/vim-surround',
@@ -32,6 +32,6 @@ return {
   'hrsh7th/cmp-vsnip',
   'hrsh7th/vim-vsnip',
 
-  { 'nvim-telescope/telescope.nvim', dependencies = { {'nvim-lua/plenary.nvim'} } },
+  { 'nvim-telescope/telescope.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
   { 'elixir-tools/elixir-tools.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
 }

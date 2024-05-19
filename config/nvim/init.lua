@@ -12,6 +12,8 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+hello world
+
 -- Leader
 -- Must be done before lazy is loaded
 vim.g.mapleader = ' '
@@ -25,8 +27,4 @@ require('options')
 require('completion')
 require('keybinds')
 
--- require('plugin/gitsigns')
--- require('plugin/lazygit')
--- require('plugin/onedark')
--- require('plugin/lualine')
 -- require('plugin/elixir')
