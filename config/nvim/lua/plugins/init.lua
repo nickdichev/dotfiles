@@ -1,17 +1,4 @@
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not (vim.uv or vim.loop).fs_stat(lazypath) then
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-  })
-end
-vim.opt.rtp:prepend(lazypath)
-
-return require('lazy').setup({
+return {
   'lewis6991/gitsigns.nvim',
   'kdheepak/lazygit.nvim',
   'tpope/vim-eunuch', -- sugar for unix shell commands
@@ -21,8 +8,16 @@ return require('lazy').setup({
   'mhinz/vim-sayonara',
   {'christoomey/vim-tmux-navigator', lazy = false },
 
-  'navarasu/onedark.nvim',
-  'nvim-lualine/lualine.nvim',
+  {'maxmx03/dracula.nvim', config = function ()
+    vim.cmd.colorscheme 'dracula'
+  end},
+
+  {'nvim-lualine/lualine.nvim', opts = {
+    options = {
+      theme = vim.g.colors_name,
+      refresh = {statusline = 1000}
+    }
+  }},
 
   'neovim/nvim-lspconfig',
   'nvim-treesitter/nvim-treesitter-context',
@@ -39,4 +34,4 @@ return require('lazy').setup({
 
   { 'nvim-telescope/telescope.nvim', dependencies = { {'nvim-lua/plenary.nvim'} } },
   { 'elixir-tools/elixir-tools.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
-})
+}
