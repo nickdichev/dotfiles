@@ -23,4 +23,4 @@ opt.splitright = true
 -- opt.listchars:append({tab = '·'})
 -- opt.listchars:append({trail = '·'})
 
-opt.scrolloff = 5
+opt.scrolloff = 15
