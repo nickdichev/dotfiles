@@ -330,7 +330,6 @@ in
     prefix = "C-Space";
     
     plugins = with pkgs.tmuxPlugins; [
-      dracula
       better-mouse-mode
       sensible
       vim-tmux-navigator
