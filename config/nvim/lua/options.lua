@@ -24,3 +24,5 @@ opt.splitright = true
 -- opt.listchars:append({trail = '·'})
 
 opt.scrolloff = 15
+
+opt.termguicolors = true

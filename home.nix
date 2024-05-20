@@ -324,7 +324,6 @@ in
     enable = true;
     shell = "${pkgs.zsh}/bin/zsh";
     keyMode = "vi";
-    terminal = "screen-256color";
     historyLimit = 100000;
     baseIndex = 1;
     prefix = "C-Space";
@@ -337,7 +336,6 @@ in
     ];
 
     extraConfig = ''
-      set-option -sa terminal-overrides ",xterm*:Tc"
       set -g mouse on
 
       bind-key -T copy-mode-vi v send-keys -X begin-selection
