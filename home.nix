@@ -293,6 +293,9 @@ in
       watch = "viddy";
       lis = "listening";
 
+      # Fix 256color
+      tmux = "tmux -2"
+
       preview_file = "fd --no-ignore --hidden --follow --strip-cwd-prefix | fzf --preview \'bat --style=numbers --color=always --line-range :500 {}\'";
       preview_git_commits = "git log --oneline --decorate --color | fzf --preview \'git show $(echo {} | cut -d\" \" -f1) | delta\'";
     };
