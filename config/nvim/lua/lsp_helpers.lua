@@ -5,9 +5,11 @@ end
 local elixirls_cmd = function()
   if is_devenv() then
     return os.getenv('DEVENV_PROFILE') .. '/bin/elixir-ls'
-  else
-    return os.getenv('HOME') .. '/.ls/elixir-ls/language_server.sh'
   end
 end
 
-return { elixirls_cmd = elixirls_cmd}
+local nextls_cmd = function()
+  return os.getenv('HOME') .. '/.nix-profile/bin/nextls'
+end
+
+return { elixirls_cmd = elixirls_cmd, nextls_cmd = nextls_cmd }
