@@ -1,8 +1,10 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 let
   fireworkConfigPath = ./firework.nix;
   isFireworkMachine = builtins.pathExists (toString fireworkConfigPath);
+
+  inherit (inputs) next-ls;
 in
 {
   imports =
@@ -52,6 +54,7 @@ in
     pkgs.ripgrep
     pkgs.wget
     pkgs.viddy
+    next-ls.packages.${pkgs.system}.default
 
     (pkgs.writeShellScriptBin "listening" ''
       #!/bin/sh
@@ -229,7 +232,7 @@ in
       "confirm_os_window_on_close" = 1;
     };
     font = {
-      name = "Fira Code";
+      name = "Fira Code Nerd Font";
     };
     keybindings = {
       "ctrl+shift+o" = "close_other_windows_in_tab";

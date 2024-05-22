@@ -20,7 +20,41 @@
         "type": "github"
       }
     },
+    "next-ls": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1716384911,
+        "narHash": "sha256-yaOb/YEdhicijiHxShVOwwdnALR2kHTZ81J5zmPD/4M=",
+        "owner": "elixir-tools",
+        "repo": "next-ls",
+        "rev": "5846724eb37472649a641762e1006373330c65fe",
+        "type": "github"
+      },
+      "original": {
+        "owner": "elixir-tools",
+        "repo": "next-ls",
+        "rev": "5846724eb37472649a641762e1006373330c65fe",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
+      "locked": {
+        "narHash": "sha256-5tPUpZlCpgqDQVUDlmhDhKn1h0A68jba8/DYie+yNC4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "592a779f3c5e7bce1a02027abe11b7996816223f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1715961556,
         "narHash": "sha256-+NpbZRCRisUHKQJZF3CT+xn14ZZQO+KjxIIanH3Pvn4=",
@@ -39,7 +73,8 @@
     "root": {
       "inputs": {
         "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs"
+        "next-ls": "next-ls",
+        "nixpkgs": "nixpkgs_2"
       }
     }
   },
