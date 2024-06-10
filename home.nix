@@ -94,11 +94,6 @@ in
       target = ".config/nvim";
       recursive = true;
     };
-
-    ".hammerspoon" = {
-      source = ./config/hammerspoon;
-      recursive = true;
-    };
   };
 
   # You can also manage environment variables but you will have to manually
