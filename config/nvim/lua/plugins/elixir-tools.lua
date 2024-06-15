@@ -1,3 +1,5 @@
+local map = require('core.utils').map
+
 return {
  'elixir-tools/elixir-tools.nvim',
   version = "*",
@@ -29,12 +31,12 @@ return {
           dialyzerEnabled = false,
           enableTestLenses = true,
         },
+        on_attach = function(client, bufnr)
+          map("n", "<leader>fp", ":ElixirFromPipe<CR>", { buffer = true })
+          map("n", "<leader>tp", ":ElixirToPipe<CR>", { buffer = true })
+          map("v", "<leader>em", ":ElixirExpandMacro<CR>", { buffer = true })
+        end
       },
-      on_attach = function(client, bufnr)
-        vim.keymap.set("n", "<space>fp", ":ElixirFromPipe<cr>", { buffer = true, noremap = true })
-        vim.keymap.set("n", "<space>tp", ":ElixirToPipe<cr>", { buffer = true, noremap = true })
-        vim.keymap.set("v", "<space>em", ":ElixirExpandMacro<cr>", { buffer = true, noremap = true })
-      end
     })
   end,
   dependencies = { 'nvim-lua/plenary.nvim' }
