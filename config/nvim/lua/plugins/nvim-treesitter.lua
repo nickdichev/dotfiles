@@ -1,28 +1,28 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-		event = "BufRead",
-		build = function() vim.cmd("TSUpdate") end,
-		dependencies = {
-			{ "nvim-treesitter/nvim-treesitter-textobjects" },
-		},
+    event = "BufRead",
+    build = function() vim.cmd("TSUpdate") end,
+    dependencies = {
+      { "nvim-treesitter/nvim-treesitter-textobjects" },
+    },
     config = function ()
       require("nvim-treesitter.install").compilers = { vim.g.gcc_bin_path }
       require("nvim-treesitter.configs").setup {
-          ensure_installed = {
-            "elixir",
-            "erlang",
-            "hcl",
-            "heex",
-            "html",
-            "javascript",
-            "json",
-            "lua",
-            "markdown",
-            "nix",
-            "python",
-            "toml",
-            "yaml"
+        ensure_installed = {
+          "elixir",
+          "erlang",
+          "hcl",
+          "heex",
+          "html",
+          "javascript",
+          "json",
+          "lua",
+          "markdown",
+          "nix",
+          "python",
+          "toml",
+          "yaml"
         },
         highlight = { enable = true },
         indent    = { enable = true },
@@ -55,10 +55,10 @@ return {
     end,
   },
   {
-		"nvim-treesitter/nvim-treesitter-context",
-		event = "BufRead",
-		opts = {
-			enable = true,
-		},
-	},
+    "nvim-treesitter/nvim-treesitter-context",
+    event = "BufRead",
+    opts = {
+      enable = true,
+    },
+  },
 }
