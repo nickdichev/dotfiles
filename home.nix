@@ -46,7 +46,6 @@ in
     pkgs.htop
     pkgs.lolcat
     pkgs.inetutils
-    pkgs.neovim
     pkgs.mediainfo
     pkgs.ffmpeg-full
     # https://github.com/NixOS/nixpkgs/blob/nixos-22.11/pkgs/data/fonts/nerdfonts/shas.nix
@@ -88,12 +87,6 @@ in
     ".psql"  =  {
       source = ./config/psql;
     };
-
-    ".nvim"  =  {
-      source = ./config/nvim;
-      target = ".config/nvim";
-      recursive = true;
-    };
   };
 
   # You can also manage environment variables but you will have to manually
@@ -107,8 +100,6 @@ in
   #
   # if you don't want to manage your shell through Home Manager.
   home.sessionVariables = {
-    EDITOR = "nvim";
-
     ELIXIR_EDITOR = "kitty @ launch --title Output --keep-focus nvim +__LINE__ __FILE__";
     ERL_AFLAGS = "-kernel shell_history enabled";
   };
@@ -345,8 +336,29 @@ in
     '';
   };
 
-  programs.zellij = {
+  programs.neovim = {
     enable = true;
+    defaultEditor = true;
+    extraPackages = [
+      pkgs.gcc
+      pkgs.tree-sitter
+      pkgs.nodejs
+    ];
+
+  };
+
+  xdg.configFile = {
+    "nvim/init.lua".text = # lua
+      ''
+      vim.g.gcc_bin_path = '${lib.getExe pkgs.gcc}'
+      require("config")
+      '';
+
+    "nvim/lua".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/nvim/lua";
+  };
+
+  programs.zellij = {
+    enable = false;
     enableZshIntegration = true;
   };
 
