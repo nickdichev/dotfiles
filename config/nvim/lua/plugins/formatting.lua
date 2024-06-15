@@ -15,7 +15,7 @@ return {
 						["end"] = { args.line2, end_line:len() },
 					}
 				end
-				require("conform").format { async = true, lsp_fallback = true, range = range }
+				require("conform").format({ async = true, lsp_fallback = true, range = range })
 			end, { range = true })
 
 			vim.api.nvim_create_user_command("FormatDisable", function(args)
@@ -38,7 +38,7 @@ return {
 				desc = "Re-enable autoformat-on-save",
 			})
 
-      map({ "n", "x"}, "<leader>ff", ":Format<CR>")
+			map({ "n", "x" }, "<leader>ff", ":Format<CR>")
 		end,
 		opts = function()
 			return {
