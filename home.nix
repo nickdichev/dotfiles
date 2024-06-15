@@ -340,9 +340,20 @@ in
     enable = true;
     defaultEditor = true;
     extraPackages = [
+      # Tools
       pkgs.gcc
       pkgs.tree-sitter
       pkgs.nodejs
+
+      # Formatting
+      pkgs.nixfmt-rfc-style # Nix
+      pkgs.black # Python
+      pkgs.prettierd # Multi-language
+      pkgs.shfmt # Shell
+      pkgs.isort # Python
+      pkgs.stylua # Lua
+
+      # LSP
     ];
 
   };
