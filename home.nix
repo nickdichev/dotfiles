@@ -317,7 +317,7 @@ in
     shell = "${pkgs.zsh}/bin/zsh";
     keyMode = "vi";
     historyLimit = 100000;
-    baseIndex = 1;
+    baseIndex = 0;
     prefix = "C-Space";
     
     plugins = with pkgs.tmuxPlugins; [
