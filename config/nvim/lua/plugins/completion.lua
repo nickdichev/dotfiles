@@ -1,4 +1,5 @@
 return {
+  {"L3MON4D3/LuaSnip"},
   {
     "hrsh7th/nvim-cmp",
     event = "BufRead",
@@ -9,14 +10,15 @@ return {
       "hrsh7th/cmp-path",
       "hrsh7th/cmp-cmdline",
       "hrsh7th/cmp-git",
+      'saadparwaiz1/cmp_luasnip'
     },
     config = function()
       local cmp = require('cmp')
       cmp.setup({
         snippet = {
           expand = function(args)
-            vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
-          end,
+            require'luasnip'.lsp_expand(args.body)
+          end
         },
         window = {
           completion = cmp.config.window.bordered(),
@@ -33,6 +35,7 @@ return {
           { name = "nvim_lsp" },
           { name = "nvim_lua" },
           { name = "path" },
+          { name = 'luasnip' },
           }, {
             { name = "buffer" },
         }),
