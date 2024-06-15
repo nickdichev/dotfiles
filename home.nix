@@ -351,6 +351,7 @@ in
     "nvim/init.lua".text = # lua
       ''
       vim.g.gcc_bin_path = '${lib.getExe pkgs.gcc}'
+      vim.g.nodejs_bin_path = '${lib.getExe pkgs.nodejs}'
       require("config")
       '';
 
