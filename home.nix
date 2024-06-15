@@ -1,4 +1,10 @@
-{ config, pkgs, lib, inputs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
 
 let
   fireworkConfigPath = ./firework.nix;
@@ -7,9 +13,10 @@ let
   inherit (inputs) next-ls;
 in
 {
-  imports =
-    [./username.nix ./git.nix]
-    ++ lib.optional isFireworkMachine fireworkConfigPath;
+  imports = [
+    ./username.nix
+    ./git.nix
+  ] ++ lib.optional isFireworkMachine fireworkConfigPath;
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -66,9 +73,8 @@ in
          echo "Usage: listening [port]"
          exit 1
        fi
-     '')
+    '')
   ];
-
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
@@ -84,7 +90,7 @@ in
     #   org.gradle.daemon.idletimeout=3600000
     # '';
 
-    ".psql"  =  {
+    ".psql" = {
       source = ./config/psql;
     };
   };
@@ -114,7 +120,7 @@ in
   programs.fzf = {
     enable = true;
     defaultCommand = "fd --type file --color=always";
-    defaultOptions = ["--ansi"];
+    defaultOptions = [ "--ansi" ];
   };
 
   programs.direnv = {
@@ -189,7 +195,7 @@ in
       };
     };
 
-    aliases = {};
+    aliases = { };
 
     ignores = [
       ".elixir_ls"
@@ -234,7 +240,7 @@ in
     enableCompletion = true;
 
     # initExtra = lib.strings.concatLines [ "bindkey -e" ];
-    initExtra =  ''
+    initExtra = ''
       bindkey -e
 
       if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; 
@@ -278,7 +284,7 @@ in
       gs = "git status";
       gsw = "git switch";
 
-      vim  =  "nvim";
+      vim = "nvim";
       watch = "viddy";
       lis = "listening";
 
@@ -319,7 +325,7 @@ in
     historyLimit = 100000;
     baseIndex = 0;
     prefix = "C-Space";
-    
+
     plugins = with pkgs.tmuxPlugins; [
       better-mouse-mode
       sensible
@@ -361,9 +367,9 @@ in
   xdg.configFile = {
     "nvim/init.lua".text = # lua
       ''
-      vim.g.gcc_bin_path = '${lib.getExe pkgs.gcc}'
-      vim.g.nodejs_bin_path = '${lib.getExe pkgs.nodejs}'
-      require("config")
+        vim.g.gcc_bin_path = '${lib.getExe pkgs.gcc}'
+        vim.g.nodejs_bin_path = '${lib.getExe pkgs.nodejs}'
+        require("config")
       '';
 
     "nvim/lua".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/nvim/lua";
@@ -376,9 +382,7 @@ in
 
   programs.atuin = {
     enable = true;
-    flags = [
-      "--disable-up-arrow"
-    ];
+    flags = [ "--disable-up-arrow" ];
     settings = {
       filter_mode_shell_up_key_binding = "session";
     };
