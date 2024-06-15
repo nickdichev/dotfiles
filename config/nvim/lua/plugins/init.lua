@@ -20,9 +20,6 @@ return {
   }},
 
   'neovim/nvim-lspconfig',
-  'nvim-treesitter/nvim-treesitter-context',
-  'nvim-treesitter/nvim-treesitter-textobjects',
-  { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
 
   'hrsh7th/cmp-nvim-lsp',
   'hrsh7th/cmp-buffer',
