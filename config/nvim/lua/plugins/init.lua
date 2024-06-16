@@ -15,15 +15,5 @@ return {
 		end,
 	},
 
-	{
-		"nvim-lualine/lualine.nvim",
-		opts = {
-			options = {
-				theme = vim.g.colors_name,
-				refresh = { statusline = 1000 },
-			},
-		},
-	},
-
 	{ "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
 }
