@@ -11,7 +11,7 @@ return {
 
 		elixir.setup({
 			nextls = {
-				enable = true,
+				enable = false,
 				cmd = lsp_helpers.nextls_cmd(),
 				init_options = {
 					experimental = {
@@ -25,7 +25,7 @@ return {
 				enable = true,
 			},
 			elixirls = {
-				enable = true,
+				enable = false,
 				cmd = lsp_helpers.elixirls_cmd(),
 				settings = elixirls.settings({
 					dialyzerEnabled = false,
