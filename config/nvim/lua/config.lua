@@ -19,7 +19,5 @@ vim.g.maplocalleader = ","
 
 -- Point lazy at our plugins module
 require("lazy").setup("plugins")
-
-require("lsp")
 require("options")
 require("keybinds")

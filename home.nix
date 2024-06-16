@@ -360,6 +360,10 @@ in
       pkgs.stylua # Lua
 
       # LSP
+      pkgs.lexical
+      pkgs.nil
+      pkgs.pyright
+      pkgs.lua-language-server
     ];
 
   };
