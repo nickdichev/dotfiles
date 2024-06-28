@@ -72,6 +72,8 @@ local lsp_config_function = function()
 		end,
 	})
 
+	lspconfig.pyright.setup({})
+
 	vim.api.nvim_create_autocmd("InsertEnter", {
 		callback = function()
 			vim.lsp.inlay_hint.enable(false)
