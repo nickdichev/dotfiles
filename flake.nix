@@ -8,10 +8,6 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    next-ls = {
-      url = "github:elixir-tools/next-ls/0b1432c6f36ace17789f70a87505bac271e0e3ea";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =

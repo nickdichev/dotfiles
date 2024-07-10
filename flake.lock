@@ -20,28 +20,6 @@
         "type": "github"
       }
     },
-    "next-ls": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "zigpkgs": "zigpkgs"
-      },
-      "locked": {
-        "lastModified": 1718289757,
-        "narHash": "sha256-wTEf0pxVIT7qmPufAN9vGR9rY31kWjNabYZwKe/hkVU=",
-        "owner": "elixir-tools",
-        "repo": "next-ls",
-        "rev": "0b1432c6f36ace17789f70a87505bac271e0e3ea",
-        "type": "github"
-      },
-      "original": {
-        "owner": "elixir-tools",
-        "repo": "next-ls",
-        "rev": "0b1432c6f36ace17789f70a87505bac271e0e3ea",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1719254875,
@@ -61,24 +39,7 @@
     "root": {
       "inputs": {
         "home-manager": "home-manager",
-        "next-ls": "next-ls",
         "nixpkgs": "nixpkgs"
-      }
-    },
-    "zigpkgs": {
-      "locked": {
-        "lastModified": 1704057613,
-        "narHash": "sha256-5tPUpZlCpgqDQVUDlmhDhKn1h0A68jba8/DYie+yNC4=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "592a779f3c5e7bce1a02027abe11b7996816223f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "592a779f3c5e7bce1a02027abe11b7996816223f",
-        "type": "github"
       }
     }
   },

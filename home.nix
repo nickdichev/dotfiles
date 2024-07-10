@@ -2,15 +2,12 @@
   config,
   pkgs,
   lib,
-  inputs,
   ...
 }:
 
 let
   fireworkConfigPath = ./firework.nix;
   isFireworkMachine = builtins.pathExists (toString fireworkConfigPath);
-
-  inherit (inputs) next-ls;
 in
 {
   imports = [
@@ -60,7 +57,6 @@ in
     pkgs.ripgrep
     pkgs.wget
     pkgs.viddy
-    next-ls.packages.${pkgs.system}.default
 
     (pkgs.writeShellScriptBin "listening" ''
       #!/bin/sh
