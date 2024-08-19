@@ -378,11 +378,6 @@ in
     "nvim/lua".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/nvim/lua";
   };
 
-  programs.zellij = {
-    enable = false;
-    enableZshIntegration = true;
-  };
-
   programs.atuin = {
     enable = true;
     flags = [ "--disable-up-arrow" ];
