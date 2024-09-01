@@ -360,6 +360,9 @@ in
       pkgs.nil
       pkgs.pyright
       pkgs.lua-language-server
+      pkgs.nodePackages."@astrojs/language-server"
+      pkgs.nodePackages.eslint
+      pkgs.prettierd
     ];
 
   };
