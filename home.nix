@@ -389,4 +389,7 @@ in
     };
   };
 
+  programs.mpv = {
+    enable = false;
+  };
 }
