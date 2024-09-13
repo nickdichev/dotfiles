@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  aider-pkgs,
   lib,
   ...
 }:
@@ -57,6 +58,7 @@ in
     pkgs.ripgrep
     pkgs.wget
     pkgs.viddy
+    aider-pkgs.aider-chat
 
     (pkgs.writeShellScriptBin "listening" ''
       #!/bin/sh
@@ -201,6 +203,7 @@ in
       ".envrc"
       ".DS_Store"
       ".direnv"
+      ".aider*"
     ];
 
     delta = {

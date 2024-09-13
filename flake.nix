@@ -8,13 +8,23 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    aider-nixpkgs = {
+      url = "github:nickdichev-firework/nixpkgs/be60d3450f68e7cb47f3359011cb378af38f3073";
+    };
+
   };
 
   outputs =
-    { nixpkgs, home-manager, ... }@inputs:
+    {
+      nixpkgs,
+      home-manager,
+      aider-nixpkgs,
+      ...
+    }@inputs:
     let
       system = "x86_64-darwin";
       pkgs = nixpkgs.legacyPackages.${system};
+      aider-pkgs = aider-nixpkgs.legacyPackages.${system};
     in
     {
       homeConfigurations.kamana = home-manager.lib.homeManagerConfiguration {
@@ -26,6 +36,7 @@
         extraSpecialArgs = {
           inherit inputs;
           inherit system;
+          inherit aider-pkgs;
         };
 
         # Optionally use extraSpecialArgs
