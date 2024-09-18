@@ -42,14 +42,4 @@ return {
 			map({ "n", "v", "x" }, "<leader>cs", pick_with_selection("visual"))
 		end,
 	},
-	{
-		"joshuavial/aider.nvim",
-		opts = {},
-		init = function()
-			local aider = require("aider")
-			map({ "n", "v", "x" }, "<leader>aa", function()
-				aider.AiderOpen()
-			end)
-		end,
-	},
 }
