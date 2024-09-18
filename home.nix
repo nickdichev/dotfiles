@@ -231,6 +231,20 @@ in
     };
   };
 
+  programs.wezterm = {
+    enable = true;
+    enableZshIntegration = true;
+    extraConfig = ''
+      local wezterm = require 'wezterm';
+      return {
+        color_scheme = "Dracula (Official)",
+        font = wezterm.font("Fira Code"),
+        hide_tab_bar_if_only_one_tab = true,
+        front_end = "WebGpu",
+      }
+    '';
+  };
+
   programs.zsh = {
     enable = true;
     dotDir = ".config/zsh";
