@@ -48,6 +48,7 @@ in
     pkgs.devenv
     pkgs.fd
     pkgs.graphviz
+    pkgs.git-absorb
     pkgs.htop
     pkgs.lolcat
     pkgs.inetutils
