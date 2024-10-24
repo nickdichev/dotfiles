@@ -184,6 +184,7 @@ in
   programs.git = {
     enable = true;
     lfs.enable = true;
+    difftastic.enable = true;
 
     extraConfig = {
       init = {
@@ -206,10 +207,6 @@ in
       ".direnv"
       ".aider*"
     ];
-
-    delta = {
-      enable = true;
-    };
   };
 
   programs.kitty = {
