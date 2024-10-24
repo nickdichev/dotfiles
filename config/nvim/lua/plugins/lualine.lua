@@ -39,19 +39,6 @@ local function markM()
 	return " " .. markBufname .. ":" .. markLn
 end
 
--- only show the clock when fullscreen (= it covers the menubar clock)
-local function clock()
-	if vim.opt.columns:get() < 110 or vim.opt.lines:get() < 25 then
-		return ""
-	end
-
-	local time = tostring(os.date()):sub(12, 16)
-	if os.time() % 2 == 1 then
-		time = time:gsub(":", " ")
-	end -- make the `:` blink
-	return time
-end
-
 local function treesitter_context()
 	return require("nvim-treesitter").statusline(90)
 end
@@ -125,21 +112,7 @@ local lualineConfig = {
 	-- INFO using the tabline will override vim's default tabline, so the tabline
 	-- should always include the tab element
 	tabline = {
-		lualine_a = {
-			-- INFO setting different section separators in the same components has
-			-- yanky results, they should have the same separator
-			-- searchcounter at the top, so it work with cmdheight=0
-			{ clock, section_separators = emptySeparators },
-			{
-				"tabs",
-				mode = 1,
-				max_length = vim.o.columns * 0.7,
-				section_separators = emptySeparators,
-				cond = function()
-					return fn.tabpagenr("$") > 1
-				end,
-			},
-		},
+		lualine_a = {},
 		lualine_b = {
 			{ treesitter_context, section_separators = topSeparators },
 		},
