@@ -130,7 +130,7 @@ in
   programs.eza = {
     enable = true;
     git = true;
-    icons = true;
+    icons = "auto";
   };
 
   programs.tealdeer = {
@@ -211,7 +211,7 @@ in
 
   programs.kitty = {
     enable = true;
-    theme = "Dracula";
+    themeFile = "Dracula";
     environment = {
       "KITY_LISTEN_ON" = "unix:/tmp/kitty-$PPID";
     };
