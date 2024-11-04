@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "aider-nixpkgs": {
-      "locked": {
-        "lastModified": 1726178371,
-        "narHash": "sha256-0LVvWODVyu8LDH5LOjLJ01452HNguS+9mb3yzenY6b0=",
-        "owner": "nickdichev-firework",
-        "repo": "nixpkgs",
-        "rev": "be60d3450f68e7cb47f3359011cb378af38f3073",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nickdichev-firework",
-        "repo": "nixpkgs",
-        "rev": "be60d3450f68e7cb47f3359011cb378af38f3073",
-        "type": "github"
-      }
-    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -54,7 +38,6 @@
     },
     "root": {
       "inputs": {
-        "aider-nixpkgs": "aider-nixpkgs",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs"
       }
