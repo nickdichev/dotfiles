@@ -246,6 +246,9 @@ in
       then
         . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
       fi
+
+      eval "$(ssh-agent -s)"
+      ssh-add ~/.ssh/github
     '';
 
     shellAliases = {
