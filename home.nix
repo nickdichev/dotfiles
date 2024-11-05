@@ -59,18 +59,8 @@ in
     pkgs.wget
     pkgs.viddy
 
-    (pkgs.writeShellScriptBin "listening" ''
-      #!/bin/sh
-
-       if [[ $# -eq 0 ]]; then
-         lsof -iTCP -sTCP:LISTEN -n -P
-       elif [[ $# -eq 1 ]]; then
-         lsof -iTCP -sTCP:LISTEN -n -P | rg -i "$1"
-       else
-         echo "Usage: listening [port]"
-         exit 1
-       fi
-    '')
+    (pkgs.callPackage ./scripts/listening.nix { })
+    (pkgs.callPackage ./scripts/clean_git_branches.nix { })
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
