@@ -106,6 +106,7 @@ in
 
   programs.fzf = {
     enable = true;
+    enableZshIntegration = true;
     defaultCommand = "fd --type file --color=always";
     defaultOptions = [ "--ansi" ];
   };
