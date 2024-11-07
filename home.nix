@@ -353,9 +353,9 @@ in
       # Formatting
       pkgs.nixfmt-rfc-style # Nix
       pkgs.black # Python
+      pkgs.isort # Python
       pkgs.prettierd # Multi-language
       pkgs.shfmt # Shell
-      pkgs.isort # Python
       pkgs.stylua # Lua
 
       # LSP
@@ -366,6 +366,7 @@ in
       pkgs.nodePackages."@astrojs/language-server"
       pkgs.nodePackages.eslint
       pkgs.prettierd
+      pkgs.gopls
     ];
 
   };

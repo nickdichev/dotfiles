@@ -14,6 +14,7 @@ return {
 				ensure_installed = {
 					"elixir",
 					"erlang",
+					"go",
 					"hcl",
 					"heex",
 					"html",
