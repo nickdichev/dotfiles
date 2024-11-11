@@ -18,10 +18,8 @@ opt.expandtab = true
 opt.splitbelow = true
 opt.splitright = true
 
--- TODO: trailing whitespace
--- opt.list = true
--- opt.listchars:append({tab = '·'})
--- opt.listchars:append({trail = '·'})
+opt.list = true
+opt.listchars:append({ tab = ">>", trail = "·", nbsp = "␣" })
 
 opt.scrolloff = 15
 
