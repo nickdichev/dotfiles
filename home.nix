@@ -179,9 +179,6 @@ in
       init = {
         defaultBranch = "main";
       };
-      merge = {
-        conflictStyle = "diff3";
-      };
     };
 
     aliases = { };
