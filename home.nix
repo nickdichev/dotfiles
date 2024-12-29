@@ -53,8 +53,7 @@ in
     pkgs.inetutils
     pkgs.mediainfo
     pkgs.ffmpeg-full
-    # https://github.com/NixOS/nixpkgs/blob/nixos-22.11/pkgs/data/fonts/nerdfonts/shas.nix
-    (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; })
+    pkgs.nerd-fonts.fira-code
     pkgs.ripgrep
     pkgs.wget
     pkgs.viddy
