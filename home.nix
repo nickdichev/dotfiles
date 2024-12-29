@@ -92,7 +92,7 @@ in
   #
   # if you don't want to manage your shell through Home Manager.
   home.sessionVariables = {
-    ELIXIR_EDITOR = "kitty @ launch --title Output --keep-focus nvim +__LINE__ __FILE__";
+    # ELIXIR_EDITOR = "kitty @ launch --title Output --keep-focus nvim +__LINE__ __FILE__";
     ERL_AFLAGS = "-kernel shell_history enabled";
   };
 
@@ -199,7 +199,7 @@ in
   };
 
   programs.kitty = {
-    enable = true;
+    enable = false;
     themeFile = "Dracula";
     environment = {
       "KITY_LISTEN_ON" = "unix:/tmp/kitty-$PPID";
@@ -385,7 +385,8 @@ in
         require("config")
       '';
 
-    "nvim/lua".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/nvim/lua";
+    "nvim/lua".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/nvim/lua";
   };
 
   programs.atuin = {
