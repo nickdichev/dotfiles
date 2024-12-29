@@ -127,6 +127,11 @@ in
 
   programs.lazygit = {
     enable = true;
+    settings = {
+      git.paging = {
+        externalDiffCommand = "difft --color=always";
+      };
+    };
   };
 
   programs.gh = {
