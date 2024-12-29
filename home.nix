@@ -313,6 +313,11 @@ in
     ];
   };
 
+  programs.zellij = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   programs.tmux = {
     enable = true;
     shell = "${pkgs.zsh}/bin/zsh";
