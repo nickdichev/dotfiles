@@ -52,7 +52,7 @@ in
     pkgs.lolcat
     pkgs.inetutils
     pkgs.mediainfo
-    pkgs.ffmpeg-full
+    pkgs.ffmpeg
     pkgs.nerd-fonts.fira-code
     pkgs.ripgrep
     pkgs.wget
