@@ -357,6 +357,9 @@ in
 
     "nvim/lua".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/nvim/lua";
+
+    "zellij/config.kdl".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/zellij/config.kdl";
   };
 
   programs.atuin = {
