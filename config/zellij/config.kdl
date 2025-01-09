@@ -49,6 +49,10 @@ keybinds clear-defaults=true {
         bind "Ctrl t" { SwitchToMode "normal"; }
         bind "x" { CloseTab; SwitchToMode "normal"; }
         bind "tab" { ToggleTab; }
+        bind "Shift Left" { MoveTab "Left"; }
+        bind "Shift h" { MoveTab "Left"; }
+        bind "Shift Right" { MoveTab "Right"; }
+        bind "Shift l" { MoveTab "Right"; }
     }
     resize {
         bind "left" { Resize "Increase left"; }
@@ -134,11 +138,6 @@ keybinds clear-defaults=true {
         bind "Alt f" { ToggleFloatingPanes; }
         bind "Ctrl g" { SwitchToMode "locked"; }
         bind "Alt n" { NewPane; }
-        bind "Ctrl q" { Quit; }
-        bind "Shift Left" { MoveTab "Left"; }
-        bind "Shift h" { MoveTab "Left"; }
-        bind "Shift Right" { MoveTab "Right"; }
-        bind "Shift l" { MoveTab "Right"; }
     }
     shared_except "locked" "move" {
         bind "Ctrl h" { SwitchToMode "move"; }
