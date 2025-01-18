@@ -13,6 +13,7 @@ in
   imports = [
     ./username.nix
     ./git.nix
+    ./secrets.nix
   ] ++ lib.optional isFireworkMachine fireworkConfigPath;
 
   # This value determines the Home Manager release that your configuration is
