@@ -74,7 +74,9 @@ local lsp_config_function = function()
 
 	lspconfig.pyright.setup({})
 
-  lspconfig.gopls.setup({})
+	lspconfig.gopls.setup({})
+
+	lspconfig.ts_ls.setup({})
 
 	vim.api.nvim_create_autocmd("InsertEnter", {
 		callback = function()
