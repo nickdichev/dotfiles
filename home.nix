@@ -379,6 +379,10 @@ in
   };
 
   programs.mpv = {
-    enable = false;
+    enable = true;
+  };
+
+  services.ollama = {
+    enable = true;
   };
 }
