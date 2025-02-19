@@ -1,5 +1,3 @@
-local map = require("core.utils").map
-
 return {
 	-- {
 	-- 	"zbirenbaum/copilot.lua",
@@ -48,7 +46,23 @@ return {
 		lazy = false,
 		version = false, -- set this if you want to always pull the latest change
 		opts = {
-			-- add any opts here
+			file_selector = {
+				provider = "telescope",
+				provider_opts = {
+					get_filepaths = function(params)
+						local cwd = params.cwd ---@type string
+						local selected_filepaths = params.selected_filepaths ---@type string[]
+						local cmd = string.format("rg --files --hidden -g !.git -g !.devenv")
+						local output = vim.fn.system(cmd)
+						local filepaths = vim.split(output, "\n", { trimempty = true })
+						return vim.iter(filepaths)
+							:filter(function(filepath)
+								return not vim.tbl_contains(selected_filepaths, filepath)
+							end)
+							:totable()
+					end,
+				},
+			},
 		},
 		-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
 		build = "make",
