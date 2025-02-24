@@ -34,6 +34,7 @@ in
     pkgs.graphviz
     pkgs.git-absorb
     pkgs.htop
+    pkgs.lazydocker
     pkgs.lolcat
     pkgs.inetutils
     pkgs.mediainfo
