@@ -177,40 +177,6 @@ in
     ];
   };
 
-  programs.kitty = {
-    enable = false;
-    themeFile = "Dracula";
-    environment = {
-      "KITY_LISTEN_ON" = "unix:/tmp/kitty-$PPID";
-    };
-    settings = {
-      "allow_remote_control" = "yes";
-      "listen_on" = "unix:/tmp/kitty";
-      "confirm_os_window_on_close" = 1;
-    };
-    font = {
-      name = "Fira Code Nerd Font";
-    };
-    keybindings = {
-      "ctrl+shift+o" = "close_other_windows_in_tab";
-      "cmd+t" = "new_tab_with_cwd";
-    };
-  };
-
-  programs.wezterm = {
-    enable = true;
-    enableZshIntegration = true;
-    extraConfig = ''
-      local wezterm = require 'wezterm';
-      return {
-        color_scheme = "Dracula (Official)",
-        font = wezterm.font("Fira Code"),
-        hide_tab_bar_if_only_one_tab = true,
-        front_end = "WebGpu",
-      }
-    '';
-  };
-
   programs.zsh = {
     enable = true;
     dotDir = ".config/zsh";
@@ -268,9 +234,6 @@ in
       vim = "nvim";
       watch = "viddy";
       lis = "listening";
-
-      # Fix 256color
-      tmux = "tmux -2";
     };
 
     plugins = [
@@ -299,30 +262,6 @@ in
   programs.zellij = {
     enable = true;
     enableZshIntegration = true;
-  };
-
-  programs.tmux = {
-    enable = true;
-    shell = "${pkgs.zsh}/bin/zsh";
-    keyMode = "vi";
-    historyLimit = 100000;
-    baseIndex = 0;
-    prefix = "C-Space";
-
-    plugins = with pkgs.tmuxPlugins; [
-      better-mouse-mode
-      sensible
-      vim-tmux-navigator
-      yank
-    ];
-
-    extraConfig = ''
-      set -g mouse on
-
-      bind-key -T copy-mode-vi v send-keys -X begin-selection
-      bind-key -T copy-mode-vi C-v send-keys -X rectangle-toggle
-      bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
-    '';
   };
 
   programs.neovim = {
