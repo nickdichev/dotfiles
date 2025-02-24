@@ -276,7 +276,7 @@ theme "dracula"
 // Choose the base input mode of zellij.
 // Default: normal
 // 
-default_mode "normal"
+default_mode "locked"
  
 // Choose the path to the default shell that zellij will use for opening new panes
 // Default: $SHELL
@@ -316,8 +316,8 @@ default_mode "normal"
 //   - true (default, enabled)
 //   - false
 // 
-// pane_frames false
- 
+pane_frames false
+
 // When attaching to an existing session with other users,
 // should the session be mirrored (true)
 // or should each user have their own cursor (false)
