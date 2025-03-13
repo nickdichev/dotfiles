@@ -258,6 +258,38 @@
   programs.zellij = {
     enable = true;
     enableZshIntegration = true;
+
+    package = pkgs.zellij.override (
+      let
+        rp = pkgs.rustPlatform;
+      in
+      {
+        rustPlatform = rp // {
+          buildRustPackage =
+            args:
+            rp.buildRustPackage (
+              args
+              // {
+                src = pkgs.fetchFromGitHub {
+                  owner = "zellij-org";
+                  repo = "zellij";
+                  rev = "865eb68ad19fc146c187ff38c8c4e8f96e46551c";
+                  hash = "sha256-2Y/X0evd2WI8mv87Qs7o8spDcM5gE+oywRlFMzMJZTw=";
+                };
+
+                version = "0.42.0";
+
+                cargoLock = {
+                  lockFile = pkgs.fetchurl {
+                    url = "https://raw.githubusercontent.com/zellij-org/zellij/865eb68ad19fc146c187ff38c8c4e8f96e46551c/Cargo.lock";
+                    hash = "sha256-HUeYr7fvX6NXS7snTvaqmKBMZ6ZiTaa2fY7YKKreKNY=";
+                  };
+                };
+              }
+            );
+        };
+      }
+    );
   };
 
   programs.neovim = {
