@@ -292,6 +292,17 @@
     );
   };
 
+  programs.zed-editor = {
+    enable = true;
+    extensions = [
+      "elixir"
+      "nix"
+    ];
+    userSettings = {
+      vim_mode = true;
+    };
+  };
+
   programs.neovim = {
     enable = true;
     defaultEditor = true;
