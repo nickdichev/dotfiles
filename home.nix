@@ -5,16 +5,12 @@
   ...
 }:
 
-let
-  fireworkConfigPath = ./firework.nix;
-  isFireworkMachine = builtins.pathExists (toString fireworkConfigPath);
-in
 {
   imports = [
     ./username.nix
     ./git.nix
     ./secrets.nix
-  ] ++ lib.optional isFireworkMachine fireworkConfigPath;
+  ];
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
