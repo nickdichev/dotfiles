@@ -38,8 +38,9 @@
     pkgs.ffmpeg
     pkgs.nerd-fonts.fira-code
     pkgs.ripgrep
-    pkgs.wget
+    pkgs.uv
     pkgs.viddy
+    pkgs.wget
 
     (pkgs.python312.withPackages (ps: [
       ps.llm
