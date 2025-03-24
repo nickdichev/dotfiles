@@ -24,6 +24,7 @@
   home.packages = [
     pkgs.aerospace
     pkgs.bitwarden-cli
+    pkgs.claude-code
     pkgs.curl
     pkgs.devenv
     pkgs.fd

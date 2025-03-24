@@ -19,7 +19,16 @@
     }@inputs:
     let
       system = "x86_64-darwin";
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = import nixpkgs {
+        inherit system;
+        config = {
+          allowUnfreePredicate =
+            pkg:
+            builtins.elem (nixpkgs.lib.getName pkg) [
+              "claude-code"
+            ];
+        };
+      };
     in
     {
       homeConfigurations.kamana = home-manager.lib.homeManagerConfiguration {
