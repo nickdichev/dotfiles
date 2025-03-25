@@ -19,7 +19,7 @@ opt.splitbelow = true
 opt.splitright = true
 
 opt.list = true
-opt.listchars:append({ tab = ">>", trail = "·", nbsp = "␣" })
+opt.listchars:append({ trail = "·", nbsp = "␣" })
 
 opt.scrolloff = 15
 
