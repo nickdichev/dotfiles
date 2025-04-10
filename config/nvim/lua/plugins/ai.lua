@@ -23,6 +23,31 @@ return {
 		lazy = false,
 		version = false, -- set this if you want to always pull the latest change
 		opts = {
+			provider = "claude",
+			auto_suggestion_provider = "copilot",
+			cursor_applying_provider = "groq",
+			behaviour = {
+				enable_cursor_planning_mode = true,
+				auto_suggestions = false,
+			},
+			vendors = {
+				groq = {
+					__inherited_from = "openai",
+					api_key_name = "GROQ_API_KEY",
+					endpoint = "https://api.groq.com/openai/v1/",
+					model = "llama-3.3-70b-versatile",
+					max_tokens = 32768,
+				},
+				codegemma = {
+					__inherited_from = "openai",
+					api_key_name = "",
+					endpoint = "http://127.0.0.1:11434/v1",
+					model = "codegemma:2b",
+				},
+			},
+			web_search_engine = {
+				provider = "kagi",
+			},
 			file_selector = {
 				provider = "telescope",
 				provider_opts = {
