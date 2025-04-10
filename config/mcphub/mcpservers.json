@@ -1,0 +1,50 @@
+{
+  "nativeMCPServers": [
+    
+  ],
+  "mcpServers": {
+    "sequential-thinking": {
+      "disabled": false,
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "command": "npx"
+    },
+    "nodejs-debugger": {
+      "disabled": false,
+      "args": [
+        "-y",
+        "@hyperdrive-eng/mcp-nodejs-debugger"
+      ],
+      "command": "npx"
+    },
+    "supabase": {
+      "disabled": false,
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+      ],
+      "command": "npx"
+    },
+    "kagi": {
+      "disabled": false,
+      "env": {
+        "KAGI_API_KEY": null
+      },
+      "args": [
+        "kagimcp"
+      ],
+      "command": "uvx"
+    },
+    "browsertools": {
+      "disabled": false,
+      "args": [
+        "-y",
+        "@agentdeskai/browser-tools-mcp@latest"
+      ],
+      "command": "npx"
+    }
+  }
+}

@@ -23,7 +23,8 @@
 
   home.packages = [
     pkgs.aerospace
-    pkgs.bitwarden-cli
+    pkgs.aider-chat
+    # pkgs.bitwarden-cli
     pkgs.claude-code
     pkgs.curl
     pkgs.devenv
@@ -303,7 +304,7 @@
   };
 
   programs.zed-editor = {
-    enable = true;
+    enable = false;
     extensions = [
       "elixir"
       "nix"
@@ -358,6 +359,9 @@
 
     "aerospace/aerospace.toml".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/aerospace/config.toml";
+
+    "mcphub/mcpservers.json".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/mcphub/mcpservers.json";
   };
 
   programs.atuin = {
