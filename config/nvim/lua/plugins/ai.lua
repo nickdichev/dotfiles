@@ -22,9 +22,10 @@ return {
 	},
 	{
 		"yetone/avante.nvim",
+		enabled = false,
 		event = "VeryLazy",
 		lazy = false,
-		version = false, -- set this if you want to always pull the latest change
+		version = false,
 		opts = {
 			provider = "claude",
 			auto_suggestion_provider = "copilot",
@@ -104,13 +105,19 @@ return {
 		},
 	},
 	{
+		"olimorris/codecompanion.nvim",
+		opts = {},
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"nvim-treesitter/nvim-treesitter",
+		},
+	},
+	{
 		"ravitemer/mcphub.nvim",
 		dependencies = {
 			"nvim-lua/plenary.nvim", -- Required for Job and HTTP requests
 		},
-		-- cmd = "MCPHub", -- lazily start the hub when `MCPHub` is called
-		-- build = "npm install -g mcp-hub@latest", -- Installs required mcp-hub npm module
-		branch = "nightly",
+		branch = "main",
 		build = "bundled_build.lua",
 		config = function()
 			require("mcphub").setup({
@@ -118,33 +125,34 @@ return {
 				port = 3333, -- Port for MCP Hub server
 				config = vim.fn.expand("~/.config/mcphub/mcpservers.json"), -- Absolute path to config file
 				use_bundled_binary = true,
-
-				-- Optional options
-				on_ready = function(hub)
-					-- Called when hub is ready
-				end,
-				on_error = function(err)
-					-- Called on errors
-				end,
-				log = {
-					level = vim.log.levels.WARN,
-					to_file = false,
-					file_path = nil,
-					prefix = "MCPHub",
-				},
 			})
-			require("avante").setup({
-				-- Dynamic system prompt with active servers
-				system_prompt = function()
-					local hub = require("mcphub").get_hub_instance()
-					return hub:get_active_servers_prompt()
-				end,
-				-- Load MCP tool dynamically
-				custom_tools = function()
-					return {
-						require("mcphub.extensions.avante").mcp_tool(),
-					}
-				end,
+			-- require("avante").setup({
+			-- 	-- Dynamic system prompt with active servers
+			-- 	system_prompt = function()
+			-- 		local hub = require("mcphub").get_hub_instance()
+			-- 		return hub:get_active_servers_prompt()
+			-- 	end,
+			-- 	-- Load MCP tool dynamically
+			-- 	custom_tools = function()
+			-- 		return {
+			-- 			require("mcphub.extensions.avante").mcp_tool(),
+			-- 		}
+			-- 	end,
+			-- })
+			require("codecompanion").setup({
+				strategies = {
+					chat = {
+						tools = {
+							["mcp"] = {
+								-- calling it in a function would prevent mcphub from being loaded before it's needed
+								callback = function()
+									return require("mcphub.extensions.codecompanion")
+								end,
+								description = "Call tools and resources from the MCP Servers",
+							},
+						},
+					},
+				},
 			})
 		end,
 	},
