@@ -19,8 +19,17 @@
     }@inputs:
     let
       system = "x86_64-darwin";
+      overlays = [
+        (final: prev: {
+          bitwarden-cli = prev.bitwarden-cli.overrideAttrs (oldAttrs: {
+            nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ prev.llvmPackages_18.stdenv.cc ];
+            stdenv = prev.llvmPackages_18.stdenv;
+          });
+        })
+      ];
       pkgs = import nixpkgs {
         inherit system;
+        overlays = overlays;
         config = {
           allowUnfreePredicate =
             pkg:
