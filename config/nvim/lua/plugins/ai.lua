@@ -106,7 +106,17 @@ return {
 	},
 	{
 		"olimorris/codecompanion.nvim",
-		opts = {},
+		opts = {
+			adapters = {
+				anthropic = function()
+					return require("codecompanion.adapters").extend("anthropic", {
+						env = {
+							api_key = "bw get item 4f89d06c-32ac-4ed6-be92-b28e00594fae | jq -r '.notes'",
+						},
+					})
+				end,
+			},
+		},
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"nvim-treesitter/nvim-treesitter",
