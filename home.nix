@@ -16,7 +16,6 @@
   home.packages = [
     pkgs.aerospace
     pkgs.aider-chat
-    pkgs.claude-code
     pkgs.bitwarden-desktop
     pkgs.bitwarden-cli
     pkgs.curl

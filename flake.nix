@@ -31,11 +31,7 @@
         inherit system;
         overlays = overlays;
         config = {
-          allowUnfreePredicate =
-            pkg:
-            builtins.elem (nixpkgs.lib.getName pkg) [
-              "claude-code"
-            ];
+          allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ ];
         };
       };
     in
