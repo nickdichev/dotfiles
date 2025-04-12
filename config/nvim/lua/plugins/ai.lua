@@ -111,7 +111,7 @@ return {
 				anthropic = function()
 					return require("codecompanion.adapters").extend("anthropic", {
 						env = {
-							api_key = "bw get item 4f89d06c-32ac-4ed6-be92-b28e00594fae | jq -r '.notes'",
+							api_key = "rbw get ANTHROPIC_API_KEY_PERSONAL",
 						},
 					})
 				end,

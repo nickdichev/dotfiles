@@ -17,7 +17,6 @@
     pkgs.aerospace
     pkgs.aider-chat
     pkgs.bitwarden-desktop
-    pkgs.bitwarden-cli
     pkgs.curl
     pkgs.devenv
     pkgs.fd
@@ -354,6 +353,14 @@
 
   programs.mpv = {
     enable = true;
+  };
+
+  programs.rbw = {
+    enable = true;
+    settings = {
+      email = "bitwarden@dichev.email";
+      pinentry = pkgs.pinentry_mac;
+    };
   };
 
   services.ollama = {
