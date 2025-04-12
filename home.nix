@@ -124,6 +124,12 @@
       };
       gcloud.disabled = true;
       aws.disabled = true;
+      custom = {
+        bw-locked = {
+          command = "echo 🔒";
+          when = "! rbw unlocked";
+        };
+      };
     };
   };
 
