@@ -220,6 +220,8 @@
 
       eval "$(ssh-agent -s)"
       ssh-add ~/.ssh/github
+
+      export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer")
     '';
 
     shellAliases = {
@@ -280,6 +282,16 @@
           repo = "zsh-syntax-highlighting";
           rev = "0.8.0";
           sha256 = "iJdWopZwHpSyYl5/FQXEW7gl/SrKaYDEtTH9cGP7iPo=";
+        };
+      }
+
+      {
+        name = "zsh-history-filter";
+        src = pkgs.fetchFromGitHub {
+          owner = "MichaelAquilina";
+          repo = "zsh-history-filter";
+          rev = "0.4.1";
+          sha256 = "sha256-OlGaBRD5F9z2WmhNp7nhs0B9mW4cLkkGeMYZq81uy44=";
         };
       }
     ];
@@ -364,6 +376,7 @@
     flags = [ "--disable-up-arrow" ];
     settings = {
       filter_mode_shell_up_key_binding = "session";
+      history_filter = [ "^export .*_API_KEY" ];
     };
   };
 
