@@ -29,6 +29,7 @@
     pkgs.mediainfo
     pkgs.ffmpeg
     pkgs.nerd-fonts.fira-code
+    pkgs.obsidian
     pkgs.ripgrep
     pkgs.uv
     pkgs.viddy
