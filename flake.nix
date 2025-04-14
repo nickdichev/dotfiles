@@ -31,7 +31,7 @@
         inherit system;
         overlays = overlays;
         config = {
-          allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ ];
+          allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "windsurf" ];
         };
       };
     in
