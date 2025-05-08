@@ -26,6 +26,7 @@
     pkgs.lazydocker
     pkgs.lolcat
     pkgs.inetutils
+    pkgs.imagemagick
     pkgs.mediainfo
     pkgs.ffmpeg
     pkgs.nerd-fonts.fira-code
