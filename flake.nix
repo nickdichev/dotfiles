@@ -36,6 +36,7 @@
             builtins.elem (nixpkgs.lib.getName pkg) [
               "windsurf"
               "obsidian"
+              "claude-code"
             ];
         };
       };

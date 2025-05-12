@@ -17,6 +17,7 @@
     pkgs.aerospace
     pkgs.aider-chat
     pkgs.bitwarden-desktop
+    pkgs.claude-code
     pkgs.curl
     pkgs.devenv
     pkgs.fd
