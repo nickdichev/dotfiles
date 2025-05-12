@@ -1,50 +1,38 @@
 {
-  "nativeMCPServers": [
-    
-  ],
+  "nativeMCPServers": [],
   "mcpServers": {
     "sequential-thinking": {
-      "disabled": false,
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
-      "command": "npx"
-    },
-    "nodejs-debugger": {
-      "disabled": false,
-      "args": [
-        "-y",
-        "@hyperdrive-eng/mcp-nodejs-debugger"
-      ],
-      "command": "npx"
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "command": "npx",
+      "disabled": false
     },
     "supabase": {
-      "disabled": false,
       "args": [
         "-y",
         "@modelcontextprotocol/server-postgres",
         "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
       ],
-      "command": "npx"
+      "command": "npx",
+      "disabled": false
+    },
+    "browsertools": {
+      "args": ["-y", "@agentdeskai/browser-tools-mcp@latest"],
+      "command": "npx",
+      "disabled": false
+    },
+    "nodejs-debugger": {
+      "args": ["-y", "@hyperdrive-eng/mcp-nodejs-debugger"],
+      "command": "npx",
+      "disabled": false
     },
     "kagi": {
       "disabled": false,
+      "args": ["kagimcp"],
+      "command": "uvx",
       "env": {
-        "KAGI_API_KEY": null
-      },
-      "args": [
-        "kagimcp"
-      ],
-      "command": "uvx"
-    },
-    "browsertools": {
-      "disabled": false,
-      "args": [
-        "-y",
-        "@agentdeskai/browser-tools-mcp@latest"
-      ],
-      "command": "npx"
+        "KAGI_API_KEY": "$: rbw get KAGI_API_KEY_PERSONAL"
+      }
     }
   }
 }
+
