@@ -34,6 +34,12 @@ return {
 				enable_cursor_planning_mode = true,
 				auto_suggestions = false,
 			},
+			claude = {
+				api_key_name = "cmd:rbw get ANTHROPIC_API_KEY_PERSONAL",
+			},
+			groq = {
+				api_key_name = "cmd:rbw get GROQ_API_KEY",
+			},
 			vendors = {
 				groq = {
 					__inherited_from = "openai",
