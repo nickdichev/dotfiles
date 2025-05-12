@@ -48,15 +48,56 @@ end
 ---improves upon the default statusline components by having properly working icons
 ---@nodiscard
 local function currentFile()
-	local maxLen = 25
-
 	local ext = fn.expand("%:e")
 	local ft = bo.filetype
 	local name = fn.expand("%:t")
+	local fullPath = fn.expand("%:p")
+
+	-- Handle special filetypes
 	if ft == "octo" and name:find("^%d$") then
 		name = "#" .. name
 	elseif ft == "TelescopePrompt" then
 		name = "Telescope"
+	end
+
+	-- Get directory structure (up to 3 levels, stopping at git root)
+	local dirPath = ""
+	if fullPath ~= "" and bo.buftype == "" then
+		-- Get the git root directory
+		local gitRoot = fn.system(
+			"git -C " .. fn.shellescape(fn.fnamemodify(fullPath, ":h")) .. " rev-parse --show-toplevel 2>/dev/null"
+		):gsub("\n", "")
+		local isInGitRepo = gitRoot ~= ""
+
+		-- Get directory parts
+		local dirParts = {}
+		local currentDir = fn.fnamemodify(fullPath, ":h")
+		local count = 0
+
+		while currentDir ~= "" and count < 3 do
+			local dirName = fn.fnamemodify(currentDir, ":t")
+			if dirName ~= "" then
+				table.insert(dirParts, 1, dirName)
+				count = count + 1
+			end
+
+			-- Stop if we reached git root
+			if isInGitRepo and currentDir == gitRoot then
+				break
+			end
+
+			-- Move up one directory
+			currentDir = fn.fnamemodify(currentDir, ":h")
+			if currentDir == "/" or currentDir:match("^%a:[\\/]$") then
+				break
+			end
+		end
+
+		-- Construct directory path string
+		dirPath = table.concat(dirParts, "/")
+		if dirPath ~= "" then
+			dirPath = dirPath .. "/"
+		end
 	end
 
 	local deviconsInstalled, devicons = pcall(require, "nvim-web-devicons")
@@ -79,16 +120,20 @@ local function currentFile()
 		icon = "󰓁 " .. icon
 	end
 
+	-- Combine directory path and filename
+	local fullName = dirPath .. name
+
 	-- truncate
-	local nameNoExt = name:gsub("%.%w+$", "")
+	local maxLen = 50
+	local nameNoExt = fullName:gsub("%.%w+$", "")
 	if #nameNoExt > maxLen then
-		name = nameNoExt:sub(1, maxLen) .. "…" .. ext
+		fullName = "…" .. nameNoExt:sub(-maxLen) .. "." .. ext
 	end
 
 	if icon == "" then
-		return name
+		return fullName
 	end
-	return icon .. " " .. name
+	return icon .. " " .. fullName
 end
 
 --------------------------------------------------------------------------------
