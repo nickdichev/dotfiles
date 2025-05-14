@@ -28,11 +28,12 @@
     pkgs.lolcat
     pkgs.inetutils
     pkgs.imagemagick
-    pkgs.mediainfo
     pkgs.ffmpeg
+    pkgs.mediainfo
     pkgs.nerd-fonts.fira-code
     pkgs.obsidian
     pkgs.ripgrep
+    pkgs.tailscale
     pkgs.uv
     pkgs.viddy
     pkgs.wget
