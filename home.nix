@@ -13,40 +13,44 @@
 
   home.stateVersion = "22.11"; # Please read the comment before changing.
 
-  home.packages = [
-    pkgs.aerospace
-    pkgs.aider-chat
-    pkgs.bitwarden-desktop
-    pkgs.claude-code
-    pkgs.curl
-    pkgs.devenv
-    pkgs.fd
-    pkgs.graphviz
-    pkgs.git-absorb
-    pkgs.htop
-    pkgs.lazydocker
-    pkgs.lolcat
-    pkgs.inetutils
-    pkgs.imagemagick
-    pkgs.ffmpeg
-    pkgs.mediainfo
-    pkgs.nerd-fonts.fira-code
-    pkgs.obsidian
-    pkgs.ripgrep
-    pkgs.tailscale
-    pkgs.uv
-    pkgs.viddy
-    pkgs.wget
-    pkgs.windsurf
+  home.packages =
+    [
+      pkgs.aider-chat
+      pkgs.bitwarden-desktop
+      pkgs.claude-code
+      pkgs.curl
+      pkgs.devenv
+      pkgs.fd
+      pkgs.graphviz
+      pkgs.git-absorb
+      pkgs.htop
+      pkgs.lazydocker
+      pkgs.lolcat
+      pkgs.inetutils
+      pkgs.imagemagick
+      pkgs.ffmpeg
+      pkgs.mediainfo
+      pkgs.nerd-fonts.fira-code
+      pkgs.obsidian
+      pkgs.ripgrep
+      pkgs.tailscale
+      pkgs.uv
+      pkgs.viddy
+      pkgs.wget
+      pkgs.windsurf
 
-    (pkgs.python312.withPackages (ps: [
-      ps.llm
-      ps.llm-cmd
-    ]))
+      (pkgs.python312.withPackages (ps: [
+        ps.llm
+        ps.llm-cmd
+      ]))
 
-    (pkgs.callPackage ./scripts/listening.nix { })
-    (pkgs.callPackage ./scripts/clean_git_branches.nix { })
-  ];
+      (pkgs.callPackage ./scripts/listening.nix { })
+      (pkgs.callPackage ./scripts/clean_git_branches.nix { })
+    ]
+    ++ lib.optionals (pkgs.stdenv.isDarwin) [
+      pkgs.aerospace
+      pkgs.raycast
+    ];
 
   home.file = {
     ".psql" = {

@@ -37,6 +37,7 @@
               "windsurf"
               "obsidian"
               "claude-code"
+              "raycast"
             ];
         };
       };
