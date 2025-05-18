@@ -6,7 +6,7 @@
       "command": "npx",
       "disabled": false
     },
-    "supabase": {
+    "portal_cms_postgres": {
       "args": [
         "-y",
         "@modelcontextprotocol/server-postgres",
@@ -35,4 +35,3 @@
     }
   }
 }
-
