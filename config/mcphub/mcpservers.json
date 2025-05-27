@@ -32,6 +32,11 @@
       "env": {
         "KAGI_API_KEY": "$: rbw get KAGI_API_KEY_PERSONAL"
       }
+    },
+    "context7": {
+      "args": ["-y", "@upstash/context7-mcp"],
+      "command": "npx",
+      "disabled": false
     }
   }
 }
