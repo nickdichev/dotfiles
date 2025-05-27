@@ -31,6 +31,7 @@ return {
 			auto_suggestion_provider = "copilot",
 			cursor_applying_provider = "groq",
 			behaviour = {
+				use_cwd_as_project_root = true,
 				enable_cursor_planning_mode = true,
 				auto_suggestions = false,
 			},
@@ -112,17 +113,8 @@ return {
 	},
 	{
 		"olimorris/codecompanion.nvim",
-		opts = {
-			adapters = {
-				anthropic = function()
-					return require("codecompanion.adapters").extend("anthropic", {
-						env = {
-							api_key = "rbw get ANTHROPIC_API_KEY_PERSONAL",
-						},
-					})
-				end,
-			},
-		},
+		enabled = true,
+		opts = {},
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"nvim-treesitter/nvim-treesitter",
@@ -141,6 +133,8 @@ return {
 				port = 3333, -- Port for MCP Hub server
 				config = vim.fn.expand("~/.config/mcphub/mcpservers.json"), -- Absolute path to config file
 				use_bundled_binary = true,
+				auto_approve = true,
+				extensions = {},
 			})
 			-- require("avante").setup({
 			-- 	-- Dynamic system prompt with active servers
@@ -156,16 +150,13 @@ return {
 			-- 	end,
 			-- })
 			require("codecompanion").setup({
-				strategies = {
-					chat = {
-						tools = {
-							["mcp"] = {
-								-- calling it in a function would prevent mcphub from being loaded before it's needed
-								callback = function()
-									return require("mcphub.extensions.codecompanion")
-								end,
-								description = "Call tools and resources from the MCP Servers",
-							},
+				extensions = {
+					mcphub = {
+						callback = "mcphub.extensions.codecompanion",
+						opts = {
+							show_result_in_chat = true, -- Show mcp tool results in chat
+							make_vars = true, -- Convert resources to #variables
+							make_slash_commands = true, -- Add prompts as /slash commands
 						},
 					},
 				},
