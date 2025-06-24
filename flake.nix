@@ -34,10 +34,11 @@
           allowUnfreePredicate =
             pkg:
             builtins.elem (nixpkgs.lib.getName pkg) [
-              "windsurf"
-              "obsidian"
               "claude-code"
+              "obsidian"
               "raycast"
+              "tableplus"
+              "windsurf"
             ];
         };
       };

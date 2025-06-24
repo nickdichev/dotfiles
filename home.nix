@@ -49,6 +49,13 @@
     ]
     ++ lib.optionals (pkgs.stdenv.isDarwin) [
       pkgs.aerospace
+      (pkgs.tableplus.overrideAttrs (oldAttrs: rec {
+        version = "624";
+        src = pkgs.fetchurl {
+          url = "https://files.tableplus.com/macos/${version}/TablePlus.dmg";
+          hash = "sha256-16fGt2LbB2VlwctkCpXlwRawmTEjOHwg844DqAhQJlc=";
+        };
+      }))
       pkgs.raycast
     ];
 
