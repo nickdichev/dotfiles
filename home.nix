@@ -341,24 +341,23 @@
     extraPackages = [
       # Tools
       pkgs.gcc
-      pkgs.tree-sitter
       pkgs.nodejs
+      pkgs.tree-sitter
 
       # Formatting
-      pkgs.nixfmt-rfc-style # Nix
-      pkgs.black # Python
-      pkgs.isort # Python
-      pkgs.prettierd # Multi-language
-      pkgs.shfmt # Shell
-      pkgs.stylua # Lua
+      pkgs.black
+      pkgs.isort
+      pkgs.nixfmt-rfc-style
+      pkgs.nodePackages.eslint
+      pkgs.prettierd
+      pkgs.shfmt
+      pkgs.stylua
 
       # LSP
       (pkgs.lexical.override { elixir = pkgs.beamMinimal27Packages.elixir_1_17; })
-      pkgs.nil
-      pkgs.pyright
+      pkgs.basedpyright
       pkgs.lua-language-server
-      pkgs.nodePackages.eslint
-      pkgs.gopls
+      pkgs.nil
       pkgs.typescript-language-server
     ];
 
@@ -374,6 +373,9 @@
 
     "nvim/lua".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/nvim/lua";
+
+    "nvim/lsp".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/nvim/lsp";
 
     "zellij/config.kdl".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/zellij/config.kdl";
