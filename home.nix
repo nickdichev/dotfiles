@@ -235,7 +235,7 @@
       eval "$(ssh-agent -s)"
       ssh-add ~/.ssh/github
 
-      export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer")
+      export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer" "_TOKEN")
     '';
 
     shellAliases = {
