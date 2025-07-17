@@ -38,6 +38,14 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
+-- show diagnostics as "virtual lines" in the buffer
+vim.diagnostic.config {
+  virtual_lines = {
+    -- Only show virtual line diagnostics for the current cursor line
+    current_line = true,
+  },
+}
+
 vim.lsp.enable { "ts_ls", "lexical", "lua-language-server", "basedpyright", "nil-ls" }
 
 return {
