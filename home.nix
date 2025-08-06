@@ -14,7 +14,6 @@
   home.stateVersion = "22.11"; # Please read the comment before changing.
 
   home.packages = [
-    pkgs.aider-chat
     pkgs.bitwarden-desktop
     pkgs.claude-code
     pkgs.curl
