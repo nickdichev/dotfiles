@@ -38,7 +38,6 @@
               "obsidian"
               "raycast"
               "tableplus"
-              "windsurf"
             ];
         };
       };

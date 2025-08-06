@@ -35,7 +35,6 @@
     pkgs.uv
     pkgs.viddy
     pkgs.wget
-    pkgs.windsurf
 
     (pkgs.python312.withPackages (ps: [
       ps.llm
