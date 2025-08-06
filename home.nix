@@ -45,7 +45,6 @@
     (pkgs.callPackage ./scripts/clean_git_branches.nix { })
   ]
   ++ lib.optionals (pkgs.stdenv.isDarwin) [
-    pkgs.aerospace
     (pkgs.tableplus.overrideAttrs (oldAttrs: rec {
       version = "624";
       src = pkgs.fetchurl {
