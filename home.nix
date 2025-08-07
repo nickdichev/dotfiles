@@ -66,7 +66,9 @@
     ERL_AFLAGS = "-kernel shell_history enabled";
   };
 
-  programs.home-manager.enable = true;
+  programs.home-manager = {
+    enable = true;
+  };
 
   programs.bat = {
     enable = true;
@@ -313,7 +315,7 @@
   };
 
   programs.zed-editor = {
-    enable = true;
+    enable = false;
     extensions = [
       "elixir"
       "nix"
