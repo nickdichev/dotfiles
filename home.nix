@@ -217,7 +217,7 @@
 
   programs.zsh = {
     enable = true;
-    dotDir = ".config/zsh";
+    dotDir = "${config.home.homeDirectory}/.config/zsh";
     autocd = true;
     autosuggestion.enable = true;
     enableCompletion = true;
@@ -231,7 +231,7 @@
       fi
 
       eval "$(ssh-agent -s)"
-      ssh-add ~/.ssh/github
+      ssh-add ${config.home.homeDirectory}/.ssh/github
 
       export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer" "_TOKEN")
     '';
