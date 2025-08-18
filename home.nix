@@ -343,15 +343,13 @@
       pkgs.tree-sitter
 
       # Formatting
+      pkgs.biome
       pkgs.black
       pkgs.isort
       pkgs.nixfmt-rfc-style
-      pkgs.nodePackages.eslint
-      pkgs.prettierd
-      pkgs.eslint_d
       pkgs.shfmt
-      pkgs.stylua
       pkgs.sqlfluff
+      pkgs.stylua
 
       # LSP
       (pkgs.lexical.override { elixir = pkgs.beamMinimal27Packages.elixir_1_17; })

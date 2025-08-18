@@ -43,13 +43,13 @@ return {
     opts = function()
       return {
         formatters_by_ft = {
-          javascript = { "eslint_d" },
-          typescript = { "eslint_d" },
-          javascriptreact = { "eslint_d" },
-          typescriptreact = { "eslint_d" },
-          json = { "prettierd" },
-          yaml = { "prettierd" },
-          html = { "prettierd" },
+          javascript = { "biome" },
+          typescript = { "biome" },
+          javascriptreact = { "biome" },
+          typescriptreact = { "biome" },
+          json = { "biome" },
+          yaml = { "biome" },
+          html = { "biome" },
 
           lua = { "stylua" },
           nix = { "nixfmt" },
@@ -60,6 +60,10 @@ return {
         formatters = {
           sqlfluff = {
             args = { "format", "--dialect=postgres", "-" },
+          },
+          biome = {
+            args = { "check", "--write", "--stdin-file-path", "$FILENAME" },
+            stdin = true,
           },
         },
         notify_no_formatters = true,
