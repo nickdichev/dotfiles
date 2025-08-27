@@ -315,25 +315,6 @@
     enableZshIntegration = true;
   };
 
-  programs.zed-editor = {
-    enable = false;
-    extensions = [
-      "elixir"
-      "nix"
-    ];
-    userSettings = {
-      vim_mode = true;
-
-      assistant = {
-        version = "2";
-        default_model = {
-          provider = "anthropic";
-          model = "claude-3-5-sonnet-latest";
-        };
-      };
-    };
-  };
-
   programs.neovim = {
     enable = true;
     defaultEditor = true;
