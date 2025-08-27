@@ -19,14 +19,15 @@
     pkgs.curl
     pkgs.devenv
     pkgs.fd
-    pkgs.graphviz
+    pkgs.ffmpeg
+    pkgs.fh
     pkgs.git-absorb
+    pkgs.graphviz
     pkgs.htop
+    pkgs.imagemagick
+    pkgs.inetutils
     pkgs.lazydocker
     pkgs.lolcat
-    pkgs.inetutils
-    pkgs.imagemagick
-    pkgs.ffmpeg
     pkgs.mediainfo
     pkgs.nerd-fonts.fira-code
     pkgs.obsidian
