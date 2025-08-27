@@ -357,8 +357,10 @@
     "nvim/lsp".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/nvim/lsp";
 
-    "zellij/config.kdl".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/zellij/config.kdl";
+    "zellij/config.kdl".source = pkgs.replaceVars ./config/zellij/config.kdl {
+      certDir = "${config.home.homeDirectory}/.certs";
+      certName = "buckwheat+2";
+    };
 
     "zellij/layouts/".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/zellij/layouts";
