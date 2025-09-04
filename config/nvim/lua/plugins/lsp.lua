@@ -46,7 +46,7 @@ vim.diagnostic.config {
   },
 }
 
-vim.lsp.enable { "ts_ls", "lexical", "lua-language-server", "basedpyright", "nil-ls" }
+vim.lsp.enable { "ts_ls", "lexical", "lua-language-server", "basedpyright", "nil-ls", "gopls", "tofu-ls" }
 
 return {
   {

@@ -56,6 +56,8 @@ return {
           python = { "isort", "black" },
           sh = { "shfmt" },
           sql = { "sqlfluff" },
+
+          go = { "gofmt" },
         },
         formatters = {
           sqlfluff = {

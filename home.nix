@@ -339,6 +339,7 @@
       pkgs.lua-language-server
       pkgs.nil
       pkgs.typescript-language-server
+      pkgs.tofu-ls
     ];
 
   };
