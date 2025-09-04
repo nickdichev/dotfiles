@@ -334,7 +334,6 @@
       pkgs.stylua
 
       # LSP
-      (pkgs.lexical.override { elixir = pkgs.beamMinimal27Packages.elixir_1_17; })
       pkgs.basedpyright
       pkgs.lua-language-server
       pkgs.nil
