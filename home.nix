@@ -47,10 +47,10 @@
   ]
   ++ lib.optionals (pkgs.stdenv.isDarwin) [
     (pkgs.tableplus.overrideAttrs (oldAttrs: rec {
-      version = "624";
+      version = "634";
       src = pkgs.fetchurl {
         url = "https://files.tableplus.com/macos/${version}/TablePlus.dmg";
-        hash = "sha256-16fGt2LbB2VlwctkCpXlwRawmTEjOHwg844DqAhQJlc=";
+        hash = "sha256-uOx4mPtLvg1vQlVLAUCq/Sd7FitGBtaRnjbQUkVBsfU=";
       };
     }))
     pkgs.raycast
