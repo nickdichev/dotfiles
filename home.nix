@@ -396,4 +396,16 @@
   services.ollama = {
     enable = true;
   };
+
+  programs.ghostty = {
+    enable = true;
+    package = (
+      pkgs.ghostty-bin.overrideAttrs (oldAttrs: {
+        src = pkgs.fetchurl {
+          url = "https://github.com/ghostty-org/ghostty/releases/download/tip/Ghostty.dmg";
+          hash = "sha256-OWNrlsjpjgEeMWvOpaxzHeogquG8E9mH1OwyKu787og=";
+        };
+      })
+    );
+  };
 }
