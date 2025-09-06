@@ -8,6 +8,9 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    expert = {
+      url = "github:elixir-lang/expert";
+    };
 
   };
 
@@ -15,6 +18,7 @@
     {
       nixpkgs,
       home-manager,
+      expert,
       ...
     }@inputs:
     let
@@ -52,6 +56,7 @@
         extraSpecialArgs = {
           inherit inputs;
           inherit system;
+          expert = expert.packages.${system}.expert;
         };
 
         # Optionally use extraSpecialArgs

@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  expert,
   ...
 }:
 
@@ -339,6 +340,7 @@
       pkgs.nil
       pkgs.typescript-language-server
       pkgs.tofu-ls
+      expert
     ];
 
   };
