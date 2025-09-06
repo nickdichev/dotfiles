@@ -1,19 +1,23 @@
 return {
-	{ "lewis6991/gitsigns.nvim", config = true },
-	"kdheepak/lazygit.nvim",
-	"tpope/vim-eunuch", -- sugar for unix shell commands
-	"tpope/vim-surround",
-	"tpope/vim-projectionist",
-	"andymass/vim-matchup",
-	"mhinz/vim-sayonara",
-	{ "christoomey/vim-tmux-navigator", lazy = false },
+  { "lewis6991/gitsigns.nvim", config = true },
+  "kdheepak/lazygit.nvim",
+  "tpope/vim-eunuch", -- sugar for unix shell commands
+  "tpope/vim-projectionist",
+  "andymass/vim-matchup",
+  "mhinz/vim-sayonara",
 
-	{
-		"maxmx03/dracula.nvim",
-		config = function()
-			vim.cmd.colorscheme("dracula")
-		end,
-	},
+  { "echasnovski/mini.ai", version = "*", opts = {} },
+  { "echasnovski/mini.comment", version = "*", opts = {} },
+  { "echasnovski/mini.surround", version = "*", opts = {} },
+  { "echasnovski/mini.jump", version = "*", opts = {} },
+  { "echasnovski/mini.splitjoin", version = "*", opts = {} },
 
-	{ "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
+  {
+    "maxmx03/dracula.nvim",
+    config = function()
+      vim.cmd.colorscheme("dracula")
+    end,
+  },
+
+  { "nvim-telescope/telescope.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
 }
