@@ -47,13 +47,14 @@ vim.diagnostic.config {
 }
 
 vim.lsp.enable {
-  "ts_ls",
-  "lua-language-server",
   "basedpyright",
-  "nil-ls",
-  "gopls",
-  "tofu-ls",
   "expert",
+  "gopls",
+  "lua-language-server",
+  "nil-ls",
+  "postgres-language-server",
+  "tofu-ls",
+  "ts_ls",
 }
 
 return {
