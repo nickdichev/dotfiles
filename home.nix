@@ -365,6 +365,9 @@
     "zellij/layouts/".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/zellij/layouts";
 
+    "ghostty/shaders".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/ghostty/shaders";
+
     "aerospace/aerospace.toml".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/home-manager/config/aerospace/config.toml";
 
@@ -407,5 +410,10 @@
         };
       })
     );
+    settings = {
+      custom-shader = [
+        "${config.home.homeDirectory}/.config/ghostty/shaders/cursor_dracula.glsl"
+      ];
+    };
   };
 }
