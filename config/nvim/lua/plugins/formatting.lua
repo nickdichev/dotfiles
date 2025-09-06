@@ -55,13 +55,14 @@ return {
           nix = { "nixfmt" },
           python = { "isort", "black" },
           sh = { "shfmt" },
-          sql = { "sqlfluff" },
+          sql = { "sqruff" },
+          psql = { "sqruff" },
 
           go = { "gofmt" },
         },
         formatters = {
-          sqlfluff = {
-            args = { "format", "--dialect=postgres", "-" },
+          sqruff = {
+            args = { "fix", "$FILENAME" },
           },
           biome = {
             args = { "check", "--write", "--stdin-file-path", "$FILENAME" },

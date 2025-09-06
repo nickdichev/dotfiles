@@ -331,7 +331,7 @@
       pkgs.isort
       pkgs.nixfmt-rfc-style
       pkgs.shfmt
-      pkgs.sqlfluff
+      pkgs.sqruff
       pkgs.stylua
 
       # LSP
