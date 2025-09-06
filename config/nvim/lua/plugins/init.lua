@@ -2,7 +2,6 @@ return {
   { "lewis6991/gitsigns.nvim", config = true },
   "kdheepak/lazygit.nvim",
   "tpope/vim-eunuch", -- sugar for unix shell commands
-  "tpope/vim-projectionist",
   "andymass/vim-matchup",
   "mhinz/vim-sayonara",
 
