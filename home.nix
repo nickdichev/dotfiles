@@ -440,6 +440,8 @@
       custom-shader = [
         "${config.home.homeDirectory}/.config/ghostty/shaders/cursor_dracula.glsl"
       ];
+
+      auto-update = "off";
     };
   };
 }
