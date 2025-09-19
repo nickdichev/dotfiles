@@ -20,6 +20,9 @@ map("n", "<leader>fh", telescope_builtin.help_tags)
 -- Lazygit
 map("n", "<leader>gg", ":LazyGit<CR>")
 
+-- Mini.files
+map("n", "<leader>fe", ":lua MiniFiles.open()<CR>")
+
 -- Resize splits
 map("n", "<Up>", ":resize +2<CR>")
 map("n", "<Down>", ":resize -2<CR>")
