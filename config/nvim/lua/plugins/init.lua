@@ -5,11 +5,12 @@ return {
   "andymass/vim-matchup",
   "mhinz/vim-sayonara",
 
-  { "echasnovski/mini.ai", version = "*", opts = {} },
-  { "echasnovski/mini.comment", version = "*", opts = {} },
-  { "echasnovski/mini.surround", version = "*", opts = {} },
-  { "echasnovski/mini.jump", version = "*", opts = {} },
-  { "echasnovski/mini.splitjoin", version = "*", opts = {} },
+  { "nvim-mini/mini.ai", version = "*", opts = {} },
+  { "nvim-mini/mini.comment", version = "*", opts = {} },
+  { "nvim-mini/mini.surround", version = "*", opts = {} },
+  { "nvim-mini/mini.jump", version = "*", opts = {} },
+  { "nvim-mini/mini.splitjoin", version = "*", opts = {} },
+  { "nvim-mini/mini.files", version = "*", opts = {} },
 
   {
     "maxmx03/dracula.nvim",
