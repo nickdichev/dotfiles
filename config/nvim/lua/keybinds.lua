@@ -1,5 +1,12 @@
 local map = require("core.utils").map
 
+function insertFullPath()
+  local filepath = vim.fn.expand("%")
+  vim.fn.setreg("+", filepath) -- write to clippoard
+end
+
+vim.keymap.set("n", "<leader>pc", insertFullPath, { noremap = true, silent = true })
+
 -- Telescope
 local telescope_builtin = require("telescope.builtin")
 map("n", "<leader>ff", telescope_builtin.find_files)
