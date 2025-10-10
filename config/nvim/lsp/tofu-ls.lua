@@ -1,5 +1,5 @@
 return {
   cmd = { "tofu-ls", "serve" },
-  filetypes = { "opentofu", "opentofu-vars" },
+  filetypes = { "opentofu", "opentofu-vars", "terraform", "terraform-vars" },
   root_markers = { ".terraform", ".git" },
 }
