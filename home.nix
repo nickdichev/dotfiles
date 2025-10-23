@@ -18,6 +18,7 @@
     with pkgs;
     [
       age
+      attic-client
       bitwarden-desktop
       claude-code
       curl
