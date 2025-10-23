@@ -59,6 +59,7 @@
         };
       }))
       pkgs.raycast
+      hammerspoon
     ];
 
   home.file = {

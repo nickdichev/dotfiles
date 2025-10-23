@@ -29,6 +29,8 @@
             nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ prev.llvmPackages_18.stdenv.cc ];
             stdenv = prev.llvmPackages_18.stdenv;
           });
+
+          hammerspoon = prev.callPackage ./hammerspoon.nix { };
         })
       ];
       pkgs = import nixpkgs {
