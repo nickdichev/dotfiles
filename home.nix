@@ -158,12 +158,16 @@
     enable = true;
   };
 
+  programs.difftastic = {
+    enable = true;
+    git.enable = true;
+  };
+
   programs.git = {
     enable = true;
     lfs.enable = true;
-    difftastic.enable = true;
 
-    extraConfig = {
+    settings = {
       init = {
         defaultBranch = "main";
       };
@@ -207,9 +211,8 @@
         autoStash = true;
         updateRefs = true;
       };
+      aliases = { };
     };
-
-    aliases = { };
 
     ignores = [
       ".elixir_ls"
