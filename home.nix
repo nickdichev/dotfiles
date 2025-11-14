@@ -350,26 +350,7 @@
       pkgs.nil
       pkgs.typescript-language-server
       pkgs.tofu-ls
-
-      (pkgs.postgres-lsp.overrideAttrs (
-        finalAttrs: prevAttrs: rec {
-          version = "0.13.0";
-          src = pkgs.fetchFromGitHub {
-            owner = "supabase-community";
-            repo = "postgres-language-server";
-            tag = version;
-            hash = "sha256-0Q8MxKeh12STWIJ9441uTz+qQXEJjCESj21C4X8CBC4=";
-            fetchSubmodules = true;
-          };
-
-          cargoHash = "sha256-oIbS5BUpNOXwiRconqJI/jdXeX05FIZVNl2kYt+79wY=";
-          cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-            inherit (finalAttrs) pname src version;
-            hash = finalAttrs.cargoHash;
-          };
-
-        }
-      ))
+      pkgs.postgres-language-server
     ];
 
   };
