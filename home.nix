@@ -13,54 +13,52 @@
 
   home.stateVersion = "22.11"; # Please read the comment before changing.
 
-  home.packages =
-    with pkgs;
-    [
-      age
-      attic-client
-      bitwarden-desktop
-      claude-code
-      curl
-      devenv
-      fd
-      ffmpeg
-      fh
-      git-absorb
-      graphviz
-      htop
-      imagemagick
-      inetutils
-      lazydocker
-      lolcat
-      mediainfo
-      nerd-fonts.fira-code
-      obsidian
-      ripgrep
-      sops
-      tailscale
-      uv
-      viddy
-      wget
+  home.packages = [
+    pkgs.age
+    pkgs.attic-client
+    pkgs.bitwarden-desktop
+    pkgs.claude-code
+    pkgs.curl
+    pkgs.devenv
+    pkgs.fd
+    pkgs.ffmpeg
+    pkgs.fh
+    pkgs.git-absorb
+    pkgs.graphviz
+    pkgs.htop
+    pkgs.imagemagick
+    pkgs.inetutils
+    pkgs.lazydocker
+    pkgs.lolcat
+    pkgs.mediainfo
+    pkgs.nerd-fonts.fira-code
+    pkgs.obsidian
+    pkgs.ripgrep
+    pkgs.sops
+    pkgs.tailscale
+    pkgs.uv
+    pkgs.viddy
+    pkgs.wget
 
-      (python312.withPackages (ps: [
-        ps.llm
-        ps.llm-cmd
-      ]))
+    (pkgs.python312.withPackages (ps: [
+      ps.llm
+      ps.llm-cmd
+    ]))
 
-      (pkgs.callPackage ./scripts/listening.nix { })
-      (pkgs.callPackage ./scripts/clean_git_branches.nix { })
-    ]
-    ++ lib.optionals (pkgs.stdenv.isDarwin) [
-      (pkgs.tableplus.overrideAttrs (oldAttrs: rec {
-        version = "634";
-        src = pkgs.fetchurl {
-          url = "https://files.tableplus.com/macos/${version}/TablePlus.dmg";
-          hash = "sha256-uOx4mPtLvg1vQlVLAUCq/Sd7FitGBtaRnjbQUkVBsfU=";
-        };
-      }))
-      pkgs.raycast
-      hammerspoon
-    ];
+    (pkgs.callPackage ./scripts/listening.nix { })
+    (pkgs.callPackage ./scripts/clean_git_branches.nix { })
+  ]
+  ++ lib.optionals (pkgs.stdenv.isDarwin) [
+    (pkgs.tableplus.overrideAttrs (oldAttrs: rec {
+      version = "634";
+      src = pkgs.fetchurl {
+        url = "https://files.tableplus.com/macos/${version}/TablePlus.dmg";
+        hash = "sha256-uOx4mPtLvg1vQlVLAUCq/Sd7FitGBtaRnjbQUkVBsfU=";
+      };
+    }))
+    pkgs.raycast
+    pkgs.hammerspoon
+  ];
 
   home.file = {
     ".psql" = {
