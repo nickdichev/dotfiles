@@ -66,6 +66,8 @@
     };
   };
 
+  xdg.enable = true;
+
   home.sessionVariables = {
     # ELIXIR_EDITOR = "kitty @ launch --title Output --keep-focus nvim +__LINE__ __FILE__";
     ERL_AFLAGS = "-kernel shell_history enabled";
@@ -104,8 +106,10 @@
   programs.lazygit = {
     enable = true;
     settings = {
-      git.paging = {
-        externalDiffCommand = "difft --color=always";
+      git = {
+        pagers = [
+          { externalDiffCommand = "difft --color=always"; }
+        ];
       };
     };
   };
