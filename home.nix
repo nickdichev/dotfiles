@@ -290,6 +290,8 @@
 
       gg = "lazygit";
       gd = "lazydocker";
+
+      dup = "devenv up";
     };
 
     plugins = [
