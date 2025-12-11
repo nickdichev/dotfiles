@@ -411,7 +411,7 @@
   };
 
   services.ollama = {
-    enable = true;
+    enable = false;
   };
 
   programs.ghostty = {
