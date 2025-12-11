@@ -287,6 +287,9 @@
       vim = "nvim";
       watch = "viddy";
       lis = "listening";
+
+      gg = "lazygit";
+      gd = "lazydocker";
     };
 
     plugins = [
