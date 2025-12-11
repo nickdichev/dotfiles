@@ -95,6 +95,7 @@
 
   programs.eza = {
     enable = true;
+    enableZshIntegration = true;
     git = true;
     icons = "auto";
   };
@@ -250,12 +251,6 @@
     '';
 
     shellAliases = {
-      ls = "eza";
-      la = "eza -a";
-      ll = "eza -l";
-      lt = "eza --tree";
-      lla = "eza -la";
-
       ".." = "cd ..";
       "..2" = "cd ../..";
       "..3" = "cd ../../..";
