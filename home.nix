@@ -243,7 +243,8 @@
       fi
 
       eval "$(ssh-agent -s)"
-      ssh-add ${config.home.homeDirectory}/.ssh/github
+      ssh-add ${config.home.homeDirectory}/.ssh/personal/github
+      ssh-add ${config.home.homeDirectory}/.ssh/portal/prod-hetzner
 
       export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer" "_TOKEN")
     '';
