@@ -48,6 +48,7 @@ vim.diagnostic.config {
 
 vim.lsp.enable {
   "basedpyright",
+  "clojure-lsp",
   "gopls",
   "lua-language-server",
   "nil-ls",

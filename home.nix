@@ -347,6 +347,7 @@
 
       # LSP
       pkgs.basedpyright
+      pkgs.clojure-lsp
       pkgs.lua-language-server
       pkgs.nil
       pkgs.typescript-language-server
