@@ -43,13 +43,13 @@ return {
     opts = function()
       return {
         formatters_by_ft = {
-          javascript = { "biome" },
-          typescript = { "biome" },
-          javascriptreact = { "biome" },
-          typescriptreact = { "biome" },
-          json = { "biome" },
-          yaml = { "biome" },
-          html = { "biome" },
+          javascript = { "oxfmt", "biome" },
+          typescript = { "oxfmt", "biome" },
+          javascriptreact = { "oxfmt", "biome" },
+          typescriptreact = { "oxfmt", "biome" },
+          json = { "oxfmt", "biome" },
+          yaml = { "oxfmt", "biome" },
+          html = { "oxfmt", "biome" },
 
           lua = { "stylua" },
           nix = { "nixfmt" },
@@ -64,9 +64,21 @@ return {
           sqruff = {
             args = { "fix", "$FILENAME" },
           },
+          oxfmt = {
+            command = "oxfmt",
+            args = { "--stdin-filepath", "$FILENAME" },
+            stdin = true,
+            condition = function(_, ctx)
+              return vim.fs.find(".oxfmtrc.json", { path = ctx.dirname, upward = true })[1] ~= nil
+            end,
+          },
           biome = {
             args = { "check", "--write", "--stdin-file-path", "$FILENAME" },
             stdin = true,
+            condition = function(_, ctx)
+              return vim.fs.find({ "biome.json", "biome.jsonc" }, { path = ctx.dirname, upward = true })[1]
+                ~= nil
+            end,
           },
         },
         notify_no_formatters = true,

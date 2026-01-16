@@ -346,6 +346,8 @@
       pkgs.shfmt
       pkgs.sqruff
       pkgs.stylua
+      pkgs.oxlint
+      pkgs.oxfmt
 
       # LSP
       pkgs.basedpyright
