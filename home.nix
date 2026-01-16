@@ -429,4 +429,9 @@
       auto-update = "off";
     };
   };
+
+  programs.claude-code = {
+    enable = true;
+    commandsDir = ./config/claude/commands;
+  };
 }
