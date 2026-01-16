@@ -342,7 +342,7 @@
       pkgs.biome
       pkgs.black
       pkgs.isort
-      pkgs.nixfmt-rfc-style
+      pkgs.nixfmt
       pkgs.shfmt
       pkgs.sqruff
       pkgs.stylua
