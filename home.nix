@@ -40,10 +40,10 @@
     pkgs.viddy
     pkgs.wget
 
-    (pkgs.python312.withPackages (ps: [
-      ps.llm
-      ps.llm-cmd
-    ]))
+    # (pkgs.python312.withPackages (ps: [
+    #   ps.llm
+    #   ps.llm-cmd
+    # ]))
 
     (pkgs.callPackage ./scripts/listening.nix { })
     (pkgs.callPackage ./scripts/clean_git_branches.nix { })
