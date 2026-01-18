@@ -4,9 +4,14 @@
   inputs = {
     # Specify the source of Home Manager and Nixpkgs.
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    claude-code = {
+      url = "github:sadjow/claude-code-nix";
     };
   };
 
@@ -19,6 +24,7 @@
     let
       system = "x86_64-darwin";
       overlays = [
+        inputs.claude-code.overlays.default
         (final: prev: {
           bitwarden-cli = prev.bitwarden-cli.overrideAttrs (oldAttrs: {
             nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ prev.llvmPackages_18.stdenv.cc ];
