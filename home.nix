@@ -245,24 +245,63 @@
         . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
       fi
 
-      eval "$(ssh-agent -s)"
-      ssh-add ${config.home.homeDirectory}/.ssh/personal/github
-      ssh-add ${config.home.homeDirectory}/.ssh/personal/forgejo
-      ssh-add ${config.home.homeDirectory}/.ssh/portal/prod-hetzner
-
       export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer" "_TOKEN")
 
+      # SSH agent setup (silent)
+      eval "$(ssh-agent -s)" > /dev/null 2>&1
+
+      load_ssh_keys() {
+        local reset=$'\e[0m'
+        local dim=$'\e[2m'
+        local bold=$'\e[1m'
+        local green=$'\e[32m'
+        local yellow=$'\e[33m'
+        local red=$'\e[31m'
+
+        echo ""
+        echo "  ''${bold}''${yellow}SSH Keys''${reset}"
+        echo "  ''${dim}────────────────────────────────────────────''${reset}"
+
+        local keys=(
+          "${config.home.homeDirectory}/.ssh/personal/github"
+          "${config.home.homeDirectory}/.ssh/personal/forgejo"
+          "${config.home.homeDirectory}/.ssh/portal/prod-hetzner"
+        )
+
+        for key in "''${keys[@]}"; do
+          local name=$(basename "$key")
+          if ssh-add "$key" 2>/dev/null; then
+            echo "  ''${green}✓''${reset} ''${dim}$name''${reset}"
+          else
+            echo "  ''${red}✗''${reset} ''${dim}$name (failed)''${reset}"
+          fi
+        done
+        echo ""
+      }
+      load_ssh_keys
+
       # Message of the day - Shell hotkeys
-      echo ""
-      echo "  Shell Hotkeys (emacs mode)"
-      echo "  ─────────────────────────────────────"
-      echo "  Ctrl+A  Beginning of line    Ctrl+E  End of line"
-      echo "  Ctrl+B  Back one char        Ctrl+F  Forward one char"
-      echo "  Alt+B   Back one word        Alt+F   Forward one word"
-      echo "  Ctrl+W  Delete word back     Ctrl+K  Kill to end"
-      echo "  Ctrl+U  Kill to beginning    Ctrl+Y  Yank (paste)"
-      echo "  Ctrl+R  Reverse search       Ctrl+L  Clear screen"
-      echo ""
+      motd() {
+        local reset=$'\e[0m'
+        local dim=$'\e[2m'
+        local bold=$'\e[1m'
+        local cyan=$'\e[36m'
+        local yellow=$'\e[33m'
+        local blue=$'\e[34m'
+
+        local key="''${bold}''${cyan}"
+        local desc="''${dim}"
+        local sep="''${blue}│''${reset}"
+
+        echo "  ''${bold}''${yellow}Shell Hotkeys''${reset} ''${dim}(emacs mode)''${reset}"
+        echo "  ''${dim}────────────────────────────────────────────''${reset}"
+        echo "  ''${key}^A''${reset} ''${desc}line start''${reset}    $sep  ''${key}^E''${reset} ''${desc}line end''${reset}    $sep  ''${key}^L''${reset} ''${desc}clear''${reset}"
+        echo "  ''${key}^B''${reset} ''${desc}char back''${reset}     $sep  ''${key}^F''${reset} ''${desc}char fwd''${reset}    $sep  ''${key}^R''${reset} ''${desc}history search''${reset}"
+        echo "  ''${key}M-B''${reset} ''${desc}word back''${reset}    $sep  ''${key}M-F''${reset} ''${desc}word fwd''${reset}   $sep  ''${key}^Y''${reset} ''${desc}yank''${reset}"
+        echo "  ''${key}^U''${reset} ''${desc}kill left''${reset}     $sep  ''${key}^K''${reset} ''${desc}kill right''${reset}  $sep  ''${key}^W''${reset} ''${desc}kill word''${reset}"
+        echo ""
+      }
+      motd
     '';
 
     shellAliases = {
