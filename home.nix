@@ -240,16 +240,29 @@
     initContent = ''
       bindkey -e
 
-      if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; 
+      if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ];
       then
         . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
       fi
 
       eval "$(ssh-agent -s)"
       ssh-add ${config.home.homeDirectory}/.ssh/personal/github
+      ssh-add ${config.home.homeDirectory}/.ssh/personal/forgejo
       ssh-add ${config.home.homeDirectory}/.ssh/portal/prod-hetzner
 
       export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer" "_TOKEN")
+
+      # Message of the day - Shell hotkeys
+      echo ""
+      echo "  Shell Hotkeys (emacs mode)"
+      echo "  ─────────────────────────────────────"
+      echo "  Ctrl+A  Beginning of line    Ctrl+E  End of line"
+      echo "  Ctrl+B  Back one char        Ctrl+F  Forward one char"
+      echo "  Alt+B   Back one word        Alt+F   Forward one word"
+      echo "  Ctrl+W  Delete word back     Ctrl+K  Kill to end"
+      echo "  Ctrl+U  Kill to beginning    Ctrl+Y  Yank (paste)"
+      echo "  Ctrl+R  Reverse search       Ctrl+L  Clear screen"
+      echo ""
     '';
 
     shellAliases = {
