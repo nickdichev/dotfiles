@@ -485,5 +485,6 @@
   programs.claude-code = {
     enable = true;
     commandsDir = ./config/claude/commands;
+    skillsDir = ./config/claude/skills;
   };
 }
