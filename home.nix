@@ -17,7 +17,6 @@
     pkgs.age
     pkgs.attic-client
     pkgs.bitwarden-desktop
-    pkgs.claude-code
     pkgs.curl
     pkgs.devenv
     pkgs.fd
