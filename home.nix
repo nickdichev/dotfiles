@@ -489,5 +489,11 @@
     enable = true;
     commandsDir = ./config/claude/commands;
     skillsDir = ./config/claude/skills;
+    mcpServers = {
+      kagi = {
+        args = [ "kagimcp" ];
+        command = "${pkgs.uv}/bin/uvx";
+      };
+    };
   };
 }
