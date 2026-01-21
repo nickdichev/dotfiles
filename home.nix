@@ -247,6 +247,9 @@
 
       export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer" "_TOKEN")
 
+      # Worktrunk shell integration
+      eval "$(wt config shell init zsh)"
+
       # SSH agent setup (silent)
       eval "$(ssh-agent -s)" > /dev/null 2>&1
 
