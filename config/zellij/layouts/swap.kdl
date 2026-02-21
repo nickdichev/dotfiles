@@ -1,0 +1,56 @@
+tab_template name="ui" {
+    pane size=1 borderless=true {
+        plugin location="tab-bar"
+    }
+    children
+    pane size=1 borderless=true {
+        plugin location="status-bar"
+    }
+}
+
+// 2 panes: stacked (top/bottom)
+swap_tiled_layout name="horizontal" {
+    ui max_panes=2 {
+        pane
+        pane
+    }
+}
+
+// 2 panes: side by side (left/right)
+swap_tiled_layout name="vertical" {
+    ui max_panes=2 {
+        pane split_direction="vertical" {
+            pane
+            pane
+        }
+    }
+}
+
+// 4 panes: 2x2 grid (rows first)
+swap_tiled_layout name="grid-horizontal" {
+    ui max_panes=4 {
+        pane split_direction="vertical" {
+            pane
+            pane
+        }
+        pane split_direction="vertical" {
+            pane
+            pane
+        }
+    }
+}
+
+// 4 panes: 2x2 grid (columns first)
+swap_tiled_layout name="grid-vertical" {
+    ui max_panes=4 {
+        pane {
+            pane
+            pane
+        }
+        pane {
+            pane
+            pane
+        }
+    }
+}
+

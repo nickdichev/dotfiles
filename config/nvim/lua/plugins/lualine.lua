@@ -1,0 +1,217 @@
+local bo = vim.bo
+local fn = vim.fn
+
+--------------------------------------------------------------------------------
+
+--- https://github.com/nvim-lualine/lualine.nvim/blob/master/lua/lualine/components/branch/git_branch.lua#L118
+---@nodiscard
+---@return boolean
+local function isStandardBranch()
+	local curBranch = require("lualine.components.branch.git_branch").get_branch()
+	local notMainBranch = curBranch ~= "main" and curBranch ~= "master"
+	local validFiletype = bo.filetype ~= "help" -- vim help files are located in a git repo
+	local notSpecialBuffer = bo.buftype == ""
+	return notMainBranch and validFiletype and notSpecialBuffer
+end
+
+--------------------------------------------------------------------------------
+
+local function selectionCount()
+	local isVisualMode = fn.mode():find("[Vv]")
+	if not isVisualMode then
+		return ""
+	end
+	local starts = fn.line("v")
+	local ends = fn.line(".")
+	local lines = starts <= ends and ends - starts + 1 or starts - ends + 1
+	return " " .. tostring(lines) .. "L " .. tostring(fn.wordcount().visual_chars) .. "C"
+end
+
+-- shows global mark M
+vim.api.nvim_del_mark("M") -- reset on session start
+local function markM()
+	local markObj = vim.api.nvim_get_mark("M", {})
+	local markLn = markObj[1]
+	local markBufname = vim.fs.basename(markObj[4])
+	if markBufname == "" then
+		return ""
+	end -- mark not set
+	return " " .. markBufname .. ":" .. markLn
+end
+
+local function treesitter_context()
+	return require("nvim-treesitter").statusline(90)
+end
+
+--------------------------------------------------------------------------------
+
+---improves upon the default statusline components by having properly working icons
+---@nodiscard
+local function currentFile()
+	local ext = fn.expand("%:e")
+	local ft = bo.filetype
+	local name = fn.expand("%:t")
+	local fullPath = fn.expand("%:p")
+
+	-- Handle special filetypes
+	if ft == "octo" and name:find("^%d$") then
+		name = "#" .. name
+	elseif ft == "TelescopePrompt" then
+		name = "Telescope"
+	end
+
+	-- Get directory structure (up to 3 levels, stopping at git root)
+	local dirPath = ""
+	if fullPath ~= "" and bo.buftype == "" then
+		-- Get the git root directory
+		local gitRoot = fn.system(
+			"git -C " .. fn.shellescape(fn.fnamemodify(fullPath, ":h")) .. " rev-parse --show-toplevel 2>/dev/null"
+		):gsub("\n", "")
+		local isInGitRepo = gitRoot ~= ""
+
+		-- Get directory parts
+		local dirParts = {}
+		local currentDir = fn.fnamemodify(fullPath, ":h")
+		local count = 0
+
+		while currentDir ~= "" and count < 3 do
+			local dirName = fn.fnamemodify(currentDir, ":t")
+			if dirName ~= "" then
+				table.insert(dirParts, 1, dirName)
+				count = count + 1
+			end
+
+			-- Stop if we reached git root
+			if isInGitRepo and currentDir == gitRoot then
+				break
+			end
+
+			-- Move up one directory
+			currentDir = fn.fnamemodify(currentDir, ":h")
+			if currentDir == "/" or currentDir:match("^%a:[\\/]$") then
+				break
+			end
+		end
+
+		-- Construct directory path string
+		dirPath = table.concat(dirParts, "/")
+		if dirPath ~= "" then
+			dirPath = dirPath .. "/"
+		end
+	end
+
+	local deviconsInstalled, devicons = pcall(require, "nvim-web-devicons")
+	local ftOrExt = ext ~= "" and ext or ft
+	if ftOrExt == "javascript" then
+		ftOrExt = "js"
+	end
+	if ftOrExt == "typescript" then
+		ftOrExt = "ts"
+	end
+	if ftOrExt == "markdown" then
+		ftOrExt = "md"
+	end
+	if ftOrExt == "vimrc" then
+		ftOrExt = "vim"
+	end
+	local icon = deviconsInstalled and devicons.get_icon(name, ftOrExt) or ""
+	-- add sourcegraph icon for clarity
+	if fn.expand("%"):find("^sg") then
+		icon = "󰓁 " .. icon
+	end
+
+	-- Combine directory path and filename
+	local fullName = dirPath .. name
+
+	-- truncate
+	local maxLen = 50
+	local nameNoExt = fullName:gsub("%.%w+$", "")
+	if #nameNoExt > maxLen then
+		fullName = "…" .. nameNoExt:sub(-maxLen) .. "." .. ext
+	end
+
+	if icon == "" then
+		return fullName
+	end
+	return icon .. " " .. fullName
+end
+
+--------------------------------------------------------------------------------
+
+-- FIX Add missing buffer names for current file component
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "lazy", "TelescopePrompt", "noice" },
+	callback = function()
+		local name = vim.fn.expand("<amatch>")
+		name = name:sub(1, 1):upper() .. name:sub(2) -- capitalize
+		pcall(vim.api.nvim_buf_set_name, 0, name)
+	end,
+})
+
+-- nerdfont: powerline icons have the prefix 'ple-'
+local bottomSeparators = { left = "", right = "" }
+local topSeparators = { left = "", right = "" }
+local emptySeparators = { left = "", right = "" }
+
+local lualineConfig = {
+	-- INFO using the tabline will override vim's default tabline, so the tabline
+	-- should always include the tab element
+	tabline = {
+		lualine_a = {},
+		lualine_b = {
+			{ treesitter_context, section_separators = topSeparators },
+		},
+		lualine_c = {},
+		lualine_x = {},
+		-- INFO dap and recording status defined in the respective plugin configs
+		-- for lualine_y and lualine_z for their lazy loading
+		lualine_y = {
+			{ markM },
+		},
+		lualine_z = {},
+	},
+	sections = {
+		lualine_a = {
+			{ "branch", cond = isStandardBranch },
+			{ currentFile },
+			{ "lsp_progress" },
+		},
+		lualine_b = {
+			-- { require("funcs.alt-alt").altFileStatusline },
+		},
+		lualine_c = {
+			-- { require("funcs.quickfix").counter },
+		},
+		lualine_x = {
+			"diagnostics",
+			{ "copilot", symbols = { show_colors = true } },
+		},
+		lualine_y = {
+			"diff",
+		},
+		lualine_z = {
+			{ selectionCount, padding = { left = 0, right = 1 } },
+			"location",
+		},
+	},
+	options = {
+		refresh = { statusline = 1000 },
+		ignore_focus = {
+			"DressingInput",
+			"DressingSelect",
+			"ccc-ui",
+		},
+		globalstatus = true,
+		component_separators = { left = "", right = "" },
+		section_separators = bottomSeparators,
+	},
+}
+
+--------------------------------------------------------------------------------
+
+return {
+	"nvim-lualine/lualine.nvim",
+	lazy = false, -- load immediately so there is no flickering
+	dependencies = { "nvim-tree/nvim-web-devicons", "arkav/lualine-lsp-progress", "AndreM222/copilot-lualine" },
+	opts = lualineConfig,
+}
