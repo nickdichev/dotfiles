@@ -50,6 +50,10 @@ in
 
       settings = {
         CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = 1;
+        attribution = {
+          commit = "";
+          pr = "";
+        };
         statusLine = {
           type = "command";
           command = "~/.claude/statusline.sh";
