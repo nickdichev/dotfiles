@@ -266,8 +266,6 @@ in
 
         drr = "direnv reload";
 
-        ses = "sesame";
-
         dclaude = "claude --dangerously-skip-permissions";
       };
 

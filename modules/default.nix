@@ -8,6 +8,7 @@ in
     (import ./ai.nix { inherit inputs; })
     (import ./applications.nix { inherit inputs; })
     ./base.nix
+    (import ./sesame.nix { inherit inputs; })
     ./dev.nix
     ./fonts.nix
     ./git.nix

@@ -4,6 +4,7 @@
     ai.enable = true;
     applications.enable = true;
     base.enable = true;
+    sesame.enable = true;
     dev.enable = true;
     fonts.enable = true;
     git.enable = true;

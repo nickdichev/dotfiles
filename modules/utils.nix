@@ -3,7 +3,6 @@
 let
   cfg = config.profiles.utils;
   pkgs-unstable = import inputs.nixpkgs-unstable { inherit (pkgs) system; };
-  sesame = inputs.sesame.packages.${pkgs.system}.default;
 in
 {
   options.profiles.utils.enable = lib.mkEnableOption "Utility programs (bat, fzf, eza, ripgrep, etc.)";
@@ -32,7 +31,6 @@ in
       pkgs.viddy
       pkgs.wget
       pkgs-unstable.tailscale
-      sesame
     ];
 
     programs.bat = {
