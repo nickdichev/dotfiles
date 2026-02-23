@@ -8,6 +8,8 @@ in
   options.profiles.shell.enable = lib.mkEnableOption "Zsh shell with starship, atuin, and plugins";
 
   config = lib.mkIf cfg.enable {
+    home.packages = [ wt ];
+
     programs.atuin = {
       enable = true;
       flags = [ "--disable-up-arrow" ];
