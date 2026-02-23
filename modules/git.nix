@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.profiles.git;
   homeDir = config.home.homeDirectory;
@@ -99,7 +104,13 @@ in
         {
           condition = "hasconfig:remote.*.url:git@github.com/Portal-Wholesale/**";
           contents.user = {
-            email = "github@dichev.email";
+            email = "nick@portalwholesale.com";
+          };
+        }
+        {
+          condition = "hasconfig:remote.*.url:git@github.com/VenueGo/**";
+          contents.user = {
+            email = "nick@venuego.io";
           };
         }
         {
