@@ -102,13 +102,13 @@ in
       # Using gitdir/i for case-insensitive matching (macOS friendly)
       includes = [
         {
-          condition = "hasconfig:remote.*.url:git@github.com/Portal-Wholesale/**";
+          condition = "hasconfig:remote.*.url:git@github.com:Portal-Wholesale/**";
           contents.user = {
             email = "nick@portalwholesale.com";
           };
         }
         {
-          condition = "hasconfig:remote.*.url:git@github.com/VenueGo/**";
+          condition = "hasconfig:remote.*.url:git@github.com:VenueGo/**";
           contents.user = {
             email = "nick@venuego.io";
           };
