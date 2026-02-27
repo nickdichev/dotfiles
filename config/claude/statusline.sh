@@ -10,7 +10,17 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 model_name="$(printf '%s' "$payload" | jq -r '.model.display_name // .model.id // "unknown-model"')"
-context_pct="$(printf '%s' "$payload" | jq -r '(.context_window.used_percentage // 0) | floor')"
+context_pct="$(printf '%s' "$payload" | jq -r '
+  if .context_window.current_usage != null and .context_window.context_window_size != null and .context_window.context_window_size > 0
+  then
+    ((.context_window.current_usage.input_tokens // 0)
+     + (.context_window.current_usage.cache_creation_input_tokens // 0)
+     + (.context_window.current_usage.cache_read_input_tokens // 0))
+    * 100 / .context_window.context_window_size | floor
+  else
+    (.context_window.used_percentage // 0) | floor
+  end
+')"
 blocks_total=10
 blocks_filled=$((context_pct * blocks_total / 100))
 yellow_threshold="${CLAUDE_CTX_YELLOW:-70}"
