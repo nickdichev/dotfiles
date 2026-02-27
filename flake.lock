@@ -316,11 +316,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1771897124,
-        "narHash": "sha256-DKAGZMxG+Omk+vXQwO1nWrXHEtkzExrGBQeWBnWYB1I=",
+        "lastModified": 1772230652,
+        "narHash": "sha256-ULUeH/folt1gGkLGkk+jeH+ifP6FJrTwn6P8+maUE0c=",
         "ref": "refs/heads/main",
-        "rev": "5339ef199ab9973490ba28701f33f665cc18bc46",
-        "revCount": 22,
+        "rev": "7822f9269cfb7bf1f8fda6c687ba364afbfde310",
+        "revCount": 23,
         "type": "git",
         "url": "ssh://forgejo@liveoak:2222/Nick/sesame.git"
       },
