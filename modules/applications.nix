@@ -1,5 +1,10 @@
 { inputs }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.profiles.applications;
   hasGui = config.profiles.hasGui;
@@ -32,9 +37,11 @@ in
 
         pkgs-unstable.raycast
         (pkgs.callPackage ../pkgs/rustdesk { })
+        (pkgs.callPackage ../pkgs/redisinsight { })
 
       ]
       ++ lib.optionals (hasGui && isLinux) [
+        pkgs.redisinsight
       ];
   };
 }
