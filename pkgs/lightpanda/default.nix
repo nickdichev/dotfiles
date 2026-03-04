@@ -19,7 +19,7 @@ let
     };
     x86_64-darwin = {
       url = "https://github.com/lightpanda-io/browser/releases/download/${version}/lightpanda-x86_64-macos";
-      hash = "sha256:14d3qwchf9xrszkg0shj0jbgpw7p7djwghinlf2myc0hnhjwdczr";
+      hash = "sha256-Qmx+B2cHeC/53lO6ESMBG6ZZB6bTpKhYQdDDTEqyEWM=";
     };
     aarch64-darwin = {
       url = "https://github.com/lightpanda-io/browser/releases/download/${version}/lightpanda-aarch64-macos";
