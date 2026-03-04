@@ -70,6 +70,9 @@ in
       enableCompletion = true;
 
       initContent = ''
+        export LANG="en_US.UTF-8"
+        export LC_ALL="en_US.UTF-8"
+
         bindkey -e
 
         if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ];
