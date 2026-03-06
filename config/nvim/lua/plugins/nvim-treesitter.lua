@@ -1,16 +1,11 @@
 return {
 	{
 		"nvim-treesitter/nvim-treesitter",
-		event = "BufRead",
-		build = function()
-			vim.cmd("TSUpdate")
-		end,
-		dependencies = {
-			{ "nvim-treesitter/nvim-treesitter-textobjects" },
-		},
+		lazy = false,
+		build = ":TSUpdate",
 		config = function()
 			require("nvim-treesitter.install").compilers = { vim.g.gcc_bin_path }
-			require("nvim-treesitter.configs").setup({
+			require("nvim-treesitter").setup({
 				ensure_installed = {
 					"elixir",
 					"erlang",
@@ -31,34 +26,45 @@ return {
 					"css",
 					"astro",
 				},
-				highlight = { enable = true },
-				indent = { enable = true },
-				matchup = { enable = true },
-				rainbow = { enable = true },
-				textobjects = {
-					select = {
-						enable = true,
-						lookahead = true,
-
-						keymaps = {
-							["ab"] = "@block.outer",
-							["ib"] = "@block.inner",
-							["af"] = "@function.outer",
-							["if"] = "@function.inner",
-							["ac"] = "@class.outer",
-							["ic"] = "@class.inner",
-						},
-
-						selection_modes = {
-							["@parameter.outer"] = "v", -- charwise
-							["@function.outer"] = "V", -- linewise
-							["@class.outer"] = "<c-v>", -- blockwise
-						},
-
-						include_surrounding_whitespace = true,
+			})
+		end,
+	},
+	{
+		"nvim-treesitter/nvim-treesitter-textobjects",
+		branch = "main",
+		event = "BufRead",
+		config = function()
+			require("nvim-treesitter-textobjects").setup({
+				select = {
+					lookahead = true,
+					selection_modes = {
+						["@parameter.outer"] = "v",
+						["@function.outer"] = "V",
+						["@class.outer"] = "<c-v>",
 					},
+					include_surrounding_whitespace = true,
 				},
 			})
+
+			local ts_select = require("nvim-treesitter-textobjects.select")
+			vim.keymap.set({ "x", "o" }, "ab", function()
+				ts_select.select_textobject("@block.outer", "textobjects")
+			end)
+			vim.keymap.set({ "x", "o" }, "ib", function()
+				ts_select.select_textobject("@block.inner", "textobjects")
+			end)
+			vim.keymap.set({ "x", "o" }, "af", function()
+				ts_select.select_textobject("@function.outer", "textobjects")
+			end)
+			vim.keymap.set({ "x", "o" }, "if", function()
+				ts_select.select_textobject("@function.inner", "textobjects")
+			end)
+			vim.keymap.set({ "x", "o" }, "ac", function()
+				ts_select.select_textobject("@class.outer", "textobjects")
+			end)
+			vim.keymap.set({ "x", "o" }, "ic", function()
+				ts_select.select_textobject("@class.inner", "textobjects")
+			end)
 		end,
 	},
 	{
