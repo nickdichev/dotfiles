@@ -19,6 +19,12 @@ in
   options.profiles.applications.enable = lib.mkEnableOption "Desktop applications (obsidian, raycast, tableplus, rustdesk)";
 
   config = lib.mkIf cfg.enable {
+    targets.darwin.defaults = lib.mkIf isDarwin {
+      "com.tinyspeck.slackmacgap" = {
+        AutoUpdate = false;
+      };
+    };
+
     home.packages = [
     ]
     ++ lib.optionals hasGui [
