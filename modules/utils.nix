@@ -1,5 +1,10 @@
 { inputs }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.profiles.utils;
   pkgs-unstable = import inputs.nixpkgs-unstable { inherit (pkgs) system; };
@@ -31,6 +36,8 @@ in
       pkgs.viddy
       pkgs.wget
       pkgs-unstable.tailscale
+    ] ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+      inputs.zmx.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
 
     programs.bat = {

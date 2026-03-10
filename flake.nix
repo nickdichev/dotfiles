@@ -8,6 +8,7 @@
     serena.url = "github:oraios/serena";
     sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
     worktrunk.url = "github:max-sixty/worktrunk";
+    zmx.url = "github:neurosnap/zmx";
   };
 
   outputs =
