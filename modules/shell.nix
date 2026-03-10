@@ -46,9 +46,6 @@ in
           format = "[$version OTP $otp_version]($style) ";
           style = "bold red";
         };
-        nix_shell = {
-          disabled = true;
-        };
         package = {
           disabled = true;
         };
