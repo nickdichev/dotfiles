@@ -9,7 +9,7 @@ in
     (import ./applications.nix { inherit inputs; })
     ./base.nix
     (import ./sesame.nix { inherit inputs; })
-    ./dev.nix
+    (import ./dev.nix { inherit inputs; })
     ./fonts.nix
     ./git.nix
     ./media-processing.nix
