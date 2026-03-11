@@ -2,9 +2,6 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.profiles.dev;
-  pkgs-unstable = import inputs.nixpkgs-unstable {
-    inherit (pkgs) system;
-  };
 in
 {
   options.profiles.dev.enable = lib.mkEnableOption "Development tools (direnv, gh, just)";
@@ -13,7 +10,7 @@ in
 
     home.packages = [
       pkgs.just
-      pkgs-unstable.devenv
+      inputs.devenv.packages.${pkgs.system}.devenv
     ];
 
     programs.direnv = {

@@ -9,6 +9,7 @@
     sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
     worktrunk.url = "github:max-sixty/worktrunk";
     zmx.url = "github:neurosnap/zmx";
+    devenv.url = "github:cachix/devenv/bump-nix-bindings-rust";
   };
 
   outputs =
@@ -57,7 +58,7 @@
         ai = import ./modules/ai.nix { inherit inputs; };
         applications = import ./modules/applications.nix { inherit inputs; };
         base = import ./modules/base.nix;
-        dev = import ./modules/dev.nix;
+        dev = import ./modules/dev.nix { inherit inputs; };
         fonts = import ./modules/fonts.nix;
         git = import ./modules/git.nix;
         media-processing = import ./modules/media-processing.nix;
