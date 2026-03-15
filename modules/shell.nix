@@ -1,5 +1,10 @@
 { inputs }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.profiles.shell;
   wt = inputs.worktrunk.packages.${pkgs.system}.default;
@@ -269,6 +274,10 @@ in
         drr = "direnv reload";
 
         dclaude = "claude --dangerously-skip-permissions";
+        dc = "dclaude";
+
+        wtrm = "wt remove --force";
+        wtrmm = "wt remove --force --no-verify -D";
       };
 
       plugins = [
