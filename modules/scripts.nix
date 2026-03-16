@@ -280,6 +280,53 @@ in
           fi
         '';
       })
+
+      (pkgs.writeShellApplication {
+        name = "lastarg";
+        runtimeInputs = [ pkgs.atuin ];
+        text = ''
+          cmd="$(atuin history last --cmd-only)"
+
+          # Split into array, respecting quotes via eval
+          # (safe here since it's our own history)
+          eval "parts=($cmd)" 2>/dev/null || IFS=' ' read -ra parts <<< "$cmd"
+
+          if [[ $# -eq 0 ]]; then
+            echo "$cmd"
+            exit 0
+          fi
+
+          selector="$1"
+          len=''${#parts[@]}
+
+          # Resolve a possibly-negative index to a positive one
+          resolve_index() {
+            local i=$1
+            if (( i < 0 )); then
+              i=$(( len + i ))
+            fi
+            echo "$i"
+          }
+
+          # Slice notation: start:end
+          if [[ "$selector" == *:* ]]; then
+            start="''${selector%%:*}"
+            end="''${selector##*:}"
+
+            start="''${start:-0}"
+            end="''${end:-$len}"
+
+            start=$(resolve_index "$start")
+            end=$(resolve_index "$end")
+
+            echo "''${parts[@]:$start:$((end - start))}"
+          else
+            # Single index
+            idx=$(resolve_index "$selector")
+            echo "''${parts[$idx]}"
+          fi
+        '';
+      })
     ];
   };
 }
