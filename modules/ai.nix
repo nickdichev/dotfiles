@@ -50,6 +50,7 @@ in
 
       settings = {
         CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = 1;
+        skipDangerousModePermissionPrompt = true;
         attribution = {
           commit = "";
           pr = "";
