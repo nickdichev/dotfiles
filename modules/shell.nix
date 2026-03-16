@@ -165,6 +165,8 @@ in
           local cyan=$'\e[36m'
           local yellow=$'\e[33m'
           local blue=$'\e[34m'
+          local green=$'\e[32m'
+          local magenta=$'\e[35m'
 
           local key="''${bold}''${cyan}"
           local desc="''${dim}"
@@ -176,6 +178,24 @@ in
           echo "  ''${key}^B''${reset} ''${desc}char back''${reset}     $sep  ''${key}^F''${reset} ''${desc}char fwd''${reset}    $sep  ''${key}^R''${reset} ''${desc}history search''${reset}"
           echo "  ''${key}M-B''${reset} ''${desc}word back''${reset}    $sep  ''${key}M-F''${reset} ''${desc}word fwd''${reset}   $sep  ''${key}^Y''${reset} ''${desc}yank''${reset}"
           echo "  ''${key}^U''${reset} ''${desc}kill left''${reset}     $sep  ''${key}^K''${reset} ''${desc}kill right''${reset}  $sep  ''${key}^W''${reset} ''${desc}kill word''${reset}"
+          echo ""
+
+          # Random script tip (generated from profiles.scripts.tips)
+          local scripts=(
+            ${lib.concatMapStringsSep "\n            " (tip: "\"${tip.name}|${tip.description}|${tip.example}\"") config.profiles.scripts.tips}
+          )
+
+          local idx=$((RANDOM % ''${#scripts[@]}))
+          local entry="''${scripts[$idx]}"
+          local name="''${entry%%|*}"
+          local rest="''${entry#*|}"
+          local description="''${rest%%|*}"
+          local example="''${rest#*|}"
+
+          echo "  ''${bold}''${magenta}Random Script''${reset}"
+          echo "  ''${dim}────────────────────────────────────────────''${reset}"
+          echo "  ''${bold}''${green}$name''${reset} ''${dim}— $description''${reset}"
+          echo "  ''${dim}\$''${reset} ''${cyan}$example''${reset}"
           echo ""
         }
 

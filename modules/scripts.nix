@@ -1,13 +1,12 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.profiles.scripts;
-in
-{
-  options.profiles.scripts.enable = lib.mkEnableOption "Custom shell scripts and utilities";
 
-  config = lib.mkIf cfg.enable {
-    home.packages = [
-      (pkgs.writeShellApplication {
+  scripts = [
+    {
+      description = "Show processes listening on TCP ports";
+      example = "listening 3000";
+      package = pkgs.writeShellApplication {
         name = "listening";
         runtimeInputs = [ pkgs.lsof ];
         text = ''
@@ -52,9 +51,13 @@ in
             fi
           fi
         '';
-      })
+      };
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Interactively select and delete git branches with fzf";
+      example = "clean-git-branches";
+      package = pkgs.writeShellApplication {
         name = "clean-git-branches";
         runtimeInputs = [
           pkgs.git
@@ -63,9 +66,13 @@ in
         text = ''
           git branch | fzf -m | xargs git branch -D
         '';
-      })
+      };
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Copy stdin to clipboard, stripping trailing newline";
+      example = "echo hello | copy";
+      package = pkgs.writeShellApplication {
         name = "copy";
         runtimeInputs = [ pkgs.perl ];
         text = ''
@@ -80,9 +87,13 @@ in
 
           perl -pe 'chomp if eof' | $cmd
         '';
-      })
+      };
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Paste from clipboard to stdout";
+      example = "pasta | grep error";
+      package = pkgs.writeShellApplication {
         name = "pasta";
         text = ''
           if hash pbpaste 2>/dev/null; then
@@ -94,9 +105,13 @@ in
             exit 1
           fi
         '';
-      })
+      };
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Stream clipboard changes to stdout in real time";
+      example = "pastas";
+      package = pkgs.writeShellApplication {
         name = "pastas";
         text = ''
           trap 'exit 0' SIGINT
@@ -115,9 +130,13 @@ in
             sleep 0.1
           done
         '';
-      })
+      };
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Move files to system trash instead of deleting";
+      example = "trash old-file.txt";
+      package = pkgs.writeShellApplication {
         name = "trash";
         runtimeInputs = [ pkgs.coreutils ];
         text = ''
@@ -131,9 +150,13 @@ in
             fi
           done
         '';
-      })
+      };
+    }
 
-      (pkgs.writers.writePython3Bin "url" { } ''
+    {
+      description = "Parse and display components of a URL";
+      example = "url 'https://example.com/path?q=1'";
+      package = pkgs.writers.writePython3Bin "url" { } ''
         import sys
         from urllib.parse import urlparse, parse_qsl
 
@@ -162,34 +185,50 @@ in
                 print(f"  {key}: {value}")
         if parsed.fragment:
             print(f"Fragment: {parsed.fragment}")
-      '')
+      '';
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Open a temp file in your editor for quick notes";
+      example = "scratch";
+      package = pkgs.writeShellApplication {
         name = "scratch";
         text = ''
           file="$(mktemp)"
           echo "Editing $file"
           exec "$EDITOR" "$file"
         '';
-      })
+      };
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Show current date/time with a calendar";
+      example = "rn";
+      package = pkgs.writeShellApplication {
         name = "rn";
         text = ''
           date "+%l:%M%p on %A, %B %e, %Y"
           echo
           cal | grep -E "\b$(date '+%e')\b| "
         '';
-      })
+      };
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Print today's date in YYYY-MM-DD format";
+      example = "hoy | copy";
+      package = pkgs.writeShellApplication {
         name = "hoy";
         text = ''
           echo -n "$(date '+%Y-%m-%d')"
         '';
-      })
+      };
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Run a command in the background, silencing output";
+      example = "bb open .";
+      package = pkgs.writeShellApplication {
         name = "bb";
         text = ''
           if test -t 1; then
@@ -202,9 +241,13 @@ in
 
           "$@" &
         '';
-      })
+      };
+    }
 
-      (pkgs.writers.writeRubyBin "murder" { } ''
+    {
+      description = "Interactively kill processes by pid, name, or port";
+      example = "murder :3000";
+      package = pkgs.writers.writeRubyBin "murder" { } ''
         SIGNALS = [
           ['SIGTERM', 0.5],
           ['SIGINT', 1],
@@ -268,9 +311,13 @@ in
         end
 
         ARGV.each { |arg| murder(arg) }
-      '')
+      '';
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Put the system to sleep";
+      example = "sleepybear";
+      package = pkgs.writeShellApplication {
         name = "sleepybear";
         text = ''
           if [[ "$(uname)" == 'Darwin' ]]; then
@@ -279,9 +326,13 @@ in
             systemctl suspend
           fi
         '';
-      })
+      };
+    }
 
-      (pkgs.writeShellApplication {
+    {
+      description = "Extract words from your last command via atuin";
+      example = "lastarg -1";
+      package = pkgs.writeShellApplication {
         name = "lastarg";
         runtimeInputs = [ pkgs.atuin ];
         text = ''
@@ -326,7 +377,26 @@ in
             echo "''${parts[$idx]}"
           fi
         '';
-      })
-    ];
+      };
+    }
+  ];
+in
+{
+  options.profiles.scripts = {
+    enable = lib.mkEnableOption "Custom shell scripts and utilities";
+
+    tips = lib.mkOption {
+      type = lib.types.listOf (lib.types.attrsOf lib.types.str);
+      readOnly = true;
+      default = map (s: {
+        name = s.package.name;
+        inherit (s) description example;
+      }) scripts;
+      description = "Script metadata for use in MOTD";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    home.packages = map (s: s.package) scripts;
   };
 }
