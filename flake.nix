@@ -9,7 +9,6 @@
     sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
     worktrunk.url = "github:max-sixty/worktrunk";
     zmx.url = "github:neurosnap/zmx";
-    devenv.url = "github:cachix/devenv/bump-nix-bindings-rust";
   };
 
   outputs =
