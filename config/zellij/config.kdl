@@ -145,6 +145,13 @@ keybinds clear-defaults=true {
         }
     }
     shared_among "Normal" "Locked" {
+        bind "Ctrl s" {
+            LaunchOrFocusPlugin "session-manager" {
+                floating false
+                move_to_focused_tab true
+            }
+            SwitchToMode "Locked"
+        }
         bind "Alt left" { MoveFocusOrTab "Left"; }
         bind "Alt down" { MoveFocus "Down"; }
         bind "Alt up" { MoveFocus "Up"; }
