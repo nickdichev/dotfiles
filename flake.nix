@@ -60,6 +60,7 @@
         dev = import ./modules/dev.nix { inherit inputs; };
         fonts = import ./modules/fonts.nix;
         git = import ./modules/git.nix;
+        hammerspoon = import ./modules/hammerspoon.nix;
         media-processing = import ./modules/media-processing.nix;
         neovim = import ./modules/neovim.nix { inherit inputs; };
         scripts = import ./modules/scripts.nix;

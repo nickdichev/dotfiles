@@ -8,6 +8,7 @@
     dev.enable = true;
     fonts.enable = true;
     git.enable = true;
+    hammerspoon.enable = true;
     media-processing.enable = true;
     neovim.enable = true;
     scripts.enable = true;
