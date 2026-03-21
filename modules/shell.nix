@@ -132,27 +132,31 @@ in
             "$HOME/.ssh/server"
           )
 
-          local loaded=0
+          local results=()
           for dir in "''${potential_dirs[@]}"; do
             [[ -d "$dir" ]] || continue
+            local group=$(basename "$dir")
             for key in "$dir"/*; do
               [[ -f "$key" ]] || continue
               [[ "$key" == *.pub ]] && continue
-              # Check if it looks like a private key
               head -1 "$key" 2>/dev/null | grep -q "PRIVATE KEY" || continue
 
               local name=$(basename "$key")
               if ssh-add "$key" 2>/dev/null; then
-                echo "  ''${green}✓''${reset} ''${dim}$name''${reset}"
-                ((loaded++))
+                results+=("''${green}✓''${reset}|''${dim}$group''${reset}|$name")
               else
-                echo "  ''${red}✗''${reset} ''${dim}$name (failed)''${reset}"
+                results+=("''${red}✗''${reset}|''${dim}$group''${reset}|''${red}$name (failed)''${reset}")
               fi
             done
           done
 
-          if [[ $loaded -eq 0 ]]; then
+          if [[ ''${#results[@]} -eq 0 ]]; then
             echo "  ''${dim}No keys found''${reset}"
+          else
+            for entry in "''${results[@]}"; do
+              IFS='|' read -r status group name <<< "$entry"
+              printf "  %s  ''${dim}%-10s''${reset} %s\n" "$status" "$group" "$name"
+            done
           fi
           echo ""
         }
@@ -192,7 +196,7 @@ in
           local description="''${rest%%|*}"
           local example="''${rest#*|}"
 
-          echo "  ''${bold}''${magenta}Random Script''${reset}"
+          echo "  ''${bold}''${yellow}Random Script''${reset}"
           echo "  ''${dim}────────────────────────────────────────────''${reset}"
           echo "  ''${bold}''${green}$name''${reset} ''${dim}— $description''${reset}"
           echo "  ''${dim}\$''${reset} ''${cyan}$example''${reset}"
