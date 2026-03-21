@@ -427,7 +427,7 @@ let
       example = "beatport-upload ~/Downloads/tracks/";
       package = pkgs.writeShellApplication {
         name = "beatport-upload";
-        runtimeInputs = [ pkgs.ffmpeg pkgs.fzf pkgs.openssh ];
+        runtimeInputs = [ pkgs.ffmpeg pkgs.fzf pkgs.openssh pkgs.tailscale ];
         text = ''
           REMOTE_HOST="liveoak"
           REMOTE_PATH="/mnt/storage/media/music"
@@ -446,18 +446,21 @@ let
               echo "  -h HOST   Remote host (default: liveoak)"
               echo "  -p PATH   Remote path (default: /mnt/storage/media/music)"
               echo "  -y        Skip confirmation prompts"
+              echo "  --no-wait Skip waiting for remote host on tailnet"
               echo "  --dry-run Show what would be done without copying/converting"
               echo "  --help    Show this help"
           }
 
           AUTO_YES=false
           DRY_RUN=false
+          NO_WAIT=false
           while [[ $# -gt 0 ]]; do
               case "$1" in
                   -o) OUTPUT_DIR="$2"; shift 2 ;;
                   -h) REMOTE_HOST="$2"; shift 2 ;;
                   -p) REMOTE_PATH="$2"; shift 2 ;;
                   -y) AUTO_YES=true; shift ;;
+                  --no-wait) NO_WAIT=true; shift ;;
                   --dry-run) DRY_RUN=true; shift ;;
                   --help) usage; exit 0 ;;
                   *) break ;;
@@ -594,6 +597,9 @@ let
           fi
 
           if [[ "$do_upload" =~ ^[Yy]$ ]]; then
+              if ! $NO_WAIT; then
+                  tailwait "$REMOTE_HOST"
+              fi
               echo "Uploading..."
               while IFS= read -r artist_dir; do
                   scp -r "''${OUTPUT_DIR}/''${artist_dir}" "''${REMOTE_HOST}:''${REMOTE_PATH}/"
@@ -609,6 +615,33 @@ let
               echo "Then on ''${REMOTE_HOST}:"
               echo "  sudo chown -R copyparty:copyparty ''${REMOTE_PATH}/"
           fi
+        '';
+      };
+    }
+
+    {
+      description = "Wait until a host is reachable on your tailnet";
+      example = "tailwait liveoak && ssh liveoak";
+      package = pkgs.writeShellApplication {
+        name = "tailwait";
+        runtimeInputs = [ pkgs.tailscale ];
+        text = ''
+          host="''${1:-}"
+          interval="''${2:-5}"
+
+          if [[ -z "$host" ]]; then
+            echo "Usage: tailwait <host> [interval_seconds]"
+            echo "  Waits until <host> is reachable on the current tailnet."
+            exit 1
+          fi
+
+          while ! tailscale ping --timeout=2 "$host" > /dev/null 2>&1; do
+            current=$(tailscale status --json 2>/dev/null | grep -o '"CurrentTailnet":{[^}]*}' | grep -o '"Name":"[^"]*"' | head -1 | cut -d'"' -f4)
+            printf "\r\033[K\033[2mWaiting for %s… (current tailnet: %s)\033[0m" "$host" "''${current:-unknown}"
+            sleep "$interval"
+          done
+
+          printf "\r\033[K\033[32m✓\033[0m %s is reachable\n" "$host"
         '';
       };
     }
