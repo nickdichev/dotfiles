@@ -154,8 +154,8 @@ in
             echo "  ''${dim}No keys found''${reset}"
           else
             for entry in "''${results[@]}"; do
-              IFS='|' read -r status group name <<< "$entry"
-              printf "  %s  ''${dim}%-10s''${reset} %s\n" "$status" "$group" "$name"
+              IFS='|' read -r icon group name <<< "$entry"
+              printf "  %s  ''${dim}%-10s''${reset} %s\n" "$icon" "$group" "$name"
             done
           fi
           echo ""
