@@ -206,10 +206,53 @@ let
       example = "rn";
       package = pkgs.writeShellApplication {
         name = "rn";
+        runtimeInputs = [ pkgs.ncurses ];
         text = ''
           date "+%l:%M%p on %A, %B %e, %Y"
           echo
-          cal | grep -E "\b$(date '+%e')\b| "
+
+          bold=$(tput bold)
+          reset=$(tput sgr0)
+          cyan=$(tput setaf 6)
+          dim=$(tput dim)
+
+          today=$(date '+%e' | tr -d ' ')
+
+          cal | while IFS= read -r line; do
+            # Header lines (month/year and day names) — print as-is
+            if echo "$line" | grep -qE '^[[:space:]]*[A-Z]'; then
+              echo "$line"
+              continue
+            fi
+
+            result=""
+            # Process each 3-character day column (Su Mo Tu We Th Fr Sa)
+            col=0
+            i=0
+            while [ $i -lt ''${#line} ]; do
+              # Extract a 3-char chunk (or remaining)
+              chunk="''${line:$i:3}"
+              day=$(echo "$chunk" | tr -d ' ')
+
+              if [ -z "$day" ]; then
+                result="$result$chunk"
+              elif [ "$day" = "$today" ]; then
+                # Highlight today: bold cyan + reverse
+                padded=$(printf '%3s' "$day")
+                result="$result''${bold}''${cyan}$(tput rev)$padded''${reset}"
+              elif [ "$col" -eq 0 ] || [ "$col" -eq 6 ]; then
+                # Dim weekends
+                padded=$(printf '%3s' "$day")
+                result="$result''${dim}$padded''${reset}"
+              else
+                result="$result$chunk"
+              fi
+
+              col=$(( (col + 1) % 7 ))
+              i=$(( i + 3 ))
+            done
+            echo "$result"
+          done
         '';
       };
     }
