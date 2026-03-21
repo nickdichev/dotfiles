@@ -422,6 +422,196 @@ let
         '';
       };
     }
+    {
+      description = "Organize Beatport tracks and upload to Jellyfin server";
+      example = "beatport-upload ~/Downloads/tracks/";
+      package = pkgs.writeShellApplication {
+        name = "beatport-upload";
+        runtimeInputs = [ pkgs.ffmpeg pkgs.fzf pkgs.openssh ];
+        text = ''
+          REMOTE_HOST="liveoak"
+          REMOTE_PATH="/mnt/storage/media/music"
+          TIMESTAMP="$(date +%Y-%m-%d_%H%M%S)"
+          OUTPUT_DIR="''${HOME}/Downloads/beatport_organized_''${TIMESTAMP}"
+
+          usage() {
+              echo "Usage: beatport-upload [OPTIONS] [PATH...]"
+              echo ""
+              echo "Organize Beatport tracks into Jellyfin structure and optionally upload."
+              echo ""
+              echo "If no PATHs given, opens fzf to pick files/dirs from the current directory."
+              echo ""
+              echo "Options:"
+              echo "  -o DIR    Output directory (default: ~/Downloads/beatport_organized_<timestamp>)"
+              echo "  -h HOST   Remote host (default: liveoak)"
+              echo "  -p PATH   Remote path (default: /mnt/storage/media/music)"
+              echo "  -y        Skip confirmation prompts"
+              echo "  --dry-run Show what would be done without copying/converting"
+              echo "  --help    Show this help"
+          }
+
+          AUTO_YES=false
+          DRY_RUN=false
+          while [[ $# -gt 0 ]]; do
+              case "$1" in
+                  -o) OUTPUT_DIR="$2"; shift 2 ;;
+                  -h) REMOTE_HOST="$2"; shift 2 ;;
+                  -p) REMOTE_PATH="$2"; shift 2 ;;
+                  -y) AUTO_YES=true; shift ;;
+                  --dry-run) DRY_RUN=true; shift ;;
+                  --help) usage; exit 0 ;;
+                  *) break ;;
+              esac
+          done
+
+          # Collect input files
+          input_files=()
+
+          collect_audio_from_dir() {
+              local dir="$1"
+              while IFS= read -r -d "" f; do
+                  input_files+=("$f")
+              done < <(find "$dir" -maxdepth 1 -type f \( -iname '*.flac' -o -iname '*.wav' -o -iname '*.mp3' -o -iname '*.aiff' \) -print0 | sort -z)
+          }
+
+          if [[ $# -gt 0 ]]; then
+              for arg in "$@"; do
+                  if [[ -d "$arg" ]]; then
+                      collect_audio_from_dir "$arg"
+                  elif [[ -f "$arg" ]]; then
+                      input_files+=("$arg")
+                  else
+                      echo "Warning: '$arg' not found, skipping"
+                  fi
+              done
+          else
+              echo "Select files/directories (TAB to multi-select, ENTER to confirm):"
+              picks=()
+              while IFS= read -r line; do
+                  picks+=("$line")
+              done < <(
+                  find . -maxdepth 3 \( -iname '*.flac' -o -iname '*.wav' -o -iname '*.mp3' -o -iname '*.aiff' -o -type d \) \
+                      | sort \
+                      | fzf --multi --height=40% --reverse --prompt="Beatport tracks> " \
+                            --preview='if [ -d {} ]; then ls -1 {}/*.flac {}/*.wav 2>/dev/null | head -20; else ffprobe -v quiet -show_entries format_tags=artist,album,title -of default=noprint_wrappers=1 {} 2>/dev/null; fi'
+              )
+              for pick in "''${picks[@]}"; do
+                  if [[ -d "$pick" ]]; then
+                      collect_audio_from_dir "$pick"
+                  elif [[ -f "$pick" ]]; then
+                      input_files+=("$pick")
+                  fi
+              done
+          fi
+
+          if [[ ''${#input_files[@]} -eq 0 ]]; then
+              echo "No audio files selected."
+              exit 1
+          fi
+
+          echo ""
+          echo "Found ''${#input_files[@]} track(s) to process."
+
+          # Process each file
+          if ! $DRY_RUN; then
+              mkdir -p "$OUTPUT_DIR"
+          fi
+          organized=()
+          errors=()
+
+          for f in "''${input_files[@]}"; do
+              filename="$(basename "$f")"
+              ext="''${filename##*.}"
+              ext_lower="$(echo "$ext" | tr '[:upper:]' '[:lower:]')"
+              needs_convert=false
+
+              if [[ "$ext_lower" != "flac" ]]; then
+                  needs_convert=true
+              fi
+
+              artist="$(ffprobe -v quiet -show_entries format_tags=artist -of default=noprint_wrappers=1:nokey=1 "$f" 2>/dev/null)"
+              album="$(ffprobe -v quiet -show_entries format_tags=album -of default=noprint_wrappers=1:nokey=1 "$f" 2>/dev/null)"
+              title="$(ffprobe -v quiet -show_entries format_tags=title -of default=noprint_wrappers=1:nokey=1 "$f" 2>/dev/null)"
+              track="$(ffprobe -v quiet -show_entries format_tags=track -of default=noprint_wrappers=1:nokey=1 "$f" 2>/dev/null)"
+
+              if [[ -z "$artist" || -z "$album" || -z "$title" ]]; then
+                  echo "  SKIP (missing metadata): $filename"
+                  errors+=("$filename")
+                  continue
+              fi
+
+              safe_artist="$(echo "$artist" | sed 's/[\/:]/_/g; s/^[[:space:]]*//; s/[[:space:]]*$//')"
+              safe_album="$(echo "$album" | sed 's/[\/:]/_/g; s/^[[:space:]]*//; s/[[:space:]]*$//')"
+              safe_title="$(echo "$title" | sed 's/[\/:]/_/g; s/^[[:space:]]*//; s/[[:space:]]*$//')"
+
+              if [[ -n "$track" ]]; then
+                  padded="$(printf '%02d' "$track")"
+                  dest_name="''${safe_artist} - ''${safe_album} - ''${padded} ''${safe_title}.flac"
+              else
+                  dest_name="''${safe_artist} - ''${safe_album} - ''${safe_title}.flac"
+              fi
+
+              dest_dir="''${OUTPUT_DIR}/''${safe_artist}/''${safe_album}"
+              if ! $DRY_RUN; then
+                  mkdir -p "$dest_dir"
+              fi
+              dest_path="''${dest_dir}/''${dest_name}"
+
+              if $DRY_RUN; then
+                  if $needs_convert; then
+                      echo "  WOULD CONVERT: $filename -> ''${safe_artist}/''${safe_album}/''${dest_name}"
+                  else
+                      echo "  WOULD COPY: $filename -> ''${safe_artist}/''${safe_album}/''${dest_name}"
+                  fi
+              else
+                  if $needs_convert; then
+                      echo "  CONVERT: $filename -> flac"
+                      ffmpeg -v quiet -y -i "$f" -compression_level 8 "$dest_path"
+                  else
+                      cp "$f" "$dest_path"
+                  fi
+                  echo "  OK: ''${safe_artist}/''${safe_album}/''${dest_name}"
+              fi
+              organized+=("''${safe_artist}/''${safe_album}")
+          done
+
+          echo ""
+          echo "Organized ''${#organized[@]} track(s) to: $OUTPUT_DIR"
+
+          if [[ ''${#errors[@]} -gt 0 ]]; then
+              echo "Skipped ''${#errors[@]} file(s) with missing metadata."
+          fi
+
+          if [[ ''${#organized[@]} -eq 0 ]]; then
+              exit 0
+          fi
+
+          echo ""
+          if $AUTO_YES; then
+              do_upload="y"
+          else
+              read -rp "Upload to ''${REMOTE_HOST}:''${REMOTE_PATH}? [y/N] " do_upload
+          fi
+
+          if [[ "$do_upload" =~ ^[Yy]$ ]]; then
+              echo "Uploading..."
+              while IFS= read -r artist_dir; do
+                  scp -r "''${OUTPUT_DIR}/''${artist_dir}" "''${REMOTE_HOST}:''${REMOTE_PATH}/"
+              done < <(printf '%s\n' "''${organized[@]}" | cut -d'/' -f1 | sort -u)
+              echo ""
+              echo "Upload complete. Run on ''${REMOTE_HOST}:"
+              echo "  sudo chown -R copyparty:copyparty ''${REMOTE_PATH}/"
+          else
+              echo ""
+              echo "Skipped upload. To upload manually:"
+              echo "  scp -r ''${OUTPUT_DIR}/* ''${REMOTE_HOST}:''${REMOTE_PATH}/"
+              echo ""
+              echo "Then on ''${REMOTE_HOST}:"
+              echo "  sudo chown -R copyparty:copyparty ''${REMOTE_PATH}/"
+          fi
+        '';
+      };
+    }
   ];
 in
 {
