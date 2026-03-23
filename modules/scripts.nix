@@ -620,6 +620,374 @@ let
     }
 
     {
+      description = "Manage book metadata in your Obsidian vault";
+      example = "bookctl backfill --dry-run";
+      package = pkgs.writers.writePython3Bin "bookctl" {
+        libraries = [
+          pkgs.python3Packages.python-frontmatter
+          pkgs.python3Packages.requests
+        ];
+      } ''
+          import argparse
+          import sys
+          import time
+          from datetime import date
+          from pathlib import Path
+
+          import yaml
+          import frontmatter
+          import requests
+
+          BOOKS_DIR = Path.home() / "Documents" / "Notes" / "books"
+
+          SEARCH_FIELDS = ",".join([
+              "key", "title", "author_name",
+              "first_publish_year", "isbn",
+              "edition_key", "cover_i", "subject",
+          ])
+
+          KNOWN_GENRES = {
+              "Adventure", "Biography", "Business", "Comics", "Crime",
+              "Fantasy", "Graphic Novels", "Historical Fiction", "History",
+              "Horror", "Humor", "Literary Fiction", "Memoir", "Mystery",
+              "Nonfiction", "Philosophy", "Poetry", "Psychology", "Romance",
+              "Science", "Science Fiction", "Self-Help", "Technology",
+              "Thriller", "True Crime", "Young Adult", "Fiction",
+              "Economics", "Politics", "Sociology", "Music", "Art",
+              "Religion", "Travel", "Sports", "Health", "Cooking",
+          }
+
+          KNOWN_GENRES_LOWER = {g.lower(): g for g in KNOWN_GENRES}
+
+
+          def _none_representer(dumper, _data):
+              return dumper.represent_scalar(
+                  "tag:yaml.org,2002:null", "",
+              )
+
+
+          yaml.add_representer(type(None), _none_representer)
+
+
+          def save_post(post, path):
+              frontmatter.dump(
+                  post, str(path), sort_keys=False,
+              )
+
+
+          def load_books(path=None):
+              if path:
+                  p = Path(path)
+                  if p.is_file():
+                      return [p]
+                  return sorted(p.glob("*.md"))
+              return sorted(BOOKS_DIR.glob("*.md"))
+
+
+          def search_openlibrary(title, author=None):
+              params = {
+                  "title": title,
+                  "limit": 10,
+                  "fields": SEARCH_FIELDS,
+              }
+              if author:
+                  params["author"] = author
+              resp = requests.get(
+                  "https://openlibrary.org/search.json",
+                  params=params,
+                  timeout=10,
+              )
+              resp.raise_for_status()
+              return resp.json().get("docs", [])
+
+
+          def extract_genres(doc):
+              subjects = doc.get("subject", [])
+              matched = []
+              seen = set()
+              for s in subjects:
+                  key = s.strip().lower()
+                  if key in KNOWN_GENRES_LOWER and key not in seen:
+                      seen.add(key)
+                      matched.append(KNOWN_GENRES_LOWER[key])
+              return matched
+
+
+          def pick_result(results, title, author):
+              if not results:
+                  return None
+              if len(results) == 1:
+                  return results[0]
+
+              print(f"\n  Multiple results for '{title}':")
+              for i, doc in enumerate(results[:8]):
+                  doc_title = doc.get("title", "?")
+                  doc_author = ", ".join(doc.get("author_name", ["?"]))
+                  doc_year = doc.get("first_publish_year", "?")
+                  print(f"    {i + 1}) {doc_title} by {doc_author} ({doc_year})")
+              print("    s) skip")
+
+              while True:
+                  choice = input("  Pick [1]: ").strip()
+                  if choice.lower() == "s":
+                      return None
+                  if choice == "":
+                      return results[0]
+                  try:
+                      idx = int(choice) - 1
+                      if 0 <= idx < len(results[:8]):
+                          return results[idx]
+                  except ValueError:
+                      pass
+                  print("  Invalid choice, try again.")
+
+
+          def fill_from_doc(post, doc, dry_run=False):
+              changes = []
+              meta = post.metadata
+
+              if not meta.get("isbn"):
+                  isbns = doc.get("isbn", [])
+                  isbn13 = [i for i in isbns if len(i) == 13 and i.isdigit()]
+                  isbn10 = [i for i in isbns if len(i) == 10]
+                  isbn = isbn13[0] if isbn13 else (isbn10[0] if isbn10 else None)
+                  if isbn:
+                      if not dry_run:
+                          meta["isbn"] = int(isbn) if isbn.isdigit() else isbn
+                      changes.append(f"isbn={isbn}")
+
+              if not meta.get("olid"):
+                  editions = doc.get("edition_key", [])
+                  if editions:
+                      if not dry_run:
+                          meta["olid"] = editions[0]
+                      changes.append(f"olid={editions[0]}")
+
+              if not meta.get("image"):
+                  cover_id = doc.get("cover_i")
+                  if cover_id:
+                      url = f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
+                      if not dry_run:
+                          meta["image"] = url
+                      changes.append("image")
+
+              if not meta.get("genres"):
+                  genres = extract_genres(doc)
+                  if genres:
+                      if not dry_run:
+                          meta["genres"] = genres
+                      changes.append(f"genres={','.join(genres)}")
+
+              return changes
+
+
+          def cmd_backfill(args):
+              books = load_books(args.file)
+              if not books:
+                  print("No book files found.")
+                  return
+
+              for book_path in books:
+                  post = frontmatter.load(str(book_path))
+                  meta = post.metadata
+                  title = meta.get("title", book_path.stem)
+                  author_field = meta.get("author", [])
+
+                  if isinstance(author_field, list):
+                      author = author_field[0] if author_field else None
+                  else:
+                      author = author_field
+
+                  # Skip if already complete
+                  has_all = all(
+                      meta.get(f)
+                      for f in ["isbn", "olid", "image", "genres"]
+                  )
+                  if has_all:
+                      print(f"  SKIP (complete): {book_path.name}")
+                      continue
+
+                  print(f"  Searching: {title}" + (f" by {author}" if author else ""))
+
+                  try:
+                      results = search_openlibrary(title, author)
+                  except Exception as e:
+                      print(f"  ERROR: {e}")
+                      time.sleep(0.5)
+                      continue
+
+                  doc = pick_result(results, title, author)
+                  if not doc:
+                      print("  No match found, skipping.")
+                      time.sleep(0.5)
+                      continue
+
+                  changes = fill_from_doc(post, doc, dry_run=args.dry_run)
+
+                  if changes:
+                      action = "WOULD UPDATE" if args.dry_run else "UPDATED"
+                      print(f"  {action}: {', '.join(changes)}")
+                      if not args.dry_run:
+                          save_post(post, book_path)
+                  else:
+                      print("  No new data to fill.")
+
+                  time.sleep(0.5)
+
+
+          def cmd_add(args):
+              title = args.title
+              isbn = args.isbn
+
+              if isbn:
+                  params = {
+                      "isbn": isbn,
+                      "limit": 5,
+                      "fields": SEARCH_FIELDS,
+                  }
+              else:
+                  params = {
+                      "title": title,
+                      "limit": 10,
+                      "fields": SEARCH_FIELDS,
+                  }
+
+              print(f"Searching OpenLibrary for: {title or isbn}")
+              try:
+                  resp = requests.get(
+                      "https://openlibrary.org/search.json",
+                      params=params,
+                      timeout=10,
+                  )
+                  resp.raise_for_status()
+                  results = resp.json().get("docs", [])
+              except Exception as e:
+                  print(f"ERROR: {e}")
+                  sys.exit(1)
+
+              doc = pick_result(results, title, None)
+              if not doc:
+                  print("No match found.")
+                  sys.exit(1)
+
+              doc_title = doc.get("title", title)
+              authors = doc.get("author_name", [])
+              cover_id = doc.get("cover_i")
+              isbns = doc.get("isbn", [])
+              isbn13 = [i for i in isbns if len(i) == 13 and i.isdigit()]
+              isbn10 = [i for i in isbns if len(i) == 10]
+              isbn_val = isbn13[0] if isbn13 else (isbn10[0] if isbn10 else None)
+              editions = doc.get("edition_key", [])
+              genres = extract_genres(doc)
+
+              meta = {
+                  "title": doc_title,
+                  "author": authors if authors else [title],
+                  "status": "reading",
+                  "start-date": date.today().isoformat(),
+                  "completed-date": None,
+                  "image": f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
+                  if cover_id
+                  else None,
+                  "isbn": int(isbn_val) if isbn_val and isbn_val.isdigit() else isbn_val,
+                  "olid": editions[0] if editions else None,
+              }
+              if genres:
+                  meta["genres"] = genres
+
+              post = frontmatter.Post("", **meta)
+              filename = BOOKS_DIR / f"{doc_title}.md"
+
+              if filename.exists():
+                  print(f"File already exists: {filename}")
+                  sys.exit(1)
+
+              save_post(post, filename)
+              print(f"Created: {filename.name}")
+              for k, v in meta.items():
+                  if v:
+                      print(f"  {k}: {v}")
+
+
+          def cmd_list(args):
+              books = load_books()
+              if not books:
+                  print("No book files found.")
+                  return
+
+              fields = ["isbn", "olid", "image", "genres"]
+              missing_count = 0
+
+              for book_path in books:
+                  post = frontmatter.load(str(book_path))
+                  meta = post.metadata
+                  title = meta.get("title", book_path.stem)
+
+                  missing = [f for f in fields if not meta.get(f)]
+
+                  if args.missing and not missing:
+                      continue
+
+                  if missing:
+                      missing_count += 1
+                      print(f"  {title}  [missing: {', '.join(missing)}]")
+                  else:
+                      print(f"  {title}  ✓")
+
+              total = len(list(BOOKS_DIR.glob("*.md")))
+              print(f"\n  {total} books, {missing_count} with missing fields")
+
+
+          def main():
+              parser = argparse.ArgumentParser(
+                  prog="bookctl",
+                  description="Manage book metadata in your Obsidian vault",
+              )
+              sub = parser.add_subparsers(dest="command")
+
+              bf = sub.add_parser(
+                  "backfill", help="Fill missing metadata",
+              )
+              bf.add_argument(
+                  "--dry-run", action="store_true",
+                  help="Preview without writing",
+              )
+              bf.add_argument(
+                  "--file", type=str,
+                  help="Process a single file or directory",
+              )
+
+              add = sub.add_parser(
+                  "add", help="Add a new book from OpenLibrary",
+              )
+              add.add_argument("title", help="Book title to search")
+              add.add_argument("--isbn", help="Search by ISBN")
+
+              ls = sub.add_parser(
+                  "list", help="List books and completeness",
+              )
+              ls.add_argument(
+                  "--missing", action="store_true",
+                  help="Only show incomplete",
+              )
+
+              args = parser.parse_args()
+
+              if args.command == "backfill":
+                  cmd_backfill(args)
+              elif args.command == "add":
+                  cmd_add(args)
+              elif args.command == "list":
+                  cmd_list(args)
+              else:
+                  parser.print_help()
+
+
+          main()
+      '';
+    }
+
+    {
       description = "Wait until a host is reachable on your tailnet";
       example = "tailwait liveoak && ssh liveoak";
       package = pkgs.writeShellApplication {
