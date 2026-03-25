@@ -1,5 +1,10 @@
 { inputs }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.profiles.ai;
   # kagiApiKeyFile = clanVars.generators.kagi-api-key.files.api_key.path;
@@ -71,7 +76,7 @@ in
         nixos = {
           args = [
             "--from"
-            "git+https://github.com/nickdichev/mcp-nixos"
+            "git+https://github.com/nickdichev/mcp-nixos@Add-clan-options"
             "mcp-nixos"
           ];
           command = "${pkgs.uv}/bin/uvx";
