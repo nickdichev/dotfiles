@@ -100,12 +100,18 @@ in
 
     home.packages = [ lightpanda ];
 
+    # Copy serena config as a regular file (not a symlink) so Serena can
+    # migrate it in-place when new fields are added across versions.
+    home.activation.serenaConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      if [ ! -f "$HOME/.serena/serena_config.yml" ] || [ -L "$HOME/.serena/serena_config.yml" ]; then
+        install -Dm644 ${pkgs.writeText "serena_config.yml" ''
+          web_dashboard_open_on_launch: false
+          projects: []
+        ''} $HOME/.serena/serena_config.yml
+      fi
+    '';
+
     home.file = {
-      # https://github.com/oraios/serena/blob/main/src/serena/resources/serena_config.template.yml
-      ".serena/serena_config.yml".source = pkgs.writeText "serena_config.yml" ''
-        web_dashboard_open_on_launch: false
-        projects: []
-      '';
       ".claude/statusline.sh" = {
         source = ../config/claude/statusline.sh;
         executable = true;
