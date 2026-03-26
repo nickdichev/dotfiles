@@ -68,7 +68,7 @@
         shell = import ./modules/shell.nix { inherit inputs; };
         terminal = import ./modules/terminal.nix;
         utils = import ./modules/utils.nix { inherit inputs; };
-        zellij = import ./modules/zellij.nix;
+        zellij = import ./modules/zellij.nix { inherit inputs; };
       };
 
       devShells = forEachSupportedSystem (

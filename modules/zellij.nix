@@ -1,6 +1,8 @@
+{ inputs }:
 { config, lib, pkgs, ... }:
 let
   cfg = config.profiles.zellij;
+  pkgs-unstable = import inputs.nixpkgs-unstable { inherit (pkgs) system; };
   layoutsDir = ../config/zellij/layouts;
   layoutFiles = lib.filterAttrs (name: _: lib.hasSuffix ".kdl" name) (builtins.readDir layoutsDir);
   layoutEntries = lib.mapAttrs' (
@@ -28,6 +30,7 @@ in
   config = lib.mkIf cfg.enable {
     programs.zellij = {
       enable = true;
+      package = pkgs-unstable.zellij;
       enableZshIntegration = false; # Custom logic in shell.nix handles SSH nesting
     };
 

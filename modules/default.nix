@@ -20,7 +20,7 @@ in
     ./hammerspoon.nix
     ./terminal.nix
     (import ./utils.nix { inherit inputs; })
-    ./zellij.nix
+    (import ./zellij.nix { inherit inputs; })
   ];
 
   options.profiles = {
