@@ -186,7 +186,9 @@ in
 
           # Random script tip (generated from profiles.scripts.tips)
           local scripts=(
-            ${lib.concatMapStringsSep "\n            " (tip: "\"${tip.name}|${tip.description}|${tip.example}\"") config.profiles.scripts.tips}
+            ${lib.concatMapStringsSep "\n            " (
+              tip: "\"${tip.name}|${tip.description}|${tip.example}\""
+            ) config.profiles.scripts.tips}
           )
 
           local idx=$((RANDOM % ''${#scripts[@]}))
@@ -297,8 +299,13 @@ in
 
         drr = "direnv reload";
 
+        cl = "claude";
+        clc = "claude --continue";
+        clr = "claude --resume";
         dclaude = "claude --dangerously-skip-permissions";
         dc = "dclaude";
+        dcc = "dclaude --continue";
+        dcr = "dclaude --resume";
 
         wtrm = "wt remove --force";
         wtrmm = "wt remove --force --no-verify -D";
