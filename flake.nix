@@ -7,6 +7,8 @@
     llm-agents.url = "github:numtide/llm-agents.nix";
     serena.url = "github:oraios/serena";
     sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
+    devenv.url = "github:cachix/devenv/process-management-subcommands";
+    devenv.inputs.nixpkgs.follows = "nixpkgs-unstable";
     worktrunk.url = "github:max-sixty/worktrunk";
     zmx.url = "github:neurosnap/zmx";
   };

@@ -11,7 +11,7 @@ in
 
     home.packages = [
       pkgs.just
-      pkgs-unstable.devenv
+      inputs.devenv.packages.${pkgs.system}.devenv
     ];
 
     programs.direnv = {
