@@ -41,6 +41,7 @@ in
       }))
 
       pkgs-unstable.raycast
+      pkgs-unstable.blackhole
       (pkgs.callPackage ../pkgs/rustdesk { })
       (pkgs.callPackage ../pkgs/redisinsight { })
       (pkgs.callPackage ../pkgs/handy { })
