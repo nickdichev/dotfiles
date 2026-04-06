@@ -1,5 +1,10 @@
 { inputs }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.profiles.dev;
   pkgs-unstable = import inputs.nixpkgs-unstable { inherit (pkgs) system; };
@@ -11,6 +16,7 @@ in
 
     home.packages = [
       pkgs.just
+      pkgs-unstable.niks3
       inputs.devenv.packages.${pkgs.system}.devenv
     ];
 
