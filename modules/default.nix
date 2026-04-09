@@ -18,7 +18,7 @@ in
     ./secrets.nix
     (import ./shell.nix { inherit inputs; })
     ./hammerspoon.nix
-    ./terminal.nix
+    (import ./terminal.nix { inherit inputs; })
     (import ./utils.nix { inherit inputs; })
     (import ./zellij.nix { inherit inputs; })
   ];
