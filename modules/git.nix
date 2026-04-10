@@ -96,6 +96,7 @@ in
         ".DS_Store"
         ".direnv"
         ".claude/settings.local.json"
+        ".serena"
       ];
 
       # Conditional includes for per-project identity overrides
