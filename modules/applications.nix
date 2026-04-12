@@ -40,8 +40,10 @@ in
         };
       }))
 
-      pkgs-unstable.raycast
+      pkgs-unstable.alt-tab-macos
       pkgs-unstable.blackhole
+      pkgs-unstable.raycast
+
       (pkgs.callPackage ../pkgs/rustdesk { })
       (pkgs.callPackage ../pkgs/redisinsight { })
       (pkgs.callPackage ../pkgs/handy { })
