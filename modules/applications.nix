@@ -32,13 +32,6 @@ in
       pkgs.obsidian
     ]
     ++ lib.optionals (hasGui && isDarwin) [
-      (pkgs.tableplus.overrideAttrs (oldAttrs: rec {
-        version = "654";
-        src = pkgs.fetchurl {
-          url = "https://files.tableplus.com/macos/${version}/TablePlus.dmg";
-          hash = "sha256-ROI0a+PtIuqO90mCXzdlMen3PivzI9wjNku7Sn9DhGQ=";
-        };
-      }))
 
       pkgs-unstable.alt-tab-macos
       pkgs-unstable.blackhole
@@ -47,6 +40,14 @@ in
       (pkgs.callPackage ../pkgs/rustdesk { })
       (pkgs.callPackage ../pkgs/redisinsight { })
       (pkgs.callPackage ../pkgs/handy { })
+
+      (pkgs.tableplus.overrideAttrs (oldAttrs: rec {
+        version = "662";
+        src = pkgs.fetchurl {
+          url = "https://files.tableplus.com/macos/${version}/TablePlus.dmg";
+          hash = "sha256-VR0sSTZfRjjv+p4DcYciKBJG5DHIwj4KLhTHPGRsSX0=";
+        };
+      }))
 
     ]
     ++ lib.optionals (hasGui && isLinux) [
