@@ -55,11 +55,16 @@ in
 
       settings = {
         CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = 1;
+
         skipDangerousModePermissionPrompt = true;
+
+        effortLevel = "high";
+
         attribution = {
           commit = "";
           pr = "";
         };
+
         statusLine = {
           type = "command";
           command = "~/.claude/statusline.sh";
