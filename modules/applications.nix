@@ -40,6 +40,7 @@ in
       (pkgs.callPackage ../pkgs/rustdesk { })
       (pkgs.callPackage ../pkgs/redisinsight { })
       (pkgs.callPackage ../pkgs/handy { })
+      (pkgs.callPackage ../pkgs/pencil { })
 
       (pkgs.tableplus.overrideAttrs (oldAttrs: rec {
         version = "662";
