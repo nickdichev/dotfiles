@@ -41,6 +41,7 @@ stdenv.mkDerivation {
     runHook preInstall
     mkdir -p $out/Applications
     cp -r Pencil.app $out/Applications/
+    /usr/bin/codesign --force --deep --sign - "$out/Applications/Pencil.app"
     runHook postInstall
   '';
 
