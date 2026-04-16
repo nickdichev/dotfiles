@@ -9,6 +9,7 @@
     sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
     devenv.url = "github:cachix/devenv/v2.0.6";
     worktrunk.url = "github:max-sixty/worktrunk/v0.38.0";
+    wrk.url = "git+ssh://forgejo@liveoak:2222/Nick/wrk.git";
     zmx.url = "github:neurosnap/zmx";
   };
 
@@ -69,6 +70,7 @@
         shell = import ./modules/shell.nix { inherit inputs; };
         terminal = import ./modules/terminal.nix { inherit inputs; };
         utils = import ./modules/utils.nix { inherit inputs; };
+        wrk = import ./modules/wrk.nix { inherit inputs; };
         zellij = import ./modules/zellij.nix { inherit inputs; };
       };
 
