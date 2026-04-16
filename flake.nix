@@ -6,11 +6,12 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     llm-agents.url = "github:numtide/llm-agents.nix";
     serena.url = "github:oraios/serena";
-    sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
     devenv.url = "github:cachix/devenv/v2.0.6";
-    worktrunk.url = "github:max-sixty/worktrunk/v0.38.0";
-    wrk.url = "git+ssh://forgejo@liveoak:2222/Nick/wrk.git";
+    worktrunk.url = "github:nickdichev/worktrunk/fix-nix-build";
     zmx.url = "github:neurosnap/zmx";
+
+    sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
+    wrk.url = "git+ssh://forgejo@liveoak:2222/Nick/wrk.git";
   };
 
   outputs =
