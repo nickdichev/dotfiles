@@ -28,8 +28,9 @@ in
     home.packages = [
     ]
     ++ lib.optionals hasGui [
-      pkgs.slack
       pkgs.obsidian
+      pkgs.slack
+      pkgs.telegram-desktop
     ]
     ++ lib.optionals (hasGui && isDarwin) [
 
