@@ -9,7 +9,7 @@
     sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
     devenv.url = "github:cachix/devenv/process-management-subcommands";
     devenv.inputs.nixpkgs.follows = "nixpkgs-unstable";
-    worktrunk.url = "github:max-sixty/worktrunk";
+    worktrunk.url = "github:max-sixty/worktrunk/v0.38.0";
     zmx.url = "github:neurosnap/zmx";
   };
 

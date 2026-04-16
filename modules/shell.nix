@@ -308,7 +308,7 @@ in
         dcr = "dclaude --resume";
 
         wtrm = "wt remove --force";
-        wtrmm = "wt remove --force --no-verify -D";
+        wtrmm = "wt remove --force --no-hooks -D";
       };
 
       plugins = [
