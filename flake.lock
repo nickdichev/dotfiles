@@ -153,11 +153,11 @@
     },
     "crane": {
       "locked": {
-        "lastModified": 1767744144,
-        "narHash": "sha256-9/9ntI0D+HbN4G0TrK3KmHbTvwgswz7p8IEJsWyef8Q=",
+        "lastModified": 1775839657,
+        "narHash": "sha256-SPm9ck7jh3Un9nwPuMGbRU04UroFmOHjLP56T10MOeM=",
         "owner": "ipetkov",
         "repo": "crane",
-        "rev": "2fb033290bf6b23f226d4c8b32f7f7a16b043d7e",
+        "rev": "7cf72d978629469c4bd4206b95c402514c1f6000",
         "type": "github"
       },
       "original": {
@@ -1440,16 +1440,16 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1776359905,
-        "narHash": "sha256-hPFWQxG/18DWUpRloK0iT92EwmNmnl9VjQSvUfO8Ozg=",
-        "owner": "nickdichev",
+        "lastModified": 1776457586,
+        "narHash": "sha256-ji6eim3ed6+/OrW5WqsrEYVTbND3it3pIFRc3uarftI=",
+        "owner": "max-sixty",
         "repo": "worktrunk",
-        "rev": "267146ad8189cc603a46876427108678f1d83729",
+        "rev": "c1fad73f36f963e55b281d8fe24d69db696e255e",
         "type": "github"
       },
       "original": {
-        "owner": "nickdichev",
-        "ref": "fix-nix-build",
+        "owner": "max-sixty",
+        "ref": "v0.39.0",
         "repo": "worktrunk",
         "type": "github"
       }

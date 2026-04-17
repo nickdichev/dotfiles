@@ -7,7 +7,7 @@
     llm-agents.url = "github:numtide/llm-agents.nix";
     serena.url = "github:oraios/serena";
     devenv.url = "github:cachix/devenv/v2.0.6";
-    worktrunk.url = "github:nickdichev/worktrunk/fix-nix-build";
+    worktrunk.url = "github:max-sixty/worktrunk/v0.39.0";
     zmx.url = "github:neurosnap/zmx";
 
     sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
