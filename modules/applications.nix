@@ -28,6 +28,7 @@ in
     home.packages = [
     ]
     ++ lib.optionals hasGui [
+      pkgs-unstable.godot
       pkgs.obsidian
       pkgs.slack
       pkgs.telegram-desktop
