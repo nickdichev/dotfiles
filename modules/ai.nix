@@ -14,6 +14,11 @@ let
   lightpanda = pkgs.callPackage ../pkgs/lightpanda { };
   gomcp = pkgs.callPackage ../pkgs/gomcp { };
 
+  llm-agents = inputs.llm-agents.packages.${pkgs.system};
+  codex = llm-agents.codex;
+  claude-code = llm-agents.claude-code;
+  pi = llm-agents.pi;
+
   # Wrapper that ensures lightpanda is symlinked where gomcp expects it.
   # Go's os.UserConfigDir() returns ~/Library/Application Support on macOS
   # and $XDG_CONFIG_HOME (or ~/.config) on Linux.
@@ -40,14 +45,13 @@ in
   config = lib.mkIf cfg.enable {
     programs.codex = {
       enable = true;
-
-      package = inputs.llm-agents.packages.${pkgs.system}.codex;
+      package = codex;
     };
 
     programs.claude-code = {
       enable = true;
 
-      package = inputs.llm-agents.packages.${pkgs.system}.claude-code;
+      package = claude-code;
 
       commandsDir = ../config/claude/commands;
 
@@ -103,7 +107,10 @@ in
       };
     };
 
-    home.packages = [ lightpanda ];
+    home.packages = [
+      lightpanda
+      pi
+    ];
 
     # Copy serena config as a regular file (not a symlink) so Serena can
     # migrate it in-place when new fields are added across versions.
