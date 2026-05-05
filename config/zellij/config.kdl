@@ -167,7 +167,8 @@ keybinds clear-defaults=true {
         bind "Alt j" { MoveFocus "Down"; }
         bind "Alt k" { MoveFocus "Up"; }
         bind "Alt l" { MoveFocusOrTab "Right"; }
-        bind "Alt n" { NewPane; }
+        bind "Alt d" { NewPane "Down"; }
+        bind "Alt n" { NewPane "Right"; }
         bind "Alt o" { MoveTab "Right"; }
         bind "Alt p" { TogglePaneInGroup; }
         bind "Alt Shift p" { ToggleGroupMarking; }
