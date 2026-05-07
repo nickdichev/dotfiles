@@ -8,6 +8,7 @@
 let
   cfg = config.profiles.shell;
   wt = inputs.worktrunk.packages.${pkgs.system}.default;
+  devenv = inputs.devenv.packages.${pkgs.system}.default;
 in
 {
   options.profiles.shell.enable = lib.mkEnableOption "Zsh shell with starship, atuin, and plugins";
@@ -105,8 +106,10 @@ in
 
         export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer" "_TOKEN" "DATABASE_URL=")
 
-        # Worktrunk shell integration
+        # cli tool shell integration
         eval "$(${wt}/bin/wt config shell init zsh)"
+        eval "$(${devenv}/bin/devenv) hook zsh"
+
 
         # SSH agent setup (silent) - skip if nested to avoid duplicate agents
         if ! _is_nested_session && [[ -z "$SSH_AUTH_SOCK" ]]; then
