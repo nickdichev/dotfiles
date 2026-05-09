@@ -18,6 +18,7 @@ in
       pkgs.just
       pkgs-unstable.niks3
       inputs.devenv.packages.${pkgs.system}.devenv
+      (pkgs.callPackage ../pkgs/hunk { })
     ];
 
     programs.direnv = {
