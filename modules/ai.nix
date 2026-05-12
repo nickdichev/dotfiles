@@ -17,7 +17,19 @@ let
   llm-agents = inputs.llm-agents.packages.${pkgs.system};
   codex = llm-agents.codex;
   claude-code = llm-agents.claude-code;
-  pi = llm-agents.pi;
+
+  # Re-wrap pi so `pi install` works: needs npm on PATH (it shells out to
+  # `npm root -g`) and a writable per-user npm prefix instead of the store.
+  pi = pkgs.symlinkJoin {
+    name = "pi-${llm-agents.pi.version or "wrapped"}";
+    paths = [ llm-agents.pi ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/pi \
+        --suffix PATH : ${lib.makeBinPath [ pkgs.nodejs ]} \
+        --run 'export NPM_CONFIG_PREFIX="''${NPM_CONFIG_PREFIX:-''${XDG_DATA_HOME:-$HOME/.local/share}/pi/npm}"'
+    '';
+  };
 
   # Wrapper that ensures lightpanda is symlinked where gomcp expects it.
   # Go's os.UserConfigDir() returns ~/Library/Application Support on macOS
