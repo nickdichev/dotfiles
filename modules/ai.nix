@@ -17,6 +17,7 @@ let
   llm-agents = inputs.llm-agents.packages.${pkgs.system};
   codex = llm-agents.codex;
   claude-code = llm-agents.claude-code;
+  playwright-cli = inputs.portal-nix-overlay.packages.${pkgs.system}.playwright-cli;
 
   # Re-wrap pi so `pi install` works: needs npm on PATH (it shells out to
   # `npm root -g`) and a writable per-user npm prefix instead of the store.
@@ -122,6 +123,7 @@ in
     home.packages = [
       lightpanda
       pi
+      playwright-cli
     ];
 
     # Copy serena config as a regular file (not a symlink) so Serena can

@@ -10,6 +10,8 @@
     worktrunk.url = "github:max-sixty/worktrunk/v0.39.0";
     zmx.url = "github:neurosnap/zmx";
 
+    portal-nix-overlay.url = "github:Portal-Wholesale/nix-overlay";
+
     sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
     wrk.url = "git+ssh://forgejo@liveoak:2222/Nick/wrk.git";
   };
