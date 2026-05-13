@@ -1546,10 +1546,10 @@
         "nixpkgs": "nixpkgs_12"
       },
       "locked": {
-        "lastModified": 1776359346,
-        "narHash": "sha256-sURBQW6LuEzZD6/Lls0IzTIjTAjdDy5PO581ezRnEvA=",
+        "lastModified": 1778703739,
+        "narHash": "sha256-9sjIEJAg3NdeJnj+5TBGIs3CWJPHXgo8wURBO/yvgb8=",
         "ref": "refs/heads/main",
-        "rev": "c1d7ba747d9bf5384ae975c4a74d3eaee0b0a912",
+        "rev": "917443bd45bff473b532db21c9373f9ee7746fac",
         "revCount": 1,
         "type": "git",
         "url": "ssh://forgejo@liveoak:2222/Nick/wrk.git"
