@@ -59,6 +59,11 @@ in
     programs.codex = {
       enable = true;
       package = codex;
+      settings = {
+        features = {
+          goals = true;
+        };
+      };
     };
 
     programs.claude-code = {
