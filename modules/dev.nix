@@ -15,6 +15,7 @@ in
   config = lib.mkIf cfg.enable {
 
     home.packages = [
+      pkgs.arduino-cli
       pkgs.just
       pkgs-unstable.niks3
       inputs.devenv.packages.${pkgs.system}.devenv
