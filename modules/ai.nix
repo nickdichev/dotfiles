@@ -53,7 +53,23 @@ let
   '';
 in
 {
-  options.profiles.ai.enable = lib.mkEnableOption "AI tools (claude-code, codex, MCP servers)";
+  options.profiles.ai = {
+    enable = lib.mkEnableOption "AI tools (claude-code, codex, MCP servers)";
+
+    codex.projectTrust = lib.mkOption {
+      type = lib.types.attrsOf (
+        lib.types.enum [
+          "trusted"
+          "untrusted"
+        ]
+      );
+      default = { };
+      example = {
+        "/Users/nick/Workspace/personal/home" = "trusted";
+      };
+      description = "Codex project trust entries written to programs.codex.settings.projects.";
+    };
+  };
 
   config = lib.mkIf cfg.enable {
     programs.codex = {
@@ -63,6 +79,8 @@ in
         features = {
           goals = true;
         };
+
+        projects = lib.mapAttrs (_: trust_level: { inherit trust_level; }) cfg.codex.projectTrust;
       };
     };
 
