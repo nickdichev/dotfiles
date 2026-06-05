@@ -43,6 +43,7 @@ in
       (pkgs.callPackage ../pkgs/redisinsight { })
       (pkgs.callPackage ../pkgs/handy { })
       (pkgs.callPackage ../pkgs/pencil { })
+      (pkgs.callPackage ../pkgs/tablepro { })
 
       (pkgs.tableplus.overrideAttrs (oldAttrs: rec {
         version = "662";
