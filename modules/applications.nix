@@ -16,7 +16,7 @@ let
   };
 in
 {
-  options.profiles.applications.enable = lib.mkEnableOption "Desktop applications (obsidian, raycast, tableplus, rustdesk)";
+  options.profiles.applications.enable = lib.mkEnableOption "Desktop applications (obsidian, raycast, tablepro, rustdesk)";
 
   config = lib.mkIf cfg.enable {
     targets.darwin.defaults = lib.mkIf isDarwin {
@@ -44,14 +44,6 @@ in
       (pkgs.callPackage ../pkgs/handy { })
       (pkgs.callPackage ../pkgs/pencil { })
       (pkgs.callPackage ../pkgs/tablepro { })
-
-      (pkgs.tableplus.overrideAttrs (oldAttrs: rec {
-        version = "662";
-        src = pkgs.fetchurl {
-          url = "https://files.tableplus.com/macos/${version}/TablePlus.dmg";
-          hash = "sha256-VR0sSTZfRjjv+p4DcYciKBJG5DHIwj4KLhTHPGRsSX0=";
-        };
-      }))
 
     ]
     ++ lib.optionals (hasGui && isLinux) [
