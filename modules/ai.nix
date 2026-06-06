@@ -254,6 +254,11 @@ in
     '';
 
     home.file = {
+      ".codex/skills/audit-nix-app-updates" = {
+        source = ../config/codex/skills/audit-nix-app-updates;
+        recursive = true;
+      };
+
       ".claude/statusline.sh" = {
         source = ../config/claude/statusline.sh;
         executable = true;

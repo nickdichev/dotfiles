@@ -1,0 +1,4 @@
+interface:
+  display_name: "Audit Nix App Updates"
+  short_description: "Find outdated Nix app pins"
+  default_prompt: "Use $audit-nix-app-updates to audit pinned GUI app versions and suggest safe Nix updates."
