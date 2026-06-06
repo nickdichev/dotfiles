@@ -44,6 +44,7 @@ in
       (pkgs.callPackage ../pkgs/handy { })
       (pkgs.callPackage ../pkgs/pencil { })
       (pkgs.callPackage ../pkgs/tablepro { })
+      (pkgs.callPackage ../pkgs/orcaslicer { })
 
     ]
     ++ lib.optionals (hasGui && isLinux) [
