@@ -42,7 +42,7 @@ in
       (pkgs.callPackage ../pkgs/rustdesk { })
       (pkgs.callPackage ../pkgs/redisinsight { })
       (pkgs.callPackage ../pkgs/handy { })
-      (pkgs.callPackage ../pkgs/pencil { })
+      # (pkgs.callPackage ../pkgs/pencil { })
       (pkgs.callPackage ../pkgs/tablepro { })
       (pkgs.callPackage ../pkgs/orcaslicer { })
 
