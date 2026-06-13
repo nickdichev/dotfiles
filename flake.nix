@@ -2,7 +2,7 @@
   description = "Nick's home-manager modules";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     llm-agents.url = "github:numtide/llm-agents.nix";
     serena.url = "github:oraios/serena";
