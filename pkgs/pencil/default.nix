@@ -6,16 +6,16 @@
 }:
 
 let
-  version = "1.1.48";
+  version = "1.1.63";
 
   sources = {
     aarch64-darwin = {
       url = "https://github.com/highagency/pencil-desktop-releases/releases/download/v${version}/Pencil-${version}-mac-arm64.dmg";
-      hash = "sha256-V/XsSPsr5JcE5vvmoCc0KKOeKdLUy/WQ+N99aWL5HaY=";
+      hash = "sha256-VppyV3l8Pc4dpWxv3m9+JYnvjAwhx2NCrBZkGgQPig0=";
     };
     x86_64-darwin = {
       url = "https://github.com/highagency/pencil-desktop-releases/releases/download/v${version}/Pencil-${version}-mac-x64.dmg";
-      hash = "sha256-JbyhcxWDnDWjQTpw+1Ad4LTm0uRSLuCrDFhi3MEQ9lk=";
+      hash = "sha256-qcUA64CDsQdRHBACZuimUT0j72p+XAlcSuN0QNM5H6o=";
     };
   };
 
@@ -40,7 +40,7 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
     mkdir -p $out/Applications
-    cp -r Pencil.app $out/Applications/
+    cp -r */Pencil.app $out/Applications/
     /usr/bin/codesign --force --deep --sign - "$out/Applications/Pencil.app"
     runHook postInstall
   '';

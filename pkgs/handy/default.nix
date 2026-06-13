@@ -6,16 +6,16 @@
 }:
 
 let
-  version = "0.7.11";
+  version = "0.8.3";
 
   sources = {
     aarch64-darwin = {
       url = "https://github.com/cjpais/Handy/releases/download/v${version}/Handy_${version}_aarch64.dmg";
-      hash = "sha256-f5KcPyiL1ZkDRDXNRz2DsDr2Th7X5Ucz6iJYAbvXTow=";
+      hash = "sha256-DLWMJyrvrWcNxVY3DO9y7zuuWsNdf8UTXXxHWFoxj88=";
     };
     x86_64-darwin = {
       url = "https://github.com/cjpais/Handy/releases/download/v${version}/Handy_${version}_x64.dmg";
-      hash = "sha256-Hnxo5vPSlIOktlRUBFMKJeJrV/+T5GmzlVOFxmds/aY=";
+      hash = "sha256-XZcrMNcRqlm6fHamaV5LGDgzEl/TfE/pChTg+PeWAWA=";
     };
   };
 

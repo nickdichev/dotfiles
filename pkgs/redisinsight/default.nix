@@ -6,16 +6,16 @@
 }:
 
 let
-  version = "3.2.0";
+  version = "3.4.2";
 
   sources = {
     aarch64-darwin = {
       url = "https://github.com/redis/RedisInsight/releases/download/${version}/Redis-Insight-mac-arm64.dmg";
-      hash = "sha256-cEK6sJ60erLdfhwK/DWcSi+Wg8xRDmbUyUyxDRGXizw=";
+      hash = "sha256-A0dU76FlVsUKmCtFs1kFRrNRFFWddyhM7LXSTOcVKag=";
     };
     x86_64-darwin = {
       url = "https://github.com/redis/RedisInsight/releases/download/${version}/Redis-Insight-mac-x64.dmg";
-      hash = "sha256-nfQvtUzmzCIPi6aHOW81oTUsZ9TYhNrBHo78U71VYuA=";
+      hash = "sha256-VMsCWr40SnHog4eTdYPFz18pKlfZZgncYY2S4kc5m8M=";
     };
   };
 
