@@ -21,6 +21,8 @@ in
     programs.neovim = {
       enable = true;
       defaultEditor = true;
+      withRuby = false;
+      withPython3 = false;
       extraPackages = [
         # Tools
         pkgs.gcc

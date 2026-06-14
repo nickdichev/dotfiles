@@ -163,7 +163,10 @@ in
 
       commandsDir = ../config/claude/commands;
 
-      skillsDir = ../config/claude/skills;
+      skills = {
+        creating-skills = ../config/claude/skills/creating-skills;
+        playwright-cli = ../config/claude/skills/playwright-cli;
+      };
 
       settings = {
         CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = 1;
