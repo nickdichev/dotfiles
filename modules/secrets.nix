@@ -3,17 +3,15 @@ let
   cfg = config.profiles.secrets;
   hasGui = config.profiles.hasGui;
 
-  # TODO: Remove this override when Bitwarden Desktop moves off Electron 39.
-  # Bitwarden 2026.5.0 declares Electron 39.8.5 upstream; nixpkgs supplies
-  # 39.8.10 and marks it EOL. Keep the exception local to Bitwarden instead of
-  # permitting electron-39 globally.
-  bitwardenDesktop = pkgs.bitwarden-desktop.override {
-    electron_39 = pkgs.electron_39.overrideAttrs (old: {
-      meta = old.meta // {
-        knownVulnerabilities = [ ];
-      };
-    });
-  };
+  # On Darwin, nixpkgs' source-built Bitwarden currently forces an older LLVM
+  # stdenv that does not build cleanly against the newer Darwin libc++ headers.
+  # Use Bitwarden's official macOS app bundle there, while keeping nixpkgs for
+  # platforms where the source build is usable.
+  bitwardenDesktop =
+    if pkgs.stdenv.isDarwin then
+      pkgs.callPackage ../pkgs/bitwarden-desktop-bin { }
+    else
+      pkgs.bitwarden-desktop;
 in
 {
   options.profiles.secrets.enable = lib.mkEnableOption "Secret management (age, sops, rbw/Bitwarden)";
