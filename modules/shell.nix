@@ -139,7 +139,7 @@ in
           for dir in "''${potential_dirs[@]}"; do
             [[ -d "$dir" ]] || continue
             local group=$(basename "$dir")
-            for key in "$dir"/*; do
+            for key in "$dir"/*(N); do
               [[ -f "$key" ]] || continue
               [[ "$key" == *.pub ]] && continue
               head -1 "$key" 2>/dev/null | grep -q "PRIVATE KEY" || continue
