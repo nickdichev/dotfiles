@@ -762,6 +762,26 @@
         "type": "github"
       }
     },
+    "herdr": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782052030,
+        "narHash": "sha256-oyVub7hV7PLsOCTlKLwBM0MI56OcjhUC1mu/jB/CkCo=",
+        "owner": "ogulcancelik",
+        "repo": "herdr",
+        "rev": "2eeea9a0cd8665bbe0e6c80f08603425498757e5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ogulcancelik",
+        "repo": "herdr",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -1284,6 +1304,7 @@
     "root": {
       "inputs": {
         "devenv": "devenv",
+        "herdr": "herdr",
         "llm-agents": "llm-agents",
         "nixpkgs": "nixpkgs_8",
         "nixpkgs-unstable": "nixpkgs-unstable",

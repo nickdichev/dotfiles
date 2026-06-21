@@ -9,6 +9,7 @@
     fonts.enable = true;
     git.enable = true;
     hammerspoon.enable = true;
+    herdr.enable = true;
     media-processing.enable = true;
     neovim.enable = true;
     scripts.enable = true;

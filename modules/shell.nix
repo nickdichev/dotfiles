@@ -99,11 +99,6 @@ in
           return 1
         }
 
-        # Auto-start zellij if not nested
-        if ! _is_nested_session; then
-          zellij attach -c main 2>/dev/null || zellij -s main
-        fi
-
         export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer" "_TOKEN" "DATABASE_URL=")
 
         # cli tool shell integration

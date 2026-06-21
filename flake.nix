@@ -9,6 +9,10 @@
     devenv.url = "github:cachix/devenv/v2.1";
     worktrunk.url = "github:max-sixty/worktrunk/v0.39.0";
     zmx.url = "github:neurosnap/zmx";
+    herdr = {
+      url = "github:ogulcancelik/herdr";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
 
     portal-nix-overlay.url = "github:Portal-Wholesale/nix-overlay";
 
@@ -66,6 +70,7 @@
         fonts = import ./modules/fonts.nix;
         git = import ./modules/git.nix;
         hammerspoon = import ./modules/hammerspoon.nix;
+        herdr = import ./modules/herdr.nix { inherit inputs; };
         media-processing = import ./modules/media-processing.nix;
         neovim = import ./modules/neovim.nix { inherit inputs; };
         scripts = import ./modules/scripts.nix;

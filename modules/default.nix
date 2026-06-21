@@ -1,5 +1,10 @@
 { inputs }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   isDarwin = pkgs.stdenv.isDarwin;
 in
@@ -13,6 +18,7 @@ in
     (import ./dev.nix { inherit inputs; })
     ./fonts.nix
     ./git.nix
+    (import ./herdr.nix { inherit inputs; })
     ./media-processing.nix
     (import ./neovim.nix { inherit inputs; })
     ./scripts.nix
