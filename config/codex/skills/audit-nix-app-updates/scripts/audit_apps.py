@@ -51,6 +51,10 @@ GITHUB_PACKAGES = {
         "file": "pkgs/rustdesk/default.nix",
         "repo": "rustdesk/rustdesk",
     },
+    "telegram-desktop": {
+        "file": "pkgs/telegram-desktop/default.nix",
+        "repo": "telegramdesktop/tdesktop",
+    },
 }
 
 BREW_CASKS = {
@@ -64,10 +68,6 @@ BREW_CASKS = {
     "slack": "slack",
 }
 
-GITHUB_NIXPKGS = {
-    "telegram-desktop": "telegramdesktop/tdesktop",
-}
-
 NIX_EVAL_EXPR = r'''
 let
   flake = builtins.getFlake "path:%s";
@@ -79,7 +79,6 @@ in {
   stable = {
     obsidian = get stable.obsidian;
     slack = get stable.slack;
-    telegram-desktop = get stable.telegram-desktop;
     redisinsight = get stable.redisinsight;
   };
   unstable = {
@@ -207,12 +206,8 @@ def main() -> int:
     nix = nix_versions(root)
     for channel, packages in nix.items():
         for package, value in packages.items():
-            if package in GITHUB_NIXPKGS:
-                latest = latest_github(GITHUB_NIXPKGS[package])
-                source = f"nixpkgs-{channel}, github:{GITHUB_NIXPKGS[package]}"
-            else:
-                latest = brew_version(BREW_CASKS.get(package, package))
-                source = f"nixpkgs-{channel}, homebrew"
+            latest = brew_version(BREW_CASKS.get(package, package))
+            source = f"nixpkgs-{channel}, homebrew"
             rows.append((package, source, value.get("version"), latest))
 
     print_table(rows)
