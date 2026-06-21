@@ -31,7 +31,7 @@ in
       pkgs-unstable.godot
       pkgs.obsidian
       pkgs.slack
-      pkgs.telegram-desktop
+      pkgs-unstable.telegram-desktop
     ]
     ++ lib.optionals (hasGui && isDarwin) [
 
