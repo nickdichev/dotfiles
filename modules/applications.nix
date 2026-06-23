@@ -22,6 +22,7 @@ in
     targets.darwin.defaults = lib.mkIf isDarwin {
       "com.tinyspeck.slackmacgap" = {
         AutoUpdate = false;
+        SlackNoAutoUpdates = true;
       };
     };
 
