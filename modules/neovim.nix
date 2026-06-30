@@ -1,7 +1,13 @@
 { inputs }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.profiles.neovim;
+  expert = inputs.expert.packages.${pkgs.system}.default;
   pkgs-unstable = import inputs.nixpkgs-unstable { inherit (pkgs) system; };
   storeConfigPath = ../config/nvim;
   useSymlink = config.profiles.neovim.configPath != null;
@@ -26,6 +32,7 @@ in
       extraPackages = [
         # Tools
         pkgs.gcc
+        pkgs.elixir
         pkgs.nodejs
         pkgs.tree-sitter
 
@@ -43,6 +50,7 @@ in
         # LSP
         pkgs.basedpyright
         pkgs.clojure-lsp
+        expert
         pkgs.lua-language-server
         pkgs.nil
         pkgs.typescript-language-server
@@ -59,12 +67,16 @@ in
           require("config")
         '';
 
-      "nvim/lua".source = if useSymlink
-        then config.lib.file.mkOutOfStoreSymlink "${nvimConfigPath}/lua"
-        else "${storeConfigPath}/lua";
-      "nvim/lsp".source = if useSymlink
-        then config.lib.file.mkOutOfStoreSymlink "${nvimConfigPath}/lsp"
-        else "${storeConfigPath}/lsp";
+      "nvim/lua".source =
+        if useSymlink then
+          config.lib.file.mkOutOfStoreSymlink "${nvimConfigPath}/lua"
+        else
+          "${storeConfigPath}/lua";
+      "nvim/lsp".source =
+        if useSymlink then
+          config.lib.file.mkOutOfStoreSymlink "${nvimConfigPath}/lsp"
+        else
+          "${storeConfigPath}/lsp";
     };
   };
 }

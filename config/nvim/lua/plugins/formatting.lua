@@ -58,6 +58,9 @@ return {
           sql = { "sqruff" },
           psql = { "sqruff" },
 
+          elixir = { "mix" },
+          eelixir = { "mix" },
+          heex = { "mix" },
           go = { "gofmt" },
         },
         formatters = {
