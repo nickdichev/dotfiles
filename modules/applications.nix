@@ -32,7 +32,7 @@ in
       pkgs-unstable.godot
       pkgs.obsidian
       pkgs.slack
-      (pkgs-unstable.kdePackages.callPackage ../pkgs/telegram-desktop { })
+      pkgs-unstable.telegram-desktop
     ]
     ++ lib.optionals (hasGui && isDarwin) [
 
