@@ -40,7 +40,26 @@ local function markM()
 end
 
 local function treesitter_context()
-	return require("nvim-treesitter").statusline(90)
+	if bo.buftype ~= "" then
+		return ""
+	end
+
+	local ok, node = pcall(vim.treesitter.get_node, { ignore_injections = false })
+	if not ok or not node then
+		return ""
+	end
+
+	local parts = {}
+	while node and #parts < 4 do
+		local type_ok, node_type = pcall(node.type, node)
+		if type_ok and node_type and not node_type:match("^[_%p]") then
+			table.insert(parts, 1, node_type)
+		end
+		local parent_ok, parent = pcall(node.parent, node)
+		node = parent_ok and parent or nil
+	end
+
+	return table.concat(parts, " › ")
 end
 
 --------------------------------------------------------------------------------
@@ -63,11 +82,7 @@ local function currentFile()
 	-- Get directory structure (up to 3 levels, stopping at git root)
 	local dirPath = ""
 	if fullPath ~= "" and bo.buftype == "" then
-		-- Get the git root directory
-		local gitRoot = fn.system(
-			"git -C " .. fn.shellescape(fn.fnamemodify(fullPath, ":h")) .. " rev-parse --show-toplevel 2>/dev/null"
-		):gsub("\n", "")
-		local isInGitRepo = gitRoot ~= ""
+		local gitRoot = vim.fs.root(fullPath, ".git")
 
 		-- Get directory parts
 		local dirParts = {}
@@ -82,7 +97,7 @@ local function currentFile()
 			end
 
 			-- Stop if we reached git root
-			if isInGitRepo and currentDir == gitRoot then
+			if gitRoot and currentDir == gitRoot then
 				break
 			end
 

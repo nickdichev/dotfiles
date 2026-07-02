@@ -2,6 +2,9 @@ local opt = vim.opt
 
 opt.encoding = "UTF-8"
 
+-- LSP markdown floats use this flag to decide whether to start Treesitter highlighting.
+vim.cmd.syntax("on")
+
 opt.number = true
 opt.relativenumber = true
 opt.cursorline = true
@@ -19,7 +22,7 @@ opt.splitbelow = true
 opt.splitright = true
 
 opt.list = true
-opt.listchars:append { trail = "·", nbsp = "␣" }
+opt.listchars:append({ trail = "·", nbsp = "␣" })
 
 opt.scrolloff = 15
 
