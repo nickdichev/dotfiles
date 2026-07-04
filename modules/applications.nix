@@ -37,14 +37,26 @@ let
 
       setTitle();
 
-      const title = document.querySelector("title");
-      if (title) {
-        new MutationObserver(setTitle).observe(title, { childList: true });
-      }
+      const observeTitle = () => {
+        const target = document.head || document.documentElement;
+        new MutationObserver(setTitle).observe(target, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+      };
 
       window.addEventListener("popstate", setTitle);
       document.addEventListener("turbo:load", setTitle);
       document.addEventListener("turbo:render", setTitle);
+      observeTitle();
+
+      let retries = 0;
+      const retry = setInterval(() => {
+        setTitle();
+        retries += 1;
+        if (retries >= 10) clearInterval(retry);
+      }, 500);
     })();
   '';
 in
