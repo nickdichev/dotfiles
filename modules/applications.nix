@@ -26,6 +26,43 @@ in
       };
     };
 
+    home.file = lib.mkIf (hasGui && isDarwin) {
+      "Library/Containers/com.userscripts.macos.Userscripts-Extension/Data/Documents/github-pr-title.user.js".text =
+        ''
+          // ==UserScript==
+          // @name        GitHub PR number first in title
+          // @match       https://github.com/*/*/pull/*
+          // @run-at      document-start
+          // ==/UserScript==
+
+          (() => {
+            const setTitle = () => {
+              const match = location.pathname.match(/^\/[^/]+\/[^/]+\/pull\/(\d+)/);
+              if (!match) return;
+
+              const pr = match[1];
+              const prefix = `#''${pr} \u00b7 `;
+
+              if (document.title.startsWith(prefix)) return;
+
+              const cleaned = document.title.replace(/^#\d+\s+[\u00b7-]\s+/, "");
+              document.title = `''${prefix}''${cleaned}`;
+            };
+
+            setTitle();
+
+            const title = document.querySelector("title");
+            if (title) {
+              new MutationObserver(setTitle).observe(title, { childList: true });
+            }
+
+            window.addEventListener("popstate", setTitle);
+            document.addEventListener("turbo:load", setTitle);
+            document.addEventListener("turbo:render", setTitle);
+          })();
+        '';
+    };
+
     home.packages = [
     ]
     ++ lib.optionals hasGui [
