@@ -14,6 +14,39 @@ let
     inherit (pkgs) system;
     config.allowUnfree = true;
   };
+  githubPrTitleUserscript = pkgs.writeText "github-pr-title.user.js" ''
+    // ==UserScript==
+    // @name        GitHub PR number first in title
+    // @match       https://github.com/*/*/pull/*
+    // @run-at      document-start
+    // ==/UserScript==
+
+    (() => {
+      const setTitle = () => {
+        const match = location.pathname.match(/^\/[^/]+\/[^/]+\/pull\/(\d+)/);
+        if (!match) return;
+
+        const pr = match[1];
+        const prefix = `#''${pr} \u00b7 `;
+
+        if (document.title.startsWith(prefix)) return;
+
+        const cleaned = document.title.replace(/^#\d+\s+[\u00b7-]\s+/, "");
+        document.title = `''${prefix}''${cleaned}`;
+      };
+
+      setTitle();
+
+      const title = document.querySelector("title");
+      if (title) {
+        new MutationObserver(setTitle).observe(title, { childList: true });
+      }
+
+      window.addEventListener("popstate", setTitle);
+      document.addEventListener("turbo:load", setTitle);
+      document.addEventListener("turbo:render", setTitle);
+    })();
+  '';
 in
 {
   options.profiles.applications.enable = lib.mkEnableOption "Desktop applications (obsidian, raycast, tablepro, rustdesk)";
@@ -26,42 +59,16 @@ in
       };
     };
 
-    home.file = lib.mkIf (hasGui && isDarwin) {
-      ".config/userscripts/github-pr-title.user.js".text = ''
-        // ==UserScript==
-        // @name        GitHub PR number first in title
-        // @match       https://github.com/*/*/pull/*
-        // @run-at      document-start
-        // ==/UserScript==
+    home.activation.copyUserscripts = lib.mkIf (hasGui && isDarwin) (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        userscripts_dir="$HOME/.config/userscripts"
+        userscript_file="$userscripts_dir/github-pr-title.user.js"
 
-        (() => {
-          const setTitle = () => {
-            const match = location.pathname.match(/^\/[^/]+\/[^/]+\/pull\/(\d+)/);
-            if (!match) return;
-
-            const pr = match[1];
-            const prefix = `#''${pr} \u00b7 `;
-
-            if (document.title.startsWith(prefix)) return;
-
-            const cleaned = document.title.replace(/^#\d+\s+[\u00b7-]\s+/, "");
-            document.title = `''${prefix}''${cleaned}`;
-          };
-
-          setTitle();
-
-          const title = document.querySelector("title");
-          if (title) {
-            new MutationObserver(setTitle).observe(title, { childList: true });
-          }
-
-          window.addEventListener("popstate", setTitle);
-          document.addEventListener("turbo:load", setTitle);
-          document.addEventListener("turbo:render", setTitle);
-        })();
-      '';
-    };
-
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p "$userscripts_dir"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/rm -f "$userscript_file"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 ${githubPrTitleUserscript} "$userscript_file"
+      ''
+    );
     home.packages = [
     ]
     ++ lib.optionals hasGui [
