@@ -5,7 +5,6 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     llm-agents.url = "github:numtide/llm-agents.nix";
-    serena.url = "github:oraios/serena";
     devenv.url = "github:cachix/devenv/v2.1";
     worktrunk.url = "github:max-sixty/worktrunk/v0.39.0";
     zmx.url = "github:neurosnap/zmx";
