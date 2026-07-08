@@ -10,9 +10,6 @@ let
   # kagiApiKeyFile = clanVars.generators.kagi-api-key.files.api_key.path;
   kagiApiKeyFile = pkgs.writeText "kagi_api_key" "foobar";
 
-  lightpanda = pkgs.callPackage ../pkgs/lightpanda { };
-  gomcp = pkgs.callPackage ../pkgs/gomcp { };
-
   llm-agents = inputs.llm-agents.packages.${pkgs.system};
   codex = llm-agents.codex;
   claude-code = llm-agents.claude-code;
@@ -34,20 +31,6 @@ let
         --run 'export NPM_CONFIG_PREFIX="''${NPM_CONFIG_PREFIX:-''${XDG_DATA_HOME:-$HOME/.local/share}/pi/npm}"'
     '';
   };
-
-  # Wrapper that ensures lightpanda is symlinked where gomcp expects it.
-  # Go's os.UserConfigDir() returns ~/Library/Application Support on macOS
-  # and $XDG_CONFIG_HOME (or ~/.config) on Linux.
-  gomcpWrapper = pkgs.writeShellScript "gomcp-wrapper" ''
-    if [ "$(uname)" = "Darwin" ]; then
-      config_dir="$HOME/Library/Application Support/lightpanda-gomcp"
-    else
-      config_dir="''${XDG_CONFIG_HOME:-$HOME/.config}/lightpanda-gomcp"
-    fi
-    mkdir -p "$config_dir"
-    ln -sf ${lightpanda}/bin/lightpanda "$config_dir/lightpanda"
-    exec ${gomcp}/bin/gomcp "$@"
-  '';
 
   # Wrapper script that reads the API key from file and runs uvx
   kagiWrapper = pkgs.writeShellScript "kagi-mcp-wrapper" ''
@@ -201,16 +184,10 @@ in
           command = "${pkgs.uv}/bin/uvx";
         };
 
-        gomcp = {
-          args = [ "stdio" ];
-          command = "${gomcpWrapper}";
-        };
-
       };
     };
 
     home.packages = [
-      lightpanda
       pi
       playwright-cli
     ];

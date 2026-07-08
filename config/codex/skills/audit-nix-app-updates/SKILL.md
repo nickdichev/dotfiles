@@ -1,6 +1,6 @@
 ---
 name: audit-nix-app-updates
-description: Audit and update Nix/Home Manager desktop application pins in this dotfiles repo. Use when the user asks whether pinned apps can be updated, mentions app packages such as AltTab, Raycast, TablePro, Pencil, RedisInsight, Handy, RustDesk, Lightpanda, Hunk, Slack, Obsidian, Telegram, or wants a repeatable app update check before editing Nix package hashes.
+description: Audit and update Nix/Home Manager desktop application pins in this dotfiles repo. Use when the user asks whether pinned apps can be updated, mentions app packages such as AltTab, Raycast, TablePro, Pencil, RedisInsight, Handy, RustDesk, Hunk, Slack, Obsidian, Telegram, or wants a repeatable app update check before editing Nix package hashes.
 ---
 
 # Audit Nix App Updates

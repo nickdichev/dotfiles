@@ -25,10 +25,6 @@ GITHUB_PACKAGES = {
         "file": "pkgs/hunk/default.nix",
         "repo": "modem-dev/hunk",
     },
-    "gomcp": {
-        "file": "pkgs/gomcp/default.nix",
-        "repo": "lightpanda-io/gomcp",
-    },
     "tablepro": {
         "file": "pkgs/tablepro/default.nix",
         "repo": "TableProApp/TablePro",
@@ -41,11 +37,6 @@ GITHUB_PACKAGES = {
     "handy": {
         "file": "pkgs/handy/default.nix",
         "repo": "cjpais/Handy",
-    },
-    "lightpanda": {
-        "file": "pkgs/lightpanda/default.nix",
-        "repo": "lightpanda-io/browser",
-        "tag_regex": r"^v?\d+\.\d+\.\d+$",
     },
     "rustdesk": {
         "file": "pkgs/rustdesk/default.nix",
