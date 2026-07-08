@@ -1,14 +1,18 @@
 { inputs }:
 {
   config,
+  clanVars ? null,
   lib,
   pkgs,
   ...
 }:
 let
   cfg = config.profiles.ai;
-  # kagiApiKeyFile = clanVars.generators.kagi-api-key.files.api_key.path;
-  kagiApiKeyFile = pkgs.writeText "kagi_api_key" "foobar";
+  kagiApiKeyFile =
+    if clanVars != null && clanVars ? generators && clanVars.generators ? "kagi-api-key" then
+      clanVars.generators."kagi-api-key".files.api_key.path
+    else
+      null;
 
   llm-agents = inputs.llm-agents.packages.${pkgs.system};
   codex = llm-agents.codex;
@@ -32,11 +36,14 @@ let
     '';
   };
 
-  # Wrapper script that reads the API key from file and runs uvx
-  kagiWrapper = pkgs.writeShellScript "kagi-mcp-wrapper" ''
-    export KAGI_API_KEY="$(cat ${kagiApiKeyFile})"
-    exec ${pkgs.uv}/bin/uvx "$@"
-  '';
+  kagiWrapper =
+    if kagiApiKeyFile != null then
+      pkgs.writeShellScript "kagi-mcp-wrapper" ''
+        export KAGI_API_KEY="$(cat ${kagiApiKeyFile})"
+        exec ${pkgs.uv}/bin/uvx "$@"
+      ''
+    else
+      null;
 
   codexWrapper = pkgs.writeShellScriptBin "codex" (
     ''
@@ -170,11 +177,6 @@ in
       };
 
       mcpServers = {
-        # kagi = {
-        #   args = [ "kagimcp" ];
-        #   command = "${kagiWrapper}";
-        # };
-
         nixos = {
           args = [
             "--from"
@@ -183,7 +185,12 @@ in
           ];
           command = "${pkgs.uv}/bin/uvx";
         };
-
+      }
+      // lib.optionalAttrs (kagiWrapper != null) {
+        kagi = {
+          args = [ "kagimcp" ];
+          command = "${kagiWrapper}";
+        };
       };
     };
 
