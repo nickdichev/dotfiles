@@ -45,28 +45,79 @@ let
     else
       null;
 
+  mcpServers = {
+    nixos = {
+      args = [
+        "--from"
+        "git+https://github.com/nickdichev/mcp-nixos@Add-clan-options"
+        "mcp-nixos"
+      ];
+      command = "${pkgs.uv}/bin/uvx";
+    };
+  }
+  // lib.optionalAttrs (kagiWrapper != null) {
+    kagi = {
+      args = [ "kagimcp" ];
+      command = "${kagiWrapper}";
+    };
+  };
+
+  codexMcpConfig = (pkgs.formats.toml { }).generate "codex-mcp.toml" {
+    mcp_servers = mcpServers;
+  };
+
+  codexConfigSetup = ''
+    config_dir="''${CODEX_HOME:-$HOME/.codex}"
+    config_file="$config_dir/config.toml"
+    mkdir -p "$config_dir"
+
+    if [ -L "$config_file" ]; then
+      tmp_file="$(${pkgs.coreutils}/bin/mktemp "$config_file.tmp.XXXXXX")"
+      ${pkgs.coreutils}/bin/cp -L "$config_file" "$tmp_file"
+      ${pkgs.coreutils}/bin/rm "$config_file"
+      ${pkgs.coreutils}/bin/mv "$tmp_file" "$config_file"
+      ${pkgs.coreutils}/bin/chmod u+rw "$config_file"
+    elif [ ! -e "$config_file" ]; then
+      if [ -e "$config_file.bak" ]; then
+        ${pkgs.coreutils}/bin/cp "$config_file.bak" "$config_file"
+      else
+        ${pkgs.coreutils}/bin/cp ${codexInitialConfig} "$config_file"
+      fi
+      ${pkgs.coreutils}/bin/chmod u+rw "$config_file"
+    fi
+
+    update_managed_mcp_config() {
+      stripped_file="$(${pkgs.coreutils}/bin/mktemp "$config_file.stripped.XXXXXX")"
+      tmp_file="$(${pkgs.coreutils}/bin/mktemp "$config_file.tmp.XXXXXX")"
+
+      ${pkgs.gawk}/bin/awk '
+        $0 == "# BEGIN home-manager managed mcp_servers" { skip = 1; next }
+        $0 == "# END home-manager managed mcp_servers" { skip = 0; next }
+        !skip { print }
+      ' "$config_file" > "$stripped_file"
+
+      {
+        ${pkgs.coreutils}/bin/cat "$stripped_file"
+        printf '\n# BEGIN home-manager managed mcp_servers\n'
+        ${pkgs.coreutils}/bin/cat ${codexMcpConfig}
+        printf '# END home-manager managed mcp_servers\n'
+      } > "$tmp_file"
+
+      ${pkgs.coreutils}/bin/mv "$tmp_file" "$config_file"
+      ${pkgs.coreutils}/bin/rm -f "$stripped_file"
+      ${pkgs.coreutils}/bin/chmod u+rw "$config_file"
+    }
+
+    update_managed_mcp_config
+  '';
+
   codexWrapper = pkgs.writeShellScriptBin "codex" (
     ''
       set -eu
 
-      config_dir="''${CODEX_HOME:-$HOME/.codex}"
-      config_file="$config_dir/config.toml"
-      mkdir -p "$config_dir"
-
-      if [ -L "$config_file" ]; then
-        tmp_file="$(${pkgs.coreutils}/bin/mktemp "$config_file.tmp.XXXXXX")"
-        ${pkgs.coreutils}/bin/cp -L "$config_file" "$tmp_file"
-        ${pkgs.coreutils}/bin/rm "$config_file"
-        ${pkgs.coreutils}/bin/mv "$tmp_file" "$config_file"
-        ${pkgs.coreutils}/bin/chmod u+rw "$config_file"
-      elif [ ! -e "$config_file" ]; then
-        if [ -e "$config_file.bak" ]; then
-          ${pkgs.coreutils}/bin/cp "$config_file.bak" "$config_file"
-        else
-          ${pkgs.coreutils}/bin/cp ${codexInitialConfig} "$config_file"
-        fi
-        ${pkgs.coreutils}/bin/chmod u+rw "$config_file"
-      fi
+    ''
+    + codexConfigSetup
+    + ''
 
       ensure_project_trust() {
         project_path="$1"
@@ -176,22 +227,7 @@ in
         };
       };
 
-      mcpServers = {
-        nixos = {
-          args = [
-            "--from"
-            "git+https://github.com/nickdichev/mcp-nixos@Add-clan-options"
-            "mcp-nixos"
-          ];
-          command = "${pkgs.uv}/bin/uvx";
-        };
-      }
-      // lib.optionalAttrs (kagiWrapper != null) {
-        kagi = {
-          args = [ "kagimcp" ];
-          command = "${kagiWrapper}";
-        };
-      };
+      mcpServers = mcpServers;
     };
 
     home.packages = [
@@ -199,26 +235,7 @@ in
       playwright-cli
     ];
 
-    home.activation.codexConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      config_dir="''${CODEX_HOME:-$HOME/.codex}"
-      config_file="$config_dir/config.toml"
-      mkdir -p "$config_dir"
-
-      if [ -L "$config_file" ]; then
-        tmp_file="$(${pkgs.coreutils}/bin/mktemp "$config_file.tmp.XXXXXX")"
-        ${pkgs.coreutils}/bin/cp -L "$config_file" "$tmp_file"
-        ${pkgs.coreutils}/bin/rm "$config_file"
-        ${pkgs.coreutils}/bin/mv "$tmp_file" "$config_file"
-        ${pkgs.coreutils}/bin/chmod u+rw "$config_file"
-      elif [ ! -e "$config_file" ]; then
-        if [ -e "$config_file.bak" ]; then
-          ${pkgs.coreutils}/bin/cp "$config_file.bak" "$config_file"
-        else
-          ${pkgs.coreutils}/bin/cp ${codexInitialConfig} "$config_file"
-        fi
-        ${pkgs.coreutils}/bin/chmod u+rw "$config_file"
-      fi
-    '';
+    home.activation.codexConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] codexConfigSetup;
 
     home.file = {
       ".codex/skills/audit-nix-app-updates" = {
