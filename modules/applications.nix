@@ -93,6 +93,7 @@ in
 
       pkgs-unstable.alt-tab-macos
       pkgs-unstable.blackhole
+      pkgs-unstable.orbstack
       pkgs-unstable.raycast
 
       (pkgs.callPackage ../pkgs/rustdesk { })
