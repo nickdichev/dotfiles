@@ -1,0 +1,24 @@
+[theme]
+name = "gruvbox"
+
+[keys]
+# Direct pane navigation, matching the Zellij keymap.
+focus_pane_left = ["alt+h", "alt+left"]
+focus_pane_down = ["alt+j", "alt+down"]
+focus_pane_up = ["alt+k", "alt+up"]
+focus_pane_right = ["alt+l", "alt+right"]
+
+# Pane creation, matching the Zellij keymap.
+split_vertical = "alt+n"
+split_horizontal = "alt+d"
+
+# Workspace and agent cycling.
+previous_workspace = "prefix+shift+left"
+next_workspace = "prefix+shift+right"
+previous_agent = "prefix+alt+p"
+next_agent = "prefix+alt+n"
+
+# Indexed jumps for tabs, workspaces, and agents.
+switch_tab = "prefix+1..9"
+switch_workspace = "prefix+shift+1..9"
+focus_agent = "prefix+alt+1..9"
