@@ -304,6 +304,7 @@ in
         dc = "dclaude";
         dcc = "dclaude --continue";
         dcr = "dclaude --resume";
+        cdx = "codex --profile home-manager --yolo";
 
         wtrm = "wt remove --force";
         wtrmm = "wt remove --force --no-hooks -D";

@@ -50,7 +50,10 @@ in
 
     programs.fzf = {
       enable = true;
+      package = pkgs-unstable.fzf;
+      enableNushellIntegration = false;
       enableZshIntegration = true;
+      historyWidget.zsh.command = "";
       defaultCommand = "fd --type file --color=always";
       defaultOptions = [ "--ansi" ];
       colors = {
