@@ -75,6 +75,208 @@ let
     }
 
     {
+      description = "Remove untracked files blocking git pull, then retry";
+      example = "git-pull-clean";
+      package = pkgs.writers.writePython3Bin "git-pull-clean" { } ''
+        import ast
+        import os
+        import subprocess
+        import sys
+
+
+        GIT = "${pkgs.git}/bin/git"
+        ERROR_HEADER = (
+            "error: The following untracked working tree files "
+            "would be overwritten by merge:"
+        )
+        ERROR_FOOTER = "Please move or remove them before you merge."
+
+
+        def usage():
+            print(
+                "Usage: git-pull-clean [-f|--force] [--] "
+                "[git-pull-options...]"
+            )
+            print()
+            print("Run git pull and remove untracked files that block the merge.")
+            print("Prompts once before removing files, then retries the pull.")
+            print()
+            print("  -f, --force  Remove blockers without prompting")
+            print("  -h, --help   Show this help")
+
+
+        def parse_args(args):
+            force = False
+            pull_args = []
+            passthrough = False
+
+            for arg in args:
+                if passthrough:
+                    pull_args.append(arg)
+                elif arg == "--":
+                    passthrough = True
+                elif arg in ("-f", "--force"):
+                    force = True
+                elif arg in ("-h", "--help"):
+                    usage()
+                    raise SystemExit(0)
+                else:
+                    pull_args.append(arg)
+
+            return force, pull_args
+
+
+        def run_git_pull(pull_args):
+            result = subprocess.run(
+                [GIT, "-c", "core.quotePath=false", "pull", *pull_args],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                errors="surrogateescape",
+            )
+            print(result.stdout, end="")
+            return result
+
+
+        def decode_git_path(value):
+            if value.startswith('"') and value.endswith('"'):
+                try:
+                    return ast.literal_eval(value)
+                except (SyntaxError, ValueError):
+                    return None
+            return value
+
+
+        def extract_blockers(output):
+            blockers = []
+            collecting = False
+
+            for line in output.splitlines():
+                if line == ERROR_HEADER:
+                    collecting = True
+                    continue
+                if collecting and line.strip() == ERROR_FOOTER:
+                    break
+                if collecting and line.startswith("\t"):
+                    path = decode_git_path(line[1:])
+                    if path is None:
+                        return []
+                    blockers.append(path)
+
+            return blockers
+
+
+        def repository_root():
+            result = subprocess.run(
+                [GIT, "rev-parse", "--show-toplevel"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                errors="surrogateescape",
+            )
+            if result.returncode != 0:
+                return None
+            return result.stdout.rstrip("\n")
+
+
+        def validate_blocker(root, path):
+            absolute_path = os.path.abspath(os.path.join(root, path))
+            try:
+                inside_repo = os.path.commonpath([root, absolute_path]) == root
+            except ValueError:
+                inside_repo = False
+
+            if not inside_repo:
+                return None, f"refusing path outside repository: {path}"
+
+            result = subprocess.run(
+                [
+                    GIT,
+                    "-C",
+                    root,
+                    "ls-files",
+                    "--others",
+                    "--exclude-standard",
+                    "-z",
+                    "--",
+                    path,
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            )
+            untracked = result.stdout.decode(
+                errors="surrogateescape"
+            ).split("\0")
+
+            if result.returncode != 0 or path not in untracked:
+                return None, f"refusing file that is not untracked: {path}"
+            if os.path.isdir(absolute_path) and not os.path.islink(absolute_path):
+                return None, f"refusing to recursively remove directory: {path}"
+            if not os.path.lexists(absolute_path):
+                return None, f"file no longer exists: {path}"
+
+            return absolute_path, None
+
+
+        def confirm(blockers):
+            print()
+            print("Untracked files blocking pull:")
+            for path in blockers:
+                print(f"  {path}")
+
+            try:
+                answer = input(
+                    f"\nRemove {len(blockers)} file(s) and retry pull? [y/N] "
+                )
+            except EOFError:
+                return False
+            return answer.strip().lower() in ("y", "yes")
+
+
+        def main():
+            force, pull_args = parse_args(sys.argv[1:])
+            root = repository_root()
+            result = run_git_pull(pull_args)
+
+            if result.returncode == 0:
+                return 0
+
+            blockers = extract_blockers(result.stdout)
+            if not blockers:
+                return result.returncode
+            if root is None:
+                print("Could not determine repository root.", file=sys.stderr)
+                return result.returncode
+
+            validated = []
+            for path in blockers:
+                absolute_path, error = validate_blocker(root, path)
+                if error:
+                    print(error, file=sys.stderr)
+                    return result.returncode
+                validated.append((path, absolute_path))
+
+            if not force and not confirm(blockers):
+                print("No files removed.")
+                return result.returncode
+
+            for path, absolute_path in validated:
+                try:
+                    os.unlink(absolute_path)
+                except OSError as error:
+                    print(f"Could not remove {path}: {error}", file=sys.stderr)
+                    return 1
+                print(f"Removed {path}")
+
+            print("\nRetrying git pull...")
+            return run_git_pull(pull_args).returncode
+
+
+        raise SystemExit(main())
+      '';
+    }
+
+    {
       description = "Copy stdin to clipboard, stripping trailing newline";
       example = "echo hello | copy";
       package = pkgs.writeShellApplication {
