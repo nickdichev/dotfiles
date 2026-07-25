@@ -14,6 +14,20 @@ let
     inherit (pkgs) system;
     config.allowUnfree = true;
   };
+  # Set to false to switch back to pkgs-unstable.raycast.
+  useRaycastOverride = true;
+  raycastPackage =
+    if useRaycastOverride then
+      pkgs-unstable.raycast.overrideAttrs (_: {
+        version = "1.104.23";
+        src = pkgs-unstable.fetchurl {
+          name = "Raycast.dmg";
+          url = "https://releases.raycast.com/releases/1.104.23/download?build=arm";
+          hash = "sha256-/aotbycZmY8FSOLzUSmRMMfzwsN/2v08oNe4iteY2oE=";
+        };
+      })
+    else
+      pkgs-unstable.raycast;
   githubPrTitleUserscript = pkgs.writeText "github-pr-title.user.js" ''
     // ==UserScript==
     // @name        GitHub PR number first in title
@@ -94,7 +108,7 @@ in
       pkgs-unstable.alt-tab-macos
       pkgs-unstable.blackhole
       pkgs-unstable.orbstack
-      pkgs-unstable.raycast
+      raycastPackage
 
       (pkgs.callPackage ../pkgs/rustdesk { })
       (pkgs.callPackage ../pkgs/redisinsight { })
