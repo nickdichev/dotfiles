@@ -9,6 +9,7 @@
     scripts.enable = true;
     secrets.enable = true;
     shell.enable = true;
+    ssh.enable = true;
     utils.enable = true;
   };
 }

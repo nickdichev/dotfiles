@@ -24,6 +24,7 @@ in
     ./scripts.nix
     ./secrets.nix
     (import ./shell.nix { inherit inputs; })
+    ./ssh.nix
     ./hammerspoon.nix
     (import ./terminal.nix { inherit inputs; })
     (import ./utils.nix { inherit inputs; })

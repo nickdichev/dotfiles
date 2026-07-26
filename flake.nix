@@ -79,6 +79,7 @@
         scripts = import ./modules/scripts.nix;
         secrets = import ./modules/secrets.nix;
         shell = import ./modules/shell.nix { inherit inputs; };
+        ssh = import ./modules/ssh.nix;
         terminal = import ./modules/terminal.nix { inherit inputs; };
         utils = import ./modules/utils.nix { inherit inputs; };
         wrk = import ./modules/wrk.nix { inherit inputs; };
