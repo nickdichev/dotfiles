@@ -25,10 +25,13 @@ in
           IdentitiesOnly = true;
         };
 
-        "git.liveoak" = {
-          HostName = "liveoak";
+        liveoak = {
+          HostName = "liveoak.serval-butterfly.ts.net";
+        };
+
+        "Match originalhost liveoak user forgejo" = lib.hm.dag.entryAfter [ "liveoak" ] {
           Port = 2222;
-          User = "forgejo";
+          HostKeyAlias = "[liveoak]:2222";
           IdentityFile = "~/.ssh/personal/forgejo";
           IdentitiesOnly = true;
         };
