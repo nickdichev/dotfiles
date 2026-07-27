@@ -10,6 +10,7 @@ let
   hasGui = config.profiles.hasGui;
   isDarwin = pkgs.stdenv.isDarwin;
   isLinux = pkgs.stdenv.isLinux;
+  isAarch64Darwin = pkgs.stdenv.hostPlatform.system == "aarch64-darwin";
   pkgs-unstable = import inputs.nixpkgs-unstable {
     inherit (pkgs) system;
     config.allowUnfree = true;
@@ -128,7 +129,7 @@ let
   };
 in
 {
-  options.profiles.applications.enable = lib.mkEnableOption "Desktop applications (obsidian, raycast, tablepro, rustdesk)";
+  options.profiles.applications.enable = lib.mkEnableOption "Desktop applications (obsidian, raycast, Hermes, tablepro, rustdesk)";
 
   config = lib.mkIf cfg.enable {
     home.activation.copyUserscripts = lib.mkIf (hasGui && isDarwin) (
@@ -175,6 +176,9 @@ in
       (pkgs.callPackage ../pkgs/tablepro { })
       (pkgs.callPackage ../pkgs/orcaslicer { })
 
+    ]
+    ++ lib.optionals (hasGui && isAarch64Darwin) [
+      (pkgs.callPackage ../pkgs/hermes-desktop { })
     ]
     ++ lib.optionals (hasGui && isLinux) [
       pkgs.redisinsight
