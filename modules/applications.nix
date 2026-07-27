@@ -73,18 +73,64 @@ let
       }, 500);
     })();
   '';
+  slackUpdatePolicyIdentifier = "com.nickdichev.slack-no-auto-updates";
+  slackUpdatePolicyPath = "${config.xdg.configHome}/macos-profiles/slack-update-policy.mobileconfig";
+  slackUpdatePolicyProfile = (pkgs.formats.plist { }).generate "slack-update-policy.mobileconfig" {
+    PayloadContent = [
+      {
+        PayloadContent = {
+          "com.tinyspeck.slackmacgap" = {
+            Forced = [
+              {
+                mcx_preference_settings.AutoUpdate = false;
+              }
+            ];
+          };
+        };
+        PayloadDisplayName = "Slack Update Policy";
+        PayloadIdentifier = "${slackUpdatePolicyIdentifier}.managed-preferences";
+        PayloadType = "com.apple.ManagedClient.preferences";
+        PayloadUUID = "00641E7E-7A42-45BC-A505-008856550752";
+        PayloadVersion = 1;
+      }
+    ];
+    PayloadDescription = "Disables Slack's built-in updater so Slack can be managed by Nix without ShipIt helper prompts.";
+    PayloadDisplayName = "Slack Update Policy";
+    PayloadIdentifier = slackUpdatePolicyIdentifier;
+    PayloadOrganization = "Nick Dichev";
+    PayloadRemovalDisallowed = false;
+    PayloadScope = "User";
+    PayloadType = "Configuration";
+    PayloadUUID = "D6395E18-5EE3-4F98-86A6-B3DD0FFC4775";
+    PayloadVersion = 1;
+  };
+  installSlackUpdatePolicy = pkgs.writeShellApplication {
+    name = "install-slack-update-policy";
+    text = ''
+      profile=${lib.escapeShellArg slackUpdatePolicyPath}
+      identifier=${lib.escapeShellArg slackUpdatePolicyIdentifier}
+      username=${lib.escapeShellArg config.profiles.username}
+
+      if /usr/bin/profiles list -type configuration -user "$username" 2>/dev/null \
+        | /usr/bin/grep -Fq "profileIdentifier: $identifier"; then
+        echo "Slack Update Policy is already installed."
+        exit 0
+      fi
+
+      if [[ ! -e "$profile" ]]; then
+        echo "Profile not found at $profile. Apply the Home Manager configuration first." >&2
+        exit 1
+      fi
+
+      /usr/bin/open "$profile"
+      echo "System Settings will open. Review 'Slack Update Policy', then click Install."
+    '';
+  };
 in
 {
   options.profiles.applications.enable = lib.mkEnableOption "Desktop applications (obsidian, raycast, tablepro, rustdesk)";
 
   config = lib.mkIf cfg.enable {
-    targets.darwin.defaults = lib.mkIf isDarwin {
-      "com.tinyspeck.slackmacgap" = {
-        AutoUpdate = false;
-        SlackNoAutoUpdates = true;
-      };
-    };
-
     home.activation.copyUserscripts = lib.mkIf (hasGui && isDarwin) (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         userscripts_dir="$HOME/.config/userscripts"
@@ -95,6 +141,18 @@ in
         $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 ${githubPrTitleUserscript} "$userscript_file"
       ''
     );
+    home.activation.checkSlackUpdatePolicy = lib.mkIf (hasGui && isDarwin) (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        if ! /usr/bin/profiles list -type configuration -user ${lib.escapeShellArg config.profiles.username} \
+          2>/dev/null | /usr/bin/grep -Fq \
+          ${lib.escapeShellArg "profileIdentifier: ${slackUpdatePolicyIdentifier}"}; then
+          echo "Slack Update Policy is not installed; run install-slack-update-policy once on this Mac."
+        fi
+      ''
+    );
+    xdg.configFile."macos-profiles/slack-update-policy.mobileconfig" = lib.mkIf (hasGui && isDarwin) {
+      source = slackUpdatePolicyProfile;
+    };
     home.packages = [
     ]
     ++ lib.optionals hasGui [
@@ -105,6 +163,7 @@ in
     ]
     ++ lib.optionals (hasGui && isDarwin) [
 
+      installSlackUpdatePolicy
       pkgs-unstable.alt-tab-macos
       pkgs-unstable.blackhole
       pkgs-unstable.orbstack
