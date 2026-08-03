@@ -1,0 +1,4 @@
+interface:
+  display_name: "Watch CI"
+  short_description: "Watch PR checks and triage failures"
+  default_prompt: "Use $watch-ci to watch the current branch PR checks and notify me when they finish."

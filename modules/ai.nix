@@ -81,6 +81,8 @@ in
       skills = {
         creating-skills = ../config/claude/skills/creating-skills;
         playwright-cli = ../config/claude/skills/playwright-cli;
+        watch-ci = ../config/skills/watch-ci;
+        working-with-nixbot = ../config/skills/working-with-nixbot;
       };
 
       settings = {
@@ -113,6 +115,16 @@ in
     home.file = {
       ".codex/skills/audit-nix-app-updates" = {
         source = ../config/codex/skills/audit-nix-app-updates;
+        recursive = true;
+      };
+
+      ".codex/skills/watch-ci" = {
+        source = ../config/skills/watch-ci;
+        recursive = true;
+      };
+
+      ".codex/skills/working-with-nixbot" = {
+        source = ../config/skills/working-with-nixbot;
         recursive = true;
       };
 

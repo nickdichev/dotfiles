@@ -1,0 +1,4 @@
+interface:
+  display_name: "Working with Nixbot"
+  short_description: "Investigate Portal Nixbot CI failures"
+  default_prompt: "Use $working-with-nixbot to investigate the current PR’s Nixbot failures."
