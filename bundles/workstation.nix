@@ -11,6 +11,7 @@
     hammerspoon.enable = true;
     herdr.enable = true;
     media-processing.enable = true;
+    maintenance.enable = true;
     neovim.enable = true;
     scripts.enable = true;
     secrets.enable = true;

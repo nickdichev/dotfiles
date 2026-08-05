@@ -75,6 +75,7 @@
         hammerspoon = import ./modules/hammerspoon.nix;
         herdr = import ./modules/herdr.nix { inherit inputs; };
         media-processing = import ./modules/media-processing.nix;
+        maintenance = import ./modules/maintenance.nix { inherit inputs; };
         neovim = import ./modules/neovim.nix { inherit inputs; };
         scripts = import ./modules/scripts.nix;
         secrets = import ./modules/secrets.nix;
