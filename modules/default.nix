@@ -20,6 +20,7 @@ in
     ./git.nix
     (import ./herdr.nix { inherit inputs; })
     ./media-processing.nix
+    (import ./maintenance.nix { inherit inputs; })
     (import ./neovim.nix { inherit inputs; })
     ./scripts.nix
     ./secrets.nix
