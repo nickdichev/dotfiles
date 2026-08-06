@@ -1,5 +1,5 @@
 [theme]
-name = "gruvbox"
+name = "dracula"
 
 [keys]
 # Direct pane navigation, matching the Zellij keymap.
