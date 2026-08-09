@@ -57,6 +57,47 @@ let
       command = "${kagiWrapper}";
     };
   };
+
+  codexMcpConfig = (pkgs.formats.toml { }).generate "codex-mcp.toml" {
+    mcp_servers = mcpServers;
+  };
+
+  # Keep Codex's main config writable so it can persist runtime state such as
+  # project and hook trust. Home Manager owns only the marked MCP section.
+  codexConfigSetup = ''
+    config_dir="''${CODEX_HOME:-$HOME/.codex}"
+    config_file="$config_dir/config.toml"
+    mkdir -p "$config_dir"
+
+    if [ -L "$config_file" ]; then
+      tmp_file="$(${pkgs.coreutils}/bin/mktemp "$config_file.tmp.XXXXXX")"
+      ${pkgs.coreutils}/bin/cp -L "$config_file" "$tmp_file"
+      ${pkgs.coreutils}/bin/rm "$config_file"
+      ${pkgs.coreutils}/bin/mv "$tmp_file" "$config_file"
+    elif [ ! -e "$config_file" ]; then
+      ${pkgs.coreutils}/bin/touch "$config_file"
+    fi
+
+    stripped_file="$(${pkgs.coreutils}/bin/mktemp "$config_file.stripped.XXXXXX")"
+    tmp_file="$(${pkgs.coreutils}/bin/mktemp "$config_file.tmp.XXXXXX")"
+
+    ${pkgs.gawk}/bin/awk '
+      $0 == "# BEGIN home-manager managed mcp_servers" { skip = 1; next }
+      $0 == "# END home-manager managed mcp_servers" { skip = 0; next }
+      !skip { print }
+    ' "$config_file" > "$stripped_file"
+
+    {
+      ${pkgs.coreutils}/bin/cat "$stripped_file"
+      printf '\n# BEGIN home-manager managed mcp_servers\n'
+      ${pkgs.coreutils}/bin/cat ${codexMcpConfig}
+      printf '# END home-manager managed mcp_servers\n'
+    } > "$tmp_file"
+
+    ${pkgs.coreutils}/bin/mv "$tmp_file" "$config_file"
+    ${pkgs.coreutils}/bin/rm -f "$stripped_file"
+    ${pkgs.coreutils}/bin/chmod 600 "$config_file"
+  '';
 in
 {
   options.profiles.ai = {
@@ -68,7 +109,6 @@ in
       enable = true;
       package = codex;
       settings = null;
-      profiles.home-manager.mcp_servers = mcpServers;
     };
 
     programs.claude-code = {
@@ -111,6 +151,8 @@ in
       pi
       playwright-cli
     ];
+
+    home.activation.codexConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] codexConfigSetup;
 
     home.file = {
       ".codex/skills/audit-nix-app-updates" = {
