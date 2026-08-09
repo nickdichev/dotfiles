@@ -82,6 +82,7 @@ in
         creating-skills = ../config/claude/skills/creating-skills;
         playwright-cli = ../config/claude/skills/playwright-cli;
         watch-ci = ../config/skills/watch-ci;
+        working-with-herdr = ../config/skills/working-with-herdr;
         working-with-nixbot = ../config/skills/working-with-nixbot;
       };
 
@@ -120,6 +121,11 @@ in
 
       ".codex/skills/watch-ci" = {
         source = ../config/skills/watch-ci;
+        recursive = true;
+      };
+
+      ".codex/skills/working-with-herdr" = {
+        source = ../config/skills/working-with-herdr;
         recursive = true;
       };
 
