@@ -1,16 +1,27 @@
-{ inputs }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  dotfilesPackages ? { },
+  lib,
+  ...
+}:
 let
   cfg = config.profiles.wrk;
-  wrk = inputs.wrk.packages.${pkgs.system}.default;
+  package = dotfilesPackages.wrk or null;
 in
 {
   options.profiles.wrk.enable = lib.mkEnableOption "Workspace project switcher (wrk)";
 
   config = lib.mkIf cfg.enable {
-    home.packages = [
-      wrk
+    assertions = [
+      {
+        assertion = package != null;
+        message = ''
+          profiles.wrk requires dotfilesPackages.wrk to be supplied by the consuming Home Manager configuration
+        '';
+      }
     ];
+
+    home.packages = lib.optional (package != null) package;
 
     programs.zsh.initContent = lib.mkOrder 1500 ''
       wrk() {

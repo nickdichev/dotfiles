@@ -19,8 +19,6 @@
 
     portal-nix-overlay.url = "github:Portal-Wholesale/nix-overlay";
 
-    sesame.url = "git+ssh://forgejo@liveoak:2222/Nick/sesame.git";
-    wrk.url = "git+ssh://forgejo@liveoak:2222/Nick/wrk.git";
   };
 
   outputs =
@@ -83,7 +81,8 @@
         ssh = import ./modules/ssh.nix;
         terminal = import ./modules/terminal.nix { inherit inputs; };
         utils = import ./modules/utils.nix { inherit inputs; };
-        wrk = import ./modules/wrk.nix { inherit inputs; };
+        sesame = import ./modules/sesame.nix;
+        wrk = import ./modules/wrk.nix;
         zellij = import ./modules/zellij.nix { inherit inputs; };
       };
 
