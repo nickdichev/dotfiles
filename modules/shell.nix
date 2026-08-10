@@ -103,7 +103,7 @@ in
 
         # cli tool shell integration
         eval "$(${wt}/bin/wt config shell init zsh)"
-        eval "$(${devenv}/bin/devenv) hook zsh"
+        eval "$(${devenv}/bin/devenv hook zsh)"
 
 
         # SSH agent setup (silent) - skip if nested to avoid duplicate agents
