@@ -1,4 +1,0 @@
-interface:
-  display_name: "Working with Herdr"
-  short_description: "Control Herdr panes and coding agents"
-  default_prompt: "Use $working-with-herdr to inspect this Herdr tab and coordinate its coding agents."

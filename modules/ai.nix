@@ -18,6 +18,14 @@ let
   codex = llm-agents.codex;
   claude-code = llm-agents.claude-code;
   playwright-cli = inputs.portal-nix-overlay.packages.${pkgs.system}.playwright-cli;
+  herdr = inputs.herdr.packages.${pkgs.system}.default;
+
+  # Generate the skill from the packaged CLI so its instructions always match
+  # the Herdr version pinned by flake.lock.
+  herdrSkill = pkgs.runCommand "herdr-agent-skill" { } ''
+    mkdir -p "$out"
+    ${herdr}/bin/herdr --skill > "$out/SKILL.md"
+  '';
 
   # Re-wrap pi so `pi install` works: needs npm on PATH (it shells out to
   # `npm root -g`) and a writable per-user npm prefix instead of the store.
@@ -80,9 +88,9 @@ in
 
       skills = {
         creating-skills = ../config/claude/skills/creating-skills;
+        herdr = herdrSkill;
         playwright-cli = ../config/claude/skills/playwright-cli;
         watch-ci = ../config/skills/watch-ci;
-        working-with-herdr = ../config/skills/working-with-herdr;
         working-with-nixbot = ../config/skills/working-with-nixbot;
       };
 
@@ -124,8 +132,8 @@ in
         recursive = true;
       };
 
-      ".codex/skills/working-with-herdr" = {
-        source = ../config/skills/working-with-herdr;
+      ".codex/skills/herdr" = {
+        source = herdrSkill;
         recursive = true;
       };
 
