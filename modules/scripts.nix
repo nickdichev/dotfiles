@@ -565,16 +565,50 @@ let
     }
 
     {
-      description = "Put the system to sleep";
-      example = "sleepybear";
+      description = "Put the system or its displays to sleep";
+      example = "sleepybear --monitor";
       package = pkgs.writeShellApplication {
         name = "sleepybear";
         text = ''
+          usage() {
+            echo "Usage: sleepybear [-m|--monitor]"
+            echo "  -m, --monitor  Put displays to sleep without suspending the system"
+            echo "  -h, --help     Show this help"
+          }
+
+          monitor_only=false
+
+          while [[ $# -gt 0 ]]; do
+            case "$1" in
+              -m|--monitor)
+                monitor_only=true
+                ;;
+              -h|--help)
+                usage
+                exit 0
+                ;;
+              *)
+                echo "Unknown option: $1" >&2
+                usage >&2
+                exit 1
+                ;;
+            esac
+            shift
+          done
+
           if [[ "$(uname)" == 'Darwin' ]]; then
+            if [[ "$monitor_only" == true ]]; then
+              exec /usr/bin/pmset displaysleepnow
+            fi
             exec /usr/bin/osascript -e 'tell application "System Events" to sleep'
-          else
-            systemctl suspend
           fi
+
+          if [[ "$monitor_only" == true ]]; then
+            echo "Monitor-only sleep is currently supported only on macOS" >&2
+            exit 1
+          fi
+
+          systemctl suspend
         '';
       };
     }

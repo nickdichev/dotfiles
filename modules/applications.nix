@@ -156,6 +156,9 @@ in
     xdg.configFile."macos-profiles/slack-update-policy.mobileconfig" = lib.mkIf (hasGui && isDarwin) {
       source = slackUpdatePolicyProfile;
     };
+    xdg.configFile."raycast/script-commands/sleep-displays.sh" = lib.mkIf (hasGui && isDarwin) {
+      source = ../config/raycast/script-commands/sleep-displays.sh;
+    };
     home.activation.configureAltTab = lib.mkIf (hasGui && isDarwin) (
       lib.hm.dag.entryBefore [ "setupLaunchAgents" ] ''
         # Home Manager owns AltTab startup and upgrades. Disable the app's
