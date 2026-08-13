@@ -75,6 +75,7 @@
         media-processing = import ./modules/media-processing.nix;
         maintenance = import ./modules/maintenance.nix { inherit inputs; };
         neovim = import ./modules/neovim.nix { inherit inputs; };
+        onlyeq = import ./modules/onlyeq.nix;
         scripts = import ./modules/scripts.nix;
         secrets = import ./modules/secrets.nix;
         shell = import ./modules/shell.nix { inherit inputs; };

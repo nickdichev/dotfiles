@@ -22,6 +22,7 @@ in
     ./media-processing.nix
     (import ./maintenance.nix { inherit inputs; })
     (import ./neovim.nix { inherit inputs; })
+    ./onlyeq.nix
     ./scripts.nix
     ./secrets.nix
     (import ./shell.nix { inherit inputs; })

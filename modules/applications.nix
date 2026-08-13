@@ -29,6 +29,8 @@ let
       })
     else
       pkgs-unstable.raycast;
+  altTabPackage = pkgs.callPackage ../pkgs/alt-tab-macos-bin { };
+  altTabBundleIdentifier = "com.lwouis.alt-tab-macos";
   githubPrTitleUserscript = pkgs.writeText "github-pr-title.user.js" ''
     // ==UserScript==
     // @name        GitHub PR number first in title
@@ -154,6 +156,35 @@ in
     xdg.configFile."macos-profiles/slack-update-policy.mobileconfig" = lib.mkIf (hasGui && isDarwin) {
       source = slackUpdatePolicyProfile;
     };
+    home.activation.configureAltTab = lib.mkIf (hasGui && isDarwin) (
+      lib.hm.dag.entryBefore [ "setupLaunchAgents" ] ''
+        # Home Manager owns AltTab startup and upgrades. Disable the app's
+        # self-managed login item and updater so neither can mutate Nix state.
+        $DRY_RUN_CMD /usr/bin/defaults write ${altTabBundleIdentifier} startAtLogin -bool false
+        $DRY_RUN_CMD /usr/bin/defaults write ${altTabBundleIdentifier} updatePolicy -string "0"
+        $DRY_RUN_CMD /usr/bin/defaults write ${altTabBundleIdentifier} SUEnableAutomaticChecks -bool false
+        $DRY_RUN_CMD /usr/bin/defaults write ${altTabBundleIdentifier} SUAutomaticallyUpdate -bool false
+
+        legacy_agent="$HOME/Library/LaunchAgents/${altTabBundleIdentifier}.plist"
+        legacy_service="gui/$UID/${altTabBundleIdentifier}"
+
+        if /bin/launchctl print "$legacy_service" >/dev/null 2>&1; then
+          $DRY_RUN_CMD /bin/launchctl bootout "$legacy_service"
+        fi
+        $DRY_RUN_CMD /bin/rm -f "$legacy_agent"
+      ''
+    );
+    launchd.agents.alt-tab = lib.mkIf (hasGui && isDarwin) {
+      enable = true;
+      config = {
+        Program = "${altTabPackage}/Applications/AltTab.app/Contents/MacOS/AltTab";
+        RunAtLoad = true;
+        LimitLoadToSessionType = "Aqua";
+        ProcessType = "Interactive";
+        LegacyTimers = true;
+        AssociatedBundleIdentifiers = altTabBundleIdentifier;
+      };
+    };
     home.packages = [
     ]
     ++ lib.optionals hasGui [
@@ -165,7 +196,7 @@ in
     ++ lib.optionals (hasGui && isDarwin) [
 
       installSlackUpdatePolicy
-      pkgs-unstable.alt-tab-macos
+      altTabPackage
       pkgs-unstable.blackhole
       pkgs-unstable.orbstack
       raycastPackage

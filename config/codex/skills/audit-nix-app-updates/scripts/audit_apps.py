@@ -13,6 +13,11 @@ from pathlib import Path
 
 
 GITHUB_PACKAGES = {
+    "alt-tab-macos-bin": {
+        "file": "pkgs/alt-tab-macos-bin/default.nix",
+        "repo": "lwouis/alt-tab-macos",
+        "asset_regex": r"AltTab-.*\.zip$",
+    },
     "pencil": {
         "file": "pkgs/pencil/default.nix",
         "repo": "highagency/pencil-desktop-releases",
@@ -49,7 +54,6 @@ GITHUB_PACKAGES = {
 }
 
 BREW_CASKS = {
-    "alt-tab-macos": "alt-tab",
     "blackhole": "blackhole-2ch",
     "godot": "godot",
     "obsidian": "obsidian",
@@ -73,7 +77,6 @@ in {
     redisinsight = get stable.redisinsight;
   };
   unstable = {
-    alt-tab-macos = get unstable.alt-tab-macos;
     blackhole = get unstable.blackhole;
     godot = get unstable.godot;
     raycast = get unstable.raycast;
@@ -120,7 +123,10 @@ def pinned_version(path: Path) -> str | None:
 
 
 def latest_github(repo: str, tag_regex: str | None = None, asset_regex: str | None = None) -> str | None:
-    releases = read_url_json(f"https://api.github.com/repos/{repo}/releases?per_page=30")
+    try:
+        releases = read_url_json(f"https://api.github.com/repos/{repo}/releases?per_page=30")
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError):
+        return None
     tag_pattern = re.compile(tag_regex) if tag_regex else None
     asset_pattern = re.compile(asset_regex) if asset_regex else None
 
