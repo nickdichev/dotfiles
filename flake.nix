@@ -45,6 +45,8 @@
         );
     in
     {
+      darwinModules.codex = import ./modules/codex-system.nix;
+
       homeModules = {
         # Default: imports all modules, defines shared options. Modules are imported but nothing enabled by default.
         default = import ./modules { inherit inputs; };
@@ -86,6 +88,8 @@
         wrk = import ./modules/wrk.nix;
         zellij = import ./modules/zellij.nix { inherit inputs; };
       };
+
+      nixosModules.codex = import ./modules/codex-system.nix;
 
       devShells = forEachSupportedSystem (
         { pkgs, system }:

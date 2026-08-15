@@ -27,6 +27,10 @@ let
     ${herdr}/bin/herdr --skill > "$out/SKILL.md"
   '';
 
+  mcpServers = import ../lib/mcp-servers.nix {
+    inherit kagiApiKeyFile pkgs;
+  };
+
   # Re-wrap pi so `pi install` works: needs npm on PATH (it shells out to
   # `npm root -g`) and a writable per-user npm prefix instead of the store.
   pi = pkgs.symlinkJoin {
@@ -40,31 +44,6 @@ let
     '';
   };
 
-  kagiWrapper =
-    if kagiApiKeyFile != null then
-      pkgs.writeShellScript "kagi-mcp-wrapper" ''
-        export KAGI_API_KEY="$(cat ${kagiApiKeyFile})"
-        exec ${pkgs.uv}/bin/uvx "$@"
-      ''
-    else
-      null;
-
-  mcpServers = {
-    nixos = {
-      args = [
-        "--from"
-        "git+https://github.com/nickdichev/mcp-nixos@Add-clan-options"
-        "mcp-nixos"
-      ];
-      command = "${pkgs.uv}/bin/uvx";
-    };
-  }
-  // lib.optionalAttrs (kagiWrapper != null) {
-    kagi = {
-      args = [ "kagimcp" ];
-      command = "${kagiWrapper}";
-    };
-  };
 in
 {
   options.profiles.ai = {
@@ -76,7 +55,6 @@ in
       enable = true;
       package = codex;
       settings = null;
-      profiles.home-manager.mcp_servers = mcpServers;
     };
 
     programs.claude-code = {
