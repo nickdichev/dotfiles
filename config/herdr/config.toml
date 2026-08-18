@@ -2,13 +2,13 @@
 name = "dracula"
 
 [keys]
-# Direct pane navigation, matching the Zellij keymap.
+# Direct pane navigation with Vim and arrow-key shortcuts.
 focus_pane_left = ["alt+h", "alt+left"]
 focus_pane_down = ["alt+j", "alt+down"]
 focus_pane_up = ["alt+k", "alt+up"]
 focus_pane_right = ["alt+l", "alt+right"]
 
-# Pane creation, matching the Zellij keymap.
+# Pane creation shortcuts.
 split_vertical = "alt+n"
 split_horizontal = "alt+d"
 

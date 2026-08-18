@@ -92,13 +92,6 @@ in
           return 1
         }
 
-        # Detect if we're in a nested session (local zellij or SSH from Tailscale)
-        _is_nested_session() {
-          [[ -n "$ZELLIJ" ]] && return 0
-          _is_tailscale_ssh && return 0
-          return 1
-        }
-
         export HISTORY_FILTER_EXCLUDE=("_KEY" "Bearer" "_TOKEN" "DATABASE_URL=")
 
         # cli tool shell integration
@@ -106,8 +99,8 @@ in
         eval "$(${devenv}/bin/devenv hook zsh)"
 
 
-        # SSH agent setup (silent) - skip if nested to avoid duplicate agents
-        if ! _is_nested_session && [[ -z "$SSH_AUTH_SOCK" ]]; then
+        # SSH agent setup (silent) - skip Tailscale SSH to avoid duplicate agents
+        if ! _is_tailscale_ssh && [[ -z "$SSH_AUTH_SOCK" ]]; then
           eval "$(ssh-agent -s)" > /dev/null 2>&1
         fi
 

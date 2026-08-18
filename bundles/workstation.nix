@@ -20,6 +20,5 @@
     terminal.enable = true;
     utils.enable = true;
     wrk.enable = true;
-    zellij.enable = true;
   };
 }

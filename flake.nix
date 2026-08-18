@@ -86,7 +86,6 @@
         utils = import ./modules/utils.nix { inherit inputs; };
         sesame = import ./modules/sesame.nix;
         wrk = import ./modules/wrk.nix;
-        zellij = import ./modules/zellij.nix { inherit inputs; };
       };
 
       nixosModules.codex = import ./modules/codex-system.nix;
