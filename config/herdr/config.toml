@@ -1,3 +1,6 @@
+[experimental]
+kitty_graphics = true
+
 [theme]
 name = "dracula"
 
@@ -22,3 +25,9 @@ next_agent = "prefix+alt+n"
 switch_tab = "prefix+1..9"
 switch_workspace = "prefix+shift+1..9"
 focus_agent = "prefix+alt+1..9"
+
+[[keys.command]]
+key = "alt+b"
+type = "plugin_action"
+command = "zenbu-labs.terminal-browser.open-split"
+description = "Open Terminal Browser in a right split"

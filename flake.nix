@@ -13,8 +13,12 @@
     };
     herdr = {
       # Keep consumers such as the clan on the same stable client/server protocol.
-      url = "github:herdrdev/herdr/v0.8.0";
+      url = "github:herdrdev/herdr/v0.8.2";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+    terminal-browser-src = {
+      url = "github:zenbu-labs/terminal-browser/v0.6.0";
+      flake = false;
     };
 
     portal-nix-overlay.url = "github:Portal-Wholesale/nix-overlay";

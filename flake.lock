@@ -738,16 +738,16 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1785783176,
-        "narHash": "sha256-empFQ+hrnCh2JhOzQRWSCLV0YoZC3DXW3bY6k8YuJjk=",
+        "lastModified": 1787161794,
+        "narHash": "sha256-sEGIN3dLZasaHob3EHscWBCIQHflMQVchYmzgsETDk4=",
         "owner": "herdrdev",
         "repo": "herdr",
-        "rev": "346411fa21afd297f5ed3b3fa56f9e3fbf7654b7",
+        "rev": "9eb521456ac0d19d3ab3d9d7cea3cca10baa8a4c",
         "type": "github"
       },
       "original": {
         "owner": "herdrdev",
-        "ref": "v0.8.0",
+        "ref": "v0.8.2",
         "repo": "herdr",
         "type": "github"
       }
@@ -1181,6 +1181,7 @@
         "nixpkgs": "nixpkgs_8",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "portal-nix-overlay": "portal-nix-overlay",
+        "terminal-browser-src": "terminal-browser-src",
         "worktrunk": "worktrunk"
       }
     },
@@ -1290,6 +1291,23 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "terminal-browser-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787287175,
+        "narHash": "sha256-FsEJfYWJwPTmjrnd6MPlB5CYXToMeRuTVfAF7xdBvPY=",
+        "owner": "zenbu-labs",
+        "repo": "terminal-browser",
+        "rev": "2a739b313be3a8fddf671dd02c9eb313a348c810",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zenbu-labs",
+        "ref": "v0.6.0",
+        "repo": "terminal-browser",
         "type": "github"
       }
     },

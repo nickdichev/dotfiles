@@ -10,6 +10,7 @@
     git.enable = true;
     hammerspoon.enable = true;
     herdr.enable = true;
+    herdr.terminalBrowser.enable = true;
     media-processing.enable = true;
     maintenance.enable = true;
     neovim.enable = true;
