@@ -299,7 +299,7 @@ in
         dcr = "dclaude --resume";
         cdx = "codex --yolo";
 
-        wtrm = "wt remove --force";
+        wtrm = "wt remove --force --foreground";
         wtrmm = "wt remove --force --no-hooks -D";
       };
 

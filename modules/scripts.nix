@@ -6,8 +6,34 @@
 }:
 let
   cfg = config.profiles.scripts;
+  portalDevReapScript = pkgs.writers.writePython3Bin "portal-dev-reap" {
+    flakeIgnore = [
+      "E501"
+      "W503"
+    ];
+  } (builtins.readFile ../scripts/portal_dev_reap.py);
+  portalDevReap = pkgs.symlinkJoin {
+    name = "portal-dev-reap";
+    paths = [ portalDevReapScript ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/portal-dev-reap \
+        --prefix PATH : ${
+          lib.makeBinPath [
+            pkgs.git
+            pkgs.lsof
+          ]
+        }
+    '';
+  };
 
   scripts = [
+    {
+      description = "Audit and safely reap Portal dev stacks not active in Herdr";
+      example = "portal-dev-reap --apply";
+      package = portalDevReap;
+    }
+
     {
       description = "Show processes listening on TCP ports";
       example = "listening 3000";
