@@ -5,24 +5,26 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     llm-agents.url = "github:numtide/llm-agents.nix";
-    devenv.url = "github:cachix/devenv/v2.1";
-    worktrunk.url = "github:max-sixty/worktrunk/v0.39.0";
+    devenv.url = "github:cachix/devenv/v2.2.2";
+    worktrunk.url = "github:max-sixty/worktrunk/v0.76.0";
+
     expert = {
       url = "github:elixir-lang/expert";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+
     herdr = {
       # Keep consumers such as the clan on the same stable client/server protocol.
       url = "github:herdrdev/herdr/v0.8.2";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+
     terminal-browser-src = {
-      url = "github:zenbu-labs/terminal-browser/v0.6.0";
+      url = "github:zenbu-labs/terminal-browser/v0.8.0";
       flake = false;
     };
 
     portal-nix-overlay.url = "github:Portal-Wholesale/nix-overlay";
-
   };
 
   outputs =
