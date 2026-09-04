@@ -7,7 +7,6 @@
 }:
 let
   cfg = config.profiles.neovim;
-  expert = inputs.expert.packages.${pkgs.system}.default;
   pkgs-unstable = import inputs.nixpkgs-unstable { inherit (pkgs) system; };
   storeConfigPath = ../config/nvim;
   useSymlink = config.profiles.neovim.configPath != null;
@@ -50,7 +49,7 @@ in
         # LSP
         pkgs.basedpyright
         pkgs.clojure-lsp
-        expert
+        pkgs-unstable.beamPackages.expert
         pkgs.lua-language-server
         pkgs.nil
         pkgs.typescript-language-server

@@ -8,11 +8,6 @@
     devenv.url = "github:cachix/devenv/v2.2.2";
     worktrunk.url = "github:max-sixty/worktrunk/v0.76.0";
 
-    expert = {
-      url = "github:elixir-lang/expert";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-
     herdr = {
       # Keep consumers such as the clan on the same stable client/server protocol.
       url = "github:herdrdev/herdr/v0.8.2";
