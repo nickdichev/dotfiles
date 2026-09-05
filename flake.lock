@@ -509,8 +509,7 @@
         "nixpkgs": "nixpkgs_4",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "portal-nix-overlay": "portal-nix-overlay",
-        "terminal-browser-src": "terminal-browser-src",
-        "worktrunk": "worktrunk"
+        "terminal-browser-src": "terminal-browser-src"
       }
     },
     "rust-overlay": {
@@ -663,28 +662,6 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "type": "github"
-      }
-    },
-    "worktrunk": {
-      "inputs": {
-        "crane": "crane",
-        "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs_6",
-        "rust-overlay": "rust-overlay_3"
-      },
-      "locked": {
-        "lastModified": 1788299212,
-        "narHash": "sha256-GrkBwQOhFur1TVUufUJdp9f7nHwUXGa46+YRsgK1S6w=",
-        "owner": "max-sixty",
-        "repo": "worktrunk",
-        "rev": "de0052d8db917e46c1663979d376eff3f90c8119",
-        "type": "github"
-      },
-      "original": {
-        "owner": "max-sixty",
-        "ref": "v0.76.0",
-        "repo": "worktrunk",
         "type": "github"
       }
     }

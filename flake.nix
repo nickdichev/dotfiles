@@ -6,7 +6,6 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     llm-agents.url = "github:numtide/llm-agents.nix";
     devenv.url = "github:cachix/devenv/v2.2.2";
-    worktrunk.url = "github:max-sixty/worktrunk/v0.76.0";
 
     herdr = {
       # Keep consumers such as the clan on the same stable client/server protocol.
