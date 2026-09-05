@@ -7,7 +7,8 @@
 }:
 let
   cfg = config.profiles.shell;
-  wt = inputs.worktrunk.packages.${pkgs.system}.default;
+  pkgs-unstable = import inputs.nixpkgs-unstable { inherit (pkgs) system; };
+  wt = pkgs-unstable.worktrunk;
   devenv = inputs.devenv.packages.${pkgs.system}.default;
 in
 {

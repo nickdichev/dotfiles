@@ -6,7 +6,6 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     llm-agents.url = "github:numtide/llm-agents.nix";
     devenv.url = "github:cachix/devenv/v2.1";
-    worktrunk.url = "github:max-sixty/worktrunk/v0.39.0";
     zmx.url = "github:neurosnap/zmx";
     expert = {
       url = "github:elixir-lang/expert";
