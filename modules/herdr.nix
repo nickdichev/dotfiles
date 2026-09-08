@@ -67,7 +67,7 @@ in
 
         home.activation.linkTerminalBrowserHerdrPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           if ! $DRY_RUN_CMD ${herdr}/bin/herdr plugin link ${lib.escapeShellArg terminalBrowserPlugin}; then
-            echo "Could not link the Terminal Browser plugin. Restart Herdr with version 0.8.2, then run Home Manager again." >&2
+            echo "Could not link the Terminal Browser plugin. Restart Herdr with version 0.9.0, then run Home Manager again." >&2
           fi
         '';
 
