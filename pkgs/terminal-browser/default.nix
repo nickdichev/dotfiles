@@ -118,6 +118,9 @@ stdenv.mkDerivation {
     runHook preInstall
     mkdir -p "$out"
     cp -R . "$out/"
+    # Profile symlinks make the launcher's relative root point outside this package.
+    substituteInPlace "$out/bin/terminal-browser" \
+      --replace-fail 'ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)"' "ROOT=\"$out\""
     ${lib.optionalString stdenv.hostPlatform.isDarwin ''
       /usr/bin/codesign --force --deep --sign - --timestamp=none "$out/electron/terminal-browser.app"
     ''}
