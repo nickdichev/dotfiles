@@ -72,7 +72,7 @@ in
         '';
 
         home.file = lib.mkIf terminalBrowserSupported {
-          ".codex/skills/terminal-browser" = {
+          ".agents/skills/terminal-browser" = {
             source = "${terminalBrowser}/skills/codex/terminal-browser";
             recursive = true;
           };

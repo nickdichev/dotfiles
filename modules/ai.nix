@@ -16,6 +16,7 @@ let
 
   llm-agents = inputs.llm-agents.packages.${pkgs.system};
   codex = llm-agents.codex;
+  codex-profiles = inputs.codex-profiles.packages.${pkgs.system}.default;
   claude-code = llm-agents.claude-code;
   playwright-cli = inputs.portal-nix-overlay.packages.${pkgs.system}.playwright-cli;
   herdr = inputs.herdr.packages.${pkgs.system}.default;
@@ -95,27 +96,43 @@ in
     };
 
     home.packages = [
+      codex-profiles
       pi
       playwright-cli
     ];
 
+    # Match codex-profiles' opt-in terminal integration.  `shell-init` supplies
+    # the `use` shell wrapper, an active-profile prompt prefix, and profile-aware
+    # completions; the two environment variables add per-run terminal feedback.
+    programs.zsh.initContent = lib.mkOrder 2000 ''
+      eval "$(${codex-profiles}/bin/codex-profile shell-init zsh --prompt --completions)"
+      export CODEX_PROFILE_TERMINAL_TITLE=1
+      export CODEX_PROFILE_NOTIFY=1
+    '';
+
+    # Keep the existing shortcut, but let its profile be selected by the
+    # nearest workspace binding and checked by codex-profiles' guard.
+    programs.zsh.shellAliases.cdx = lib.mkForce "codex-profile run -- --yolo";
+
     home.file = {
-      ".codex/skills/audit-nix-app-updates" = {
+      # ~/.agents/skills is shared by every CODEX_HOME selected by
+      # codex-profiles; ~/.codex/skills would apply only to the default home.
+      ".agents/skills/audit-nix-app-updates" = {
         source = ../config/codex/skills/audit-nix-app-updates;
         recursive = true;
       };
 
-      ".codex/skills/watch-ci" = {
+      ".agents/skills/watch-ci" = {
         source = ../config/skills/watch-ci;
         recursive = true;
       };
 
-      ".codex/skills/herdr" = {
+      ".agents/skills/herdr" = {
         source = herdrSkill;
         recursive = true;
       };
 
-      ".codex/skills/working-with-nixbot" = {
+      ".agents/skills/working-with-nixbot" = {
         source = ../config/skills/working-with-nixbot;
         recursive = true;
       };
