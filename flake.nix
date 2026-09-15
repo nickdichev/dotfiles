@@ -6,7 +6,7 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     llm-agents.url = "github:numtide/llm-agents.nix";
     codex-profiles = {
-      url = "github:Ducksss/codex-profiles/v1.1.0";
+      url = "github:Ducksss/codex-profiles/v1.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     devenv.url = "github:cachix/devenv/v2.2.2";

@@ -72,16 +72,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1789319523,
-        "narHash": "sha256-MsbRP0RQ/KxJetQadRiDAsMH1GaHRHYY2Iu/BKoAIR8=",
+        "lastModified": 1789453524,
+        "narHash": "sha256-iD7Vq/DsIz+FckXqkx0+82CmbpU/sCZAAIZ0sTFo1SI=",
         "owner": "Ducksss",
         "repo": "codex-profiles",
-        "rev": "0bbf7df77ec6ae4c9fee441c681baaccf0246af4",
+        "rev": "d2260b800297a2b6441b3341c5c3ac48b67d59a1",
         "type": "github"
       },
       "original": {
         "owner": "Ducksss",
-        "ref": "v1.1.0",
+        "ref": "v1.2.0",
         "repo": "codex-profiles",
         "type": "github"
       }
