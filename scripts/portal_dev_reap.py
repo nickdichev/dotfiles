@@ -1,4 +1,4 @@
-"""Audit and safely stop Portal dev stacks that are not open in Herdr."""
+"""Audit and safely stop unprotected Portal dev stacks inactive in local Herdr."""
 
 from __future__ import annotations
 
@@ -107,6 +107,7 @@ class Audit:
     active_source: str
     active_error: str | None
     active_paths: list[str]
+    protected_paths: list[str]
     targets: list[TargetReport]
     unknown_process_compose: list[dict[str, Any]]
 
@@ -361,23 +362,12 @@ def listener_processes() -> list[ProcessRef]:
     return processes
 
 
-def herdr_active_paths() -> tuple[list[Path], str | None]:
-    herdr = shutil.which("herdr")
-    if herdr is None:
-        return [], "herdr is not available"
+def parse_herdr_pane_paths(output: str) -> list[Path]:
     try:
-        result = run([herdr, "pane", "list"], timeout=10)
-    except subprocess.TimeoutExpired:
-        return [], "herdr pane inventory timed out"
-    if result.returncode != 0:
-        return [], (
-            result.stderr or result.stdout
-        ).strip() or "herdr pane inventory failed"
-    try:
-        payload = json.loads(result.stdout)
+        payload = json.loads(output)
         panes = payload["result"]["panes"]
     except (json.JSONDecodeError, KeyError, TypeError):
-        return [], "herdr returned an unexpected pane inventory"
+        raise ReapError("herdr returned an unexpected pane inventory") from None
 
     paths: list[Path] = []
     for pane in panes:
@@ -387,6 +377,54 @@ def herdr_active_paths() -> tuple[list[Path], str | None]:
             value = pane.get(key)
             if isinstance(value, str) and value.startswith("/"):
                 paths.append(canonical(value))
+    return paths
+
+
+def herdr_active_paths() -> tuple[list[Path], str | None]:
+    """Return pane paths from every running session on this machine.
+
+    Herdr 0.9 clients can display multiple machines, but each CLI invocation
+    still addresses one machine's server. Enumerating that server's sessions
+    avoids both missing a local named session and treating a same-named remote
+    path as local activity.
+    """
+    herdr = shutil.which("herdr")
+    if herdr is None:
+        return [], "herdr is not available"
+    try:
+        result = run([herdr, "session", "list", "--json"], timeout=10)
+    except subprocess.TimeoutExpired:
+        return [], "herdr local session inventory timed out"
+    if result.returncode != 0:
+        return [], (
+            result.stderr or result.stdout
+        ).strip() or "herdr local session inventory failed"
+    try:
+        payload = json.loads(result.stdout)
+        sessions = payload["sessions"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return [], "herdr returned an unexpected local session inventory"
+
+    paths: list[Path] = []
+    for session in sessions:
+        if not isinstance(session, dict) or session.get("running") is not True:
+            continue
+        name = session.get("name")
+        if not isinstance(name, str) or not name:
+            return [], "herdr returned an invalid local session name"
+        try:
+            panes_result = run(
+                [herdr, "--session", name, "pane", "list"], timeout=10
+            )
+        except subprocess.TimeoutExpired:
+            return [], f"herdr pane inventory timed out for local session {name}"
+        if panes_result.returncode != 0:
+            detail = (panes_result.stderr or panes_result.stdout).strip()
+            return [], detail or f"herdr pane inventory failed for local session {name}"
+        try:
+            paths.extend(parse_herdr_pane_paths(panes_result.stdout))
+        except ReapError as error:
+            return [], f"{error} for local session {name}"
     return list(dict.fromkeys(paths)), None
 
 
@@ -429,8 +467,23 @@ def process_descends_from(process: ProcessRef, ancestor_pids: set[int]) -> bool:
     return False
 
 
-def build_audit(root: Path) -> tuple[Audit, dict[str, Target]]:
+def build_audit(
+    root: Path, protected_paths: tuple[Path, ...] = ()
+) -> tuple[Audit, dict[str, Target]]:
     targets = discover_targets(root)
+    protected_paths = tuple(
+        dict.fromkeys(canonical(path) for path in protected_paths)
+    )
+    unmatched_protections = [
+        path
+        for path in protected_paths
+        if not any(path_is_within(target.path, path) for target in targets)
+    ]
+    if unmatched_protections:
+        raise ReapError(
+            "protected path is not inside a discovered Portal checkout: "
+            f"{unmatched_protections[0]}"
+        )
     processes = listener_processes()
     active_paths, active_error = herdr_active_paths()
     target_by_path = {str(target.path): target for target in targets}
@@ -454,6 +507,9 @@ def build_audit(root: Path) -> tuple[Audit, dict[str, Target]]:
     for target in targets:
         target_key = str(target.path)
         target_active = any(path_is_within(target.path, path) for path in active_paths)
+        explicitly_protected = any(
+            path_is_within(target.path, path) for path in protected_paths
+        )
         owned_processes = owned[target_key]
         extra_processes = extras[target_key]
         foreign: list[ProcessRef] = []
@@ -505,13 +561,30 @@ def build_audit(root: Path) -> tuple[Audit, dict[str, Target]]:
         if extra_processes:
             reasons.append("checkout owns listeners outside its allocated port set")
 
+        all_owned = {
+            process.pid: process
+            for process in (*owned_processes, *extra_processes, *manager_controlled)
+        }
+        incomplete_identity = any(
+            process.identity is None or process.cwd is None
+            for process in all_owned.values()
+        )
+        if incomplete_identity:
+            reasons.append("owned listener identity inventory is incomplete")
+
         has_runtime = bool(owned_processes or extra_processes)
-        protected = target.kind == "primary"
+        protected = target.kind == "primary" or explicitly_protected
         risky = bool(
-            target.errors or active_error or uncontrolled_foreign or pc_mismatch
+            target.errors
+            or active_error
+            or uncontrolled_foreign
+            or pc_mismatch
+            or incomplete_identity
         )
         if target_active:
             classification = "active"
+        elif protected:
+            classification = "protected"
         elif risky and has_runtime:
             classification = "unknown"
         elif target.kind == "trash" and has_runtime:
@@ -528,12 +601,8 @@ def build_audit(root: Path) -> tuple[Audit, dict[str, Target]]:
             and target.env_values is not None
             and classification in ("inactive", "deleted-checkout-orphan")
         )
-        all_owned = {
-            process.pid: process
-            for process in (*owned_processes, *extra_processes, *manager_controlled)
-        }
         fingerprint = [
-            [process.pid, process.identity, process.cwd, *process.ports]
+            [process.pid, process.identity, process.cwd]
             for process in sorted(all_owned.values(), key=lambda item: item.pid)
         ]
         reports.append(
@@ -562,11 +631,12 @@ def build_audit(root: Path) -> tuple[Audit, dict[str, Target]]:
         )
 
     audit = Audit(
-        schema_version=1,
+        schema_version=2,
         repository=str(root),
-        active_source="herdr",
+        active_source="herdr-local-machine-all-running-sessions",
         active_error=active_error,
         active_paths=[str(path) for path in active_paths],
+        protected_paths=[str(path) for path in protected_paths],
         targets=reports,
         unknown_process_compose=unknown_process_compose,
     )
@@ -577,12 +647,16 @@ def format_age(value: str | None) -> str:
     return value or "-"
 
 
-def print_audit(audit: Audit) -> None:
+def print_audit(audit: Audit, *, show_apply_hint: bool = True) -> None:
     print(f"Portal repository: {audit.repository}")
     if audit.active_error:
         print(f"Herdr inventory: unavailable ({audit.active_error})")
     else:
-        print(f"Herdr checkout paths: {len(audit.active_paths)}")
+        print(
+            f"Herdr checkout paths: {len(audit.active_paths)} "
+            "(this machine, all running local sessions)"
+        )
+    print(f"Explicitly protected paths: {len(audit.protected_paths)}")
     print()
     print(f"{'CLASS':<25} {'RUNTIME':<8} {'PC':<7} {'AGE':<12} CHECKOUT")
     print(f"{'-----':<25} {'-------':<8} {'--':<7} {'---':<12} --------")
@@ -609,9 +683,33 @@ def print_audit(audit: Audit) -> None:
                 f"cwd={process['cwd'] or '-'}"
             )
     actionable = sum(1 for target in audit.targets if target.actionable)
+    protected = sum(1 for target in audit.targets if target.protected)
+    unknown = sum(
+        1 for target in audit.targets if target.classification == "unknown"
+    )
+    running = sum(1 for target in audit.targets if target.runtime == "running")
+    listener_pids = {
+        item["pid"]
+        for target in audit.targets
+        for item in (
+            *target.listeners,
+            *target.foreign_listeners,
+            *target.manager_controlled_listeners,
+            *target.extra_owned_listeners,
+        )
+    }
     print()
     print(f"Actionable stale runtimes: {actionable}")
-    print("Report only; pass --apply to run Portal's ownership-checked cleanup.")
+    print(
+        f"Running targets: {running}; protected: {protected}; unknown: {unknown}; "
+        f"reported listener processes: {len(listener_pids)}"
+    )
+    print(
+        "Coverage is limited to TCP-listening Portal stacks; "
+        "standalone builds are not inventoried."
+    )
+    if show_apply_hint:
+        print("Report only; pass --apply to run Portal's ownership-checked cleanup.")
 
 
 def cleanup_command(target: Target) -> list[str]:
@@ -638,6 +736,23 @@ def report_by_path(audit: Audit, path: str) -> TargetReport | None:
     return next((target for target in audit.targets if target.path == path), None)
 
 
+def fingerprint_is_current(report: TargetReport) -> bool:
+    """Recheck stable process ownership fields without comparing listener ports."""
+    lsof = require_tool("lsof")
+    for fingerprint in report.fingerprint:
+        if len(fingerprint) != 3:
+            return False
+        pid, expected_identity, expected_cwd = fingerprint
+        if not isinstance(pid, int):
+            return False
+        started = process_field(pid, "lstart")
+        command_line = process_field(pid, "command")
+        identity = f"{started} {command_line}" if started and command_line else None
+        if identity != expected_identity or listener_cwd(lsof, pid) != expected_cwd:
+            return False
+    return True
+
+
 def apply_cleanup(root: Path, initial: Audit) -> int:
     candidates = [target for target in initial.targets if target.actionable]
     if not candidates:
@@ -645,36 +760,86 @@ def apply_cleanup(root: Path, initial: Audit) -> int:
         return 0
 
     failures = 0
+    results: list[tuple[str, str]] = []
+    protected_paths = tuple(Path(path) for path in initial.protected_paths)
+    print("\nRevalidating candidate inventory")
+    fresh, fresh_targets = build_audit(root, protected_paths)
     for candidate in candidates:
-        print(f"\nRevalidating {candidate.path}")
-        fresh, fresh_targets = build_audit(root)
+        print(f"\nChecking {candidate.path}")
         current = report_by_path(fresh, candidate.path)
         target = fresh_targets.get(candidate.path)
         if current is None or target is None:
             print("  skipped: checkout inventory changed")
+            results.append((candidate.path, "skipped: checkout inventory changed"))
             failures += 1
             continue
         if current.fingerprint != candidate.fingerprint:
-            print("  skipped: process identity changed; rerun the audit")
+            print("  skipped: process ownership identity changed; rerun the audit")
+            results.append((candidate.path, "skipped: process ownership changed"))
             failures += 1
             continue
         if not current.actionable:
             print(f"  skipped: now classified as {current.classification}")
+            results.append(
+                (candidate.path, f"skipped: now {current.classification}")
+            )
             failures += 1
             continue
 
-        command = cleanup_command(target)
-        print(f"  running: {shlex.join(command)}")
-        result = run(command, cwd=target.path, timeout=180, capture=False)
+        active_paths, active_error = herdr_active_paths()
+        if active_error:
+            print(f"  skipped: active workspace source unavailable: {active_error}")
+            results.append((candidate.path, "skipped: Herdr unavailable"))
+            failures += 1
+            continue
+        if any(path_is_within(target.path, path) for path in active_paths):
+            print("  skipped: checkout became active in Herdr")
+            results.append((candidate.path, "skipped: became active"))
+            failures += 1
+            continue
+        if not fingerprint_is_current(current):
+            print("  skipped: process ownership identity changed before cleanup")
+            results.append(
+                (candidate.path, "skipped: process ownership changed before cleanup")
+            )
+            failures += 1
+            continue
+
+        try:
+            command = cleanup_command(target)
+            print(f"  running: {shlex.join(command)}")
+            result = run(command, cwd=target.path, timeout=180, capture=False)
+        except subprocess.TimeoutExpired:
+            print(
+                "  cleanup timed out; not retrying because descendant processes "
+                "may still be exiting",
+                file=sys.stderr,
+            )
+            results.append((candidate.path, "failed: cleanup timed out"))
+            failures += 1
+            continue
+        except (OSError, ReapError) as error:
+            print(f"  cleanup could not run: {error}", file=sys.stderr)
+            results.append((candidate.path, f"failed: {error}"))
+            failures += 1
+            continue
         if result.returncode != 0:
             print(
                 f"  cleanup failed with exit code {result.returncode}", file=sys.stderr
             )
+            results.append(
+                (candidate.path, f"failed: exit code {result.returncode}")
+            )
             failures += 1
+        else:
+            results.append((candidate.path, "cleanup completed"))
 
+    print("\nApply results")
+    for path, status in results:
+        print(f"- {path}: {status}")
     print("\nFinal audit")
-    final, _targets = build_audit(root)
-    print_audit(final)
+    final, _targets = build_audit(root, protected_paths)
+    print_audit(final, show_apply_hint=False)
     remaining = sum(1 for target in final.targets if target.actionable)
     if remaining:
         print(f"{remaining} actionable runtime(s) remain.", file=sys.stderr)
@@ -703,6 +868,14 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="run the repository's ownership-checked cleanup for confirmed stale runtimes",
     )
+    parser.add_argument(
+        "--protect",
+        action="append",
+        default=[],
+        metavar="PATH",
+        type=Path,
+        help="protect a checkout path not represented in Herdr (repeatable)",
+    )
     return parser.parse_args(argv)
 
 
@@ -710,7 +883,7 @@ def main(argv: list[str]) -> int:
     args = parse_args(argv)
     try:
         root = validate_repository(args.repo)
-        audit, _targets = build_audit(root)
+        audit, _targets = build_audit(root, tuple(args.protect))
         if args.json:
             print(json.dumps(asdict(audit), indent=2, sort_keys=True))
         else:

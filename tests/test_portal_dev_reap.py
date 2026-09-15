@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import io
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -33,6 +35,48 @@ def target(kind: str, path: str, name: str, base: int) -> portal_dev_reap.Target
         name=name,
         ports={key: values[key] for key in portal_dev_reap.PORT_FLAGS},
         env_values=values,
+    )
+
+
+def report(
+    item: portal_dev_reap.Target,
+    *,
+    fingerprint: list[list[object]],
+    actionable: bool = True,
+    classification: str = "inactive",
+) -> portal_dev_reap.TargetReport:
+    return portal_dev_reap.TargetReport(
+        kind=item.kind,
+        path=str(item.path),
+        name=item.name,
+        pc_port=item.pc_port,
+        classification=classification,
+        runtime="running",
+        actionable=actionable,
+        protected=False,
+        reasons=[],
+        listeners=[],
+        foreign_listeners=[],
+        manager_controlled_listeners=[],
+        extra_owned_listeners=[],
+        fingerprint=fingerprint,
+    )
+
+
+def audit(
+    reports: list[portal_dev_reap.TargetReport],
+    *,
+    protected_paths: list[str] | None = None,
+) -> portal_dev_reap.Audit:
+    return portal_dev_reap.Audit(
+        schema_version=2,
+        repository="/repo/cms",
+        active_source="herdr-local-machine-all-running-sessions",
+        active_error=None,
+        active_paths=[],
+        protected_paths=protected_paths or [],
+        targets=reports,
+        unknown_process_compose=[],
     )
 
 
@@ -89,6 +133,50 @@ n*:19002"""
             "/repo/cms/.git/wt/trash/old/backend",
         )
         self.assertEqual(owner, trash)
+
+    def test_herdr_inventory_covers_all_running_sessions_on_local_machine(self) -> None:
+        completed = subprocess.CompletedProcess
+        session_list = completed(
+            [],
+            0,
+            stdout='{"sessions":[{"name":"default","running":true},'
+            '{"name":"agents","running":true},'
+            '{"name":"stopped","running":false}]}',
+            stderr="",
+        )
+        default_panes = completed(
+            [],
+            0,
+            stdout='{"result":{"panes":[{"cwd":"/repo/cms"}]}}',
+            stderr="",
+        )
+        agent_panes = completed(
+            [],
+            0,
+            stdout='{"result":{"panes":['
+            '{"foreground_cwd":"/repo/cms.feature/backend"}]}}',
+            stderr="",
+        )
+        with (
+            mock.patch.object(portal_dev_reap.shutil, "which", return_value="herdr"),
+            mock.patch.object(
+                portal_dev_reap,
+                "run",
+                side_effect=[session_list, default_panes, agent_panes],
+            ) as run_mock,
+        ):
+            paths, error = portal_dev_reap.herdr_active_paths()
+
+        self.assertIsNone(error)
+        self.assertEqual(paths, [Path("/repo/cms"), Path("/repo/cms.feature/backend")])
+        self.assertEqual(
+            run_mock.call_args_list[1].args[0],
+            ["herdr", "--session", "default", "pane", "list"],
+        )
+        self.assertEqual(
+            run_mock.call_args_list[2].args[0],
+            ["herdr", "--session", "agents", "pane", "list"],
+        )
 
     def test_audit_preserves_active_and_refuses_foreign_listener(self) -> None:
         root = Path("/repo/cms")
@@ -212,6 +300,296 @@ n*:19002"""
         self.assertEqual(reports["stale"].classification, "inactive")
         self.assertTrue(reports["stale"].actionable)
         self.assertEqual(reports["stale"].manager_controlled_listeners[0]["pid"], 41)
+
+    def test_audit_refuses_orphaned_unproven_dashboard_listener(self) -> None:
+        root = Path("/repo/cms")
+        primary = portal_dev_reap.Target(
+            kind="primary",
+            path=root,
+            name="primary",
+            ports=dict(portal_dev_reap.PRIMARY_PORTS),
+        )
+        stale = target("worktree", "/repo/cms.stale", "stale", 17700)
+        processes = [
+            portal_dev_reap.ProcessRef(
+                pid=60,
+                ppid=1,
+                command="process-compose",
+                cwd=str(stale.path),
+                identity="start manager",
+                age="01:00",
+                ports=(int(stale.ports["PC_PORT_NUM"]),),
+            ),
+            portal_dev_reap.ProcessRef(
+                pid=61,
+                ppid=1,
+                command="worker-dashboard",
+                cwd="/nix/store/example-worker-dashboard",
+                identity="start orphan dashboard",
+                age="01:00",
+                ports=(int(stale.ports["WORKER_DASHBOARD_PORT"]),),
+            ),
+        ]
+        with (
+            mock.patch.object(
+                portal_dev_reap, "discover_targets", return_value=[primary, stale]
+            ),
+            mock.patch.object(
+                portal_dev_reap, "listener_processes", return_value=processes
+            ),
+            mock.patch.object(
+                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+            ),
+        ):
+            result, _targets = portal_dev_reap.build_audit(root)
+
+        stale_report = {item.name: item for item in result.targets}["stale"]
+        self.assertEqual(stale_report.classification, "unknown")
+        self.assertFalse(stale_report.actionable)
+        self.assertEqual(stale_report.foreign_listeners[0]["pid"], 61)
+
+    def test_explicit_protection_covers_work_not_visible_to_herdr(self) -> None:
+        root = Path("/repo/cms")
+        primary = portal_dev_reap.Target(
+            kind="primary",
+            path=root,
+            name="primary",
+            ports=dict(portal_dev_reap.PRIMARY_PORTS),
+        )
+        protected = target("worktree", "/repo/cms.protected", "protected", 17800)
+        processes = [
+            portal_dev_reap.ProcessRef(
+                pid=70,
+                ppid=1,
+                command="process-compose",
+                cwd=str(protected.path),
+                identity="start protected",
+                age="01:00",
+                ports=(int(protected.ports["PC_PORT_NUM"]),),
+            )
+        ]
+        with (
+            mock.patch.object(
+                portal_dev_reap,
+                "discover_targets",
+                return_value=[primary, protected],
+            ),
+            mock.patch.object(
+                portal_dev_reap, "listener_processes", return_value=processes
+            ),
+            mock.patch.object(
+                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+            ),
+        ):
+            result, _targets = portal_dev_reap.build_audit(
+                root, (protected.path / "backend",)
+            )
+
+        protected_report = {item.name: item for item in result.targets}["protected"]
+        self.assertEqual(protected_report.classification, "protected")
+        self.assertTrue(protected_report.protected)
+        self.assertFalse(protected_report.actionable)
+
+    def test_explicit_protection_refuses_unmatched_path(self) -> None:
+        root = Path("/repo/cms")
+        primary = portal_dev_reap.Target(
+            kind="primary",
+            path=root,
+            name="primary",
+            ports=dict(portal_dev_reap.PRIMARY_PORTS),
+        )
+        with (
+            mock.patch.object(
+                portal_dev_reap, "discover_targets", return_value=[primary]
+            ),
+            mock.patch.object(
+                portal_dev_reap, "listener_processes", return_value=[]
+            ),
+            mock.patch.object(
+                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+            ),
+            self.assertRaisesRegex(portal_dev_reap.ReapError, "protected path"),
+        ):
+            portal_dev_reap.build_audit(root, (Path("/repo/cms.typo"),))
+
+    def test_auxiliary_port_change_keeps_ownership_fingerprint_stable(self) -> None:
+        root = Path("/repo/cms")
+        primary = portal_dev_reap.Target(
+            kind="primary",
+            path=root,
+            name="primary",
+            ports=dict(portal_dev_reap.PRIMARY_PORTS),
+        )
+        stale = target("worktree", "/repo/cms.stale", "stale", 18000)
+
+        def build_with_ports(ports: tuple[int, ...]) -> portal_dev_reap.Audit:
+            process = portal_dev_reap.ProcessRef(
+                pid=80,
+                ppid=1,
+                command="process-compose",
+                cwd=str(stale.path),
+                identity="same start and command",
+                age="01:00",
+                ports=ports,
+            )
+            with (
+                mock.patch.object(
+                    portal_dev_reap,
+                    "discover_targets",
+                    return_value=[primary, stale],
+                ),
+                mock.patch.object(
+                    portal_dev_reap, "listener_processes", return_value=[process]
+                ),
+                mock.patch.object(
+                    portal_dev_reap, "herdr_active_paths", return_value=([], None)
+                ),
+            ):
+                result, _targets = portal_dev_reap.build_audit(root)
+            return result
+
+        pc_port = int(stale.ports["PC_PORT_NUM"])
+        before = build_with_ports((pc_port, 28000))
+        after = build_with_ports((pc_port, 28001, 28002))
+        before_report = {item.name: item for item in before.targets}["stale"]
+        after_report = {item.name: item for item in after.targets}["stale"]
+        self.assertTrue(before_report.actionable)
+        self.assertTrue(after_report.actionable)
+        self.assertEqual(before_report.fingerprint, after_report.fingerprint)
+
+    def test_apply_skips_genuine_process_identity_replacement(self) -> None:
+        root = Path("/repo/cms")
+        stale = target("worktree", "/repo/cms.stale", "stale", 18100)
+        initial = audit([report(stale, fingerprint=[[80, "old", str(stale.path)]])])
+        changed = audit([report(stale, fingerprint=[[80, "new", str(stale.path)]])])
+        final = audit(
+            [
+                report(
+                    stale,
+                    fingerprint=[[80, "new", str(stale.path)]],
+                    actionable=False,
+                    classification="unknown",
+                )
+            ]
+        )
+        with (
+            mock.patch.object(
+                portal_dev_reap,
+                "build_audit",
+                side_effect=[(changed, {str(stale.path): stale}), (final, {})],
+            ),
+            mock.patch.object(portal_dev_reap, "run") as run_mock,
+            mock.patch("sys.stdout", new_callable=io.StringIO),
+        ):
+            exit_code = portal_dev_reap.apply_cleanup(root, initial)
+
+        self.assertEqual(exit_code, 1)
+        run_mock.assert_not_called()
+
+    def test_apply_timeout_continues_without_retry_and_reports_results(self) -> None:
+        root = Path("/repo/cms")
+        first = target("worktree", "/repo/cms.first", "first", 18200)
+        second = target("worktree", "/repo/cms.second", "second", 18300)
+        first_report = report(first, fingerprint=[[81, "first", str(first.path)]])
+        second_report = report(second, fingerprint=[[82, "second", str(second.path)]])
+        initial = audit([first_report, second_report])
+        fresh = audit([first_report, second_report])
+        final = audit([])
+        timeout = subprocess.TimeoutExpired(["nix", "run"], 180)
+        succeeded = subprocess.CompletedProcess([], 0)
+        with (
+            mock.patch.object(
+                portal_dev_reap,
+                "build_audit",
+                side_effect=[
+                    (fresh, {str(first.path): first, str(second.path): second}),
+                    (final, {}),
+                ],
+            ),
+            mock.patch.object(
+                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+            ),
+            mock.patch.object(
+                portal_dev_reap, "fingerprint_is_current", return_value=True
+            ),
+            mock.patch.object(
+                portal_dev_reap,
+                "cleanup_command",
+                side_effect=lambda item: ["cleanup", item.name],
+            ),
+            mock.patch.object(
+                portal_dev_reap, "run", side_effect=[timeout, succeeded]
+            ) as run_mock,
+            mock.patch("sys.stdout", new_callable=io.StringIO) as stdout,
+            mock.patch("sys.stderr", new_callable=io.StringIO) as stderr,
+        ):
+            exit_code = portal_dev_reap.apply_cleanup(root, initial)
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(run_mock.call_count, 2)
+        self.assertIn("not retrying", stderr.getvalue())
+        self.assertIn("failed: cleanup timed out", stdout.getvalue())
+        self.assertIn("cleanup completed", stdout.getvalue())
+
+    def test_apply_skips_identity_replaced_after_batch_revalidation(self) -> None:
+        root = Path("/repo/cms")
+        stale = target("worktree", "/repo/cms.stale", "stale", 18350)
+        stale_report = report(stale, fingerprint=[[84, "stable", str(stale.path)]])
+        initial = audit([stale_report])
+        fresh = audit([stale_report])
+        final = audit([stale_report])
+        with (
+            mock.patch.object(
+                portal_dev_reap,
+                "build_audit",
+                side_effect=[
+                    (fresh, {str(stale.path): stale}),
+                    (final, {str(stale.path): stale}),
+                ],
+            ),
+            mock.patch.object(
+                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+            ),
+            mock.patch.object(
+                portal_dev_reap, "fingerprint_is_current", return_value=False
+            ),
+            mock.patch.object(portal_dev_reap, "run") as run_mock,
+            mock.patch("sys.stdout", new_callable=io.StringIO),
+            mock.patch("sys.stderr", new_callable=io.StringIO),
+        ):
+            exit_code = portal_dev_reap.apply_cleanup(root, initial)
+
+        self.assertEqual(exit_code, 1)
+        run_mock.assert_not_called()
+
+    def test_apply_rechecks_herdr_before_each_cleanup(self) -> None:
+        root = Path("/repo/cms")
+        stale = target("worktree", "/repo/cms.stale", "stale", 18400)
+        stale_report = report(stale, fingerprint=[[83, "stable", str(stale.path)]])
+        initial = audit([stale_report])
+        fresh = audit([stale_report])
+        final = audit([stale_report])
+        with (
+            mock.patch.object(
+                portal_dev_reap,
+                "build_audit",
+                side_effect=[
+                    (fresh, {str(stale.path): stale}),
+                    (final, {str(stale.path): stale}),
+                ],
+            ),
+            mock.patch.object(
+                portal_dev_reap,
+                "herdr_active_paths",
+                return_value=([stale.path], None),
+            ),
+            mock.patch.object(portal_dev_reap, "run") as run_mock,
+            mock.patch("sys.stdout", new_callable=io.StringIO),
+        ):
+            exit_code = portal_dev_reap.apply_cleanup(root, initial)
+
+        self.assertEqual(exit_code, 1)
+        run_mock.assert_not_called()
 
     def test_audit_refuses_process_compose_on_an_unexpected_port(self) -> None:
         root = Path("/repo/cms")

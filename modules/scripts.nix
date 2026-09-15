@@ -29,8 +29,8 @@ let
 
   scripts = [
     {
-      description = "Audit and safely reap Portal dev stacks not active in Herdr";
-      example = "portal-dev-reap --apply";
+      description = "Audit and safely reap Portal dev stacks inactive in local Herdr";
+      example = "portal-dev-reap --protect /path/to/active-worktree --apply";
       package = portalDevReap;
     }
 
