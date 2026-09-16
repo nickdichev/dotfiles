@@ -110,9 +110,6 @@ in
       export CODEX_PROFILE_NOTIFY=1
     '';
 
-    # Keep the existing shortcut, but let its profile be selected by the
-    # nearest workspace binding and checked by codex-profiles' guard.
-    programs.zsh.shellAliases.cdx = lib.mkForce "codex-profile run -- --yolo";
 
     home.file = {
       # ~/.agents/skills is shared by every CODEX_HOME selected by
