@@ -122,8 +122,8 @@ in
         [ -f "$config_file" ] || continue
 
         ${pkgs.perl}/bin/perl -0pi -e '
-          my $old_status_line = q{status_line = ["model-with-reasoning", "context-remaining", "current-dir", "git-branch"]};
-          my $status_line = q{status_line = ["model-with-reasoning", "current-dir", "git-branch"]};
+          my $old_status_line = q{status_line = ["model-with-reasoning", "current-dir", "git-branch"]};
+          my $status_line = q{status_line = ["model-with-reasoning", "context-remaining", "current-dir", "git-branch"]};
           if (/^\[tui\]\R(.*?)(?=^\[|\z)/ms) {
             my $tui = $1;
             if ($tui =~ /^\Q$old_status_line\E$/m) {
