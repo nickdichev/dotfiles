@@ -110,6 +110,29 @@ in
       export CODEX_PROFILE_NOTIFY=1
     '';
 
+    # Codex persists project trust and TUI preferences in each profile's
+    # config.toml, so don't set `programs.codex.settings`: Home Manager would
+    # replace those mutable files with a symlink. Instead, seed the native
+    # footer layout once for every existing codex-profiles home and leave later
+    # `/status` edits alone.
+    home.activation.seedCodexStatusLine = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      for codex_home in "$HOME/.codex" "$HOME"/.codex-*; do
+        config_file="$codex_home/config.toml"
+        [ -f "$config_file" ] || continue
+
+        ${pkgs.perl}/bin/perl -0pi -e '
+          my $status_line = q{status_line = ["model-with-reasoning", "context-remaining", "current-dir", "git-branch"]};
+          if (/^\[tui\]\R(.*?)(?=^\[|\z)/ms) {
+            my $tui = $1;
+            exit 0 if $tui =~ /^\s*status_line\s*=/m;
+            s/^(\[tui\]\R)/$1$status_line\n/m;
+          } else {
+            $_ .= "\n" unless /\n\z/;
+            $_ .= "\n[tui]\n$status_line\n";
+          }
+        ' "$config_file"
+      done
+    '';
 
     home.file = {
       # ~/.agents/skills is shared by every CODEX_HOME selected by
