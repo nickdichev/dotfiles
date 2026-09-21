@@ -9,7 +9,7 @@ let
   cfg = config.profiles.herdr;
   herdr = inputs.herdr.packages.${pkgs.system}.default;
   claudeIntegrationHook = {
-    matcher = "*";
+    matcher = "^(startup|resume|clear|compact|fork)$";
     hooks = [
       {
         type = "command";
