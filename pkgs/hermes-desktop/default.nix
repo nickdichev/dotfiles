@@ -6,8 +6,8 @@
 }:
 
 let
-  version = "0.17.0";
-  rev = "413ed6b9df18f22152d26b6de4093280dcb2b16b";
+  version = "0.17.6";
+  rev = "d337b736aa1e8ebecfab043842d13e4a2d2f48a3";
 in
 buildNpmPackage {
   pname = "hermes-desktop";
@@ -17,11 +17,11 @@ buildNpmPackage {
     owner = "NousResearch";
     repo = "hermes-agent";
     inherit rev;
-    hash = "sha256-wek7P9tdrqRk/ArxBXt/X3BJpQ+wcnKFqG0S+ryx5p0=";
+    hash = "sha256-0pfylDk73diMdpQH/YyRWpvon+w4YWBRS3uj8T67qHI=";
   };
 
   npmWorkspace = "apps/desktop";
-  npmDepsHash = "sha256-RqQyEqzeSlywA83+S9d0KXBnirIVPNFixXCyaE523zo=";
+  npmDepsHash = "sha256-o8yTDwsr6mbXuUUybvoqS9+jj/xNfJGs58xvYksls6k=";
 
   env = {
     ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
