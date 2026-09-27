@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import io
+import json
 import subprocess
 import sys
 import tempfile
@@ -134,49 +135,39 @@ n*:19002"""
         )
         self.assertEqual(owner, trash)
 
-    def test_herdr_inventory_covers_all_running_sessions_on_local_machine(self) -> None:
-        completed = subprocess.CompletedProcess
-        session_list = completed(
-            [],
-            0,
-            stdout='{"sessions":[{"name":"default","running":true},'
-            '{"name":"agents","running":true},'
-            '{"name":"stopped","running":false}]}',
-            stderr="",
-        )
-        default_panes = completed(
-            [],
-            0,
-            stdout='{"result":{"panes":[{"cwd":"/repo/cms"}]}}',
-            stderr="",
-        )
-        agent_panes = completed(
-            [],
-            0,
-            stdout='{"result":{"panes":['
-            '{"foreground_cwd":"/repo/cms.feature/backend"}]}}',
-            stderr="",
-        )
-        with (
-            mock.patch.object(portal_dev_reap.shutil, "which", return_value="herdr"),
-            mock.patch.object(
-                portal_dev_reap,
-                "run",
-                side_effect=[session_list, default_panes, agent_panes],
-            ) as run_mock,
-        ):
-            paths, error = portal_dev_reap.herdr_active_paths()
-
-        self.assertIsNone(error)
-        self.assertEqual(paths, [Path("/repo/cms"), Path("/repo/cms.feature/backend")])
-        self.assertEqual(
-            run_mock.call_args_list[1].args[0],
-            ["herdr", "--session", "default", "pane", "list"],
-        )
-        self.assertEqual(
-            run_mock.call_args_list[2].args[0],
-            ["herdr", "--session", "agents", "pane", "list"],
-        )
+    def test_local_discovery_resolves_tasks_without_remote_queries_or_launch_history(self):
+        roots = (Path("/repo/cms"), Path("/repo/cms.current"), Path("/repo/cms.old"))
+        calls = []
+        def command(argv, **kwargs):
+            calls.append(argv)
+            if argv[1:] == ["session", "list", "--json"]:
+                value = {"sessions": [
+                    {"name": "default", "running": True, "socket_path": "/local/default.sock"},
+                    {"name": "second", "running": True, "socket_path": "/local/second.sock"},
+                    {"name": "stopped", "running": False},
+                ]}
+            elif argv[1:] in (["--session", "default", "api", "snapshot"],
+                               ["--session", "second", "api", "snapshot"]):
+                value = {"result": {"snapshot": {
+                    "workspaces": [{"workspace_id": "w1", "label": "current"}],
+                    "agents": [{"pane_id": "w1:p1", "workspace_id": "w1", "terminal_id": "term1",
+                                "agent_status": "idle", "cwd": str(roots[0])}],
+                    # Same path on another machine must not enter local results.
+                    "machines": [{"name": "remote", "cwd": str(roots[2])}],
+                }}}
+            else:
+                raise AssertionError(f"unexpected/remote query: {argv}")
+            return subprocess.CompletedProcess(argv, 0, json.dumps(value), "")
+        with mock.patch.object(portal_dev_reap, "run", side_effect=command), \
+             mock.patch.object(portal_dev_reap, "require_tool", side_effect=lambda name: name):
+            result = portal_dev_reap.discover_active_work(roots, (
+                "default/w1:p1=/repo/cms.current", "second/w1:p1=/repo/cms.current"))
+        self.assertIsNone(result.error)
+        self.assertEqual(result.paths, [roots[1]])
+        self.assertEqual(len(result.evidence), 2)
+        self.assertEqual({entry["socket"] for entry in result.evidence},
+                         {"/local/default.sock", "/local/second.sock"})
+        self.assertEqual(len(calls), 3)
 
     def test_audit_preserves_active_and_refuses_foreign_listener(self) -> None:
         root = Path("/repo/cms")
@@ -237,7 +228,7 @@ n*:19002"""
                 portal_dev_reap, "listener_processes", return_value=processes
             ),
             mock.patch.object(
-                portal_dev_reap, "herdr_active_paths", return_value=([root], None)
+                portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery(paths=[root])
             ),
         ):
             audit, _targets = portal_dev_reap.build_audit(root)
@@ -245,12 +236,12 @@ n*:19002"""
         reports = {report.name: report for report in audit.targets}
         self.assertEqual(reports["primary"].classification, "active")
         self.assertTrue(reports["primary"].protected)
-        self.assertEqual(reports["stale"].classification, "inactive")
-        self.assertTrue(reports["stale"].actionable)
+        self.assertEqual(reports["stale"].classification, "unknown")
+        self.assertFalse(reports["stale"].actionable)
         self.assertEqual(reports["collided"].classification, "unknown")
         self.assertFalse(reports["collided"].actionable)
-        self.assertEqual(reports["orphan"].classification, "deleted-checkout-orphan")
-        self.assertTrue(reports["orphan"].actionable)
+        self.assertEqual(reports["orphan"].classification, "unknown")
+        self.assertFalse(reports["orphan"].actionable)
 
     def test_audit_allows_manager_controlled_nix_store_listener(self) -> None:
         root = Path("/repo/cms")
@@ -291,14 +282,14 @@ n*:19002"""
                 portal_dev_reap, "listener_processes", return_value=processes
             ),
             mock.patch.object(
-                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+                portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()
             ),
         ):
             audit, _targets = portal_dev_reap.build_audit(root)
 
         reports = {report.name: report for report in audit.targets}
-        self.assertEqual(reports["stale"].classification, "inactive")
-        self.assertTrue(reports["stale"].actionable)
+        self.assertEqual(reports["stale"].classification, "unknown")
+        self.assertFalse(reports["stale"].actionable)
         self.assertEqual(reports["stale"].manager_controlled_listeners[0]["pid"], 41)
 
     def test_audit_refuses_orphaned_unproven_dashboard_listener(self) -> None:
@@ -338,7 +329,7 @@ n*:19002"""
                 portal_dev_reap, "listener_processes", return_value=processes
             ),
             mock.patch.object(
-                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+                portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()
             ),
         ):
             result, _targets = portal_dev_reap.build_audit(root)
@@ -378,7 +369,7 @@ n*:19002"""
                 portal_dev_reap, "listener_processes", return_value=processes
             ),
             mock.patch.object(
-                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+                portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()
             ),
         ):
             result, _targets = portal_dev_reap.build_audit(
@@ -406,7 +397,7 @@ n*:19002"""
                 portal_dev_reap, "listener_processes", return_value=[]
             ),
             mock.patch.object(
-                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+                portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()
             ),
             self.assertRaisesRegex(portal_dev_reap.ReapError, "protected path"),
         ):
@@ -442,10 +433,10 @@ n*:19002"""
                     portal_dev_reap, "listener_processes", return_value=[process]
                 ),
                 mock.patch.object(
-                    portal_dev_reap, "herdr_active_paths", return_value=([], None)
+                    portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()
                 ),
             ):
-                result, _targets = portal_dev_reap.build_audit(root)
+                result, _targets = portal_dev_reap.build_audit(root, abandoned_paths=(stale.path,))
             return result
 
         pc_port = int(stale.ports["PC_PORT_NUM"])
@@ -456,6 +447,64 @@ n*:19002"""
         self.assertTrue(before_report.actionable)
         self.assertTrue(after_report.actionable)
         self.assertEqual(before_report.fingerprint, after_report.fingerprint)
+
+    def test_task_replaced_in_same_pane_prevents_runtime_stop(self):
+        root = Path("/repo/cms")
+        stale = target("worktree", "/repo/cms.stale", "stale", 18000)
+        initial = audit([report(stale, fingerprint=[[81, "stable", str(stale.path)]])])
+        initial.discovery.evidence = [{"pane": "w1:p1", "terminal_id": "original",
+                                       "workspace": "current", "session": "default", "paths": ["/repo/cms.current"],
+                                       "source": "reviewed task association"}]
+        changed = portal_dev_reap.Discovery(evidence=[{**initial.discovery.evidence[0], "terminal_id": "replacement"}])
+        with mock.patch.object(portal_dev_reap, "build_audit", return_value=(initial, {str(stale.path): stale})), \
+             mock.patch.object(portal_dev_reap, "discover_active_work", return_value=changed), \
+             mock.patch.object(portal_dev_reap, "run") as run_mock, \
+             mock.patch("sys.stdout", new_callable=io.StringIO) as output, \
+             mock.patch("sys.stderr", new_callable=io.StringIO):
+            result = portal_dev_reap.apply_cleanup(root, initial)
+        self.assertEqual(result, 1)
+        self.assertIn("task identities/associations changed", output.getvalue())
+        run_mock.assert_not_called()
+
+    def test_discovery_lost_after_shutdown_is_reported_as_failure(self):
+        root = Path("/repo/cms")
+        stale = target("worktree", "/repo/cms.stale", "stale", 18000)
+        initial = audit([report(stale, fingerprint=[[81, "stable", str(stale.path)]])])
+        stopped = report(stale, fingerprint=[], actionable=False)
+        stopped.runtime = "stopped"
+        final = audit([stopped])
+        final.active_error = "Herdr unavailable"
+        targets = {str(stale.path): stale}
+        with mock.patch.object(portal_dev_reap, "build_audit", side_effect=[(initial, targets), (final, targets), (final, targets)]), \
+             mock.patch.object(portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()), \
+             mock.patch.object(portal_dev_reap, "fingerprint_is_current", return_value=True), \
+             mock.patch.object(portal_dev_reap, "cleanup_command", return_value=["cleanup"]), \
+             mock.patch.object(portal_dev_reap, "run", return_value=subprocess.CompletedProcess([], 0)), \
+             mock.patch("sys.stdout", new_callable=io.StringIO) as output:
+            result = portal_dev_reap.apply_cleanup(root, initial)
+        self.assertEqual(result, 1)
+        self.assertIn("failed: final project discovery unavailable", output.getvalue())
+
+    def test_apply_only_stops_selected_runtime_and_leaves_other_stale_stacks(self):
+        root = Path("/repo/cms")
+        first = target("worktree", "/repo/cms.first", "first", 18200)
+        other = target("worktree", "/repo/cms.other", "other", 18300)
+        selected = report(first, fingerprint=[[81, "first", str(first.path)]])
+        unselected = report(other, fingerprint=[[82, "other", str(other.path)]])
+        initial = audit([selected, unselected])
+        stopped = report(first, fingerprint=[], actionable=False)
+        stopped.runtime = "stopped"
+        final = audit([stopped, unselected])
+        targets = {str(first.path): first, str(other.path): other}
+        with mock.patch.object(portal_dev_reap, "build_audit", side_effect=[(initial, targets), (final, targets), (final, targets)]), \
+             mock.patch.object(portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()), \
+             mock.patch.object(portal_dev_reap, "fingerprint_is_current", return_value=True), \
+             mock.patch.object(portal_dev_reap, "cleanup_command", side_effect=lambda item: ["cleanup", item.name]), \
+             mock.patch.object(portal_dev_reap, "run", return_value=subprocess.CompletedProcess([], 0)) as run_mock, \
+             mock.patch("sys.stdout", new_callable=io.StringIO):
+            result = portal_dev_reap.apply_cleanup(root, initial, only=(first.path,))
+        self.assertEqual(result, 0)
+        self.assertEqual([call.args[0] for call in run_mock.call_args_list], [["cleanup", "first"]])
 
     def test_apply_skips_genuine_process_identity_replacement(self) -> None:
         root = Path("/repo/cms")
@@ -494,7 +543,9 @@ n*:19002"""
         second_report = report(second, fingerprint=[[82, "second", str(second.path)]])
         initial = audit([first_report, second_report])
         fresh = audit([first_report, second_report])
-        final = audit([])
+        stopped = report(second, fingerprint=[], actionable=False)
+        stopped.runtime = "stopped"
+        final = audit([stopped])
         timeout = subprocess.TimeoutExpired(["nix", "run"], 180)
         succeeded = subprocess.CompletedProcess([], 0)
         with (
@@ -503,11 +554,13 @@ n*:19002"""
                 "build_audit",
                 side_effect=[
                     (fresh, {str(first.path): first, str(second.path): second}),
+                    (fresh, {str(first.path): first, str(second.path): second}),
+                    (final, {}),
                     (final, {}),
                 ],
             ),
             mock.patch.object(
-                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+                portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()
             ),
             mock.patch.object(
                 portal_dev_reap, "fingerprint_is_current", return_value=True
@@ -529,7 +582,7 @@ n*:19002"""
         self.assertEqual(run_mock.call_count, 2)
         self.assertIn("not retrying", stderr.getvalue())
         self.assertIn("failed: cleanup timed out", stdout.getvalue())
-        self.assertIn("cleanup completed", stdout.getvalue())
+        self.assertIn("runtime stopped; checkout and data preserved", stdout.getvalue())
 
     def test_apply_skips_identity_replaced_after_batch_revalidation(self) -> None:
         root = Path("/repo/cms")
@@ -548,7 +601,7 @@ n*:19002"""
                 ],
             ),
             mock.patch.object(
-                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+                portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()
             ),
             mock.patch.object(
                 portal_dev_reap, "fingerprint_is_current", return_value=False
@@ -580,8 +633,8 @@ n*:19002"""
             ),
             mock.patch.object(
                 portal_dev_reap,
-                "herdr_active_paths",
-                return_value=([stale.path], None),
+                "discover_active_work",
+                return_value=portal_dev_reap.Discovery(paths=[stale.path]),
             ),
             mock.patch.object(portal_dev_reap, "run") as run_mock,
             mock.patch("sys.stdout", new_callable=io.StringIO),
@@ -621,7 +674,7 @@ n*:19002"""
                 portal_dev_reap, "listener_processes", return_value=processes
             ),
             mock.patch.object(
-                portal_dev_reap, "herdr_active_paths", return_value=([], None)
+                portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()
             ),
         ):
             audit, _targets = portal_dev_reap.build_audit(root)
@@ -630,18 +683,75 @@ n*:19002"""
         self.assertEqual(reports["stale"].classification, "unknown")
         self.assertFalse(reports["stale"].actionable)
 
-    def test_cleanup_command_passes_the_validated_identity(self) -> None:
+    def test_cleanup_uses_installed_stop_instead_of_historical_removal(self):
         stale = target("worktree", "/repo/cms.stale", "stale", 18000)
-        with mock.patch.object(
-            portal_dev_reap, "require_tool", return_value="/nix/bin/nix"
-        ):
+        with mock.patch.object(portal_dev_reap, "require_tool", side_effect=lambda name: name):
             command = portal_dev_reap.cleanup_command(stale)
-        self.assertEqual(
-            command[:4],
-            ["/nix/bin/nix", "run", "/repo/cms.stale#portal-worktree-lifecycle", "--"],
-        )
-        self.assertIn("--pc-port-num", command)
-        self.assertIn(stale.ports["PC_PORT_NUM"], command)
+        self.assertEqual(command, ["portal-worktree-lifecycle", "stop-runtime", "--worktree-path",
+                                  str(stale.path), "--legacy-pc-port", stale.pc_port])
+
+    def test_unresolved_primary_cwd_requires_review_even_when_old_launch_record_exists(self):
+        with tempfile.TemporaryDirectory() as directory:
+            primary, sibling = Path(directory).resolve()/"primary", Path(directory).resolve()/"sibling"
+            primary.mkdir()
+            (sibling/".data").mkdir(parents=True)
+            (sibling/".data/portal-dev-manager-v1.json").write_text(json.dumps({
+                "root": str(sibling), "herdr_sessions": [{"pane": "w1:p2", "socket": "/local/herdr.sock"}]}))
+            def command(argv, **kwargs):
+                if argv[1:] == ["session", "list", "--json"]:
+                    value = {"sessions": [{"name": "default", "running": True, "socket_path": "/local/herdr.sock"}]}
+                elif argv[1:] == ["--session", "default", "api", "snapshot"]:
+                    value = {"result": {"snapshot": {
+                        "workspaces": [{"workspace_id": "w1", "label": "ios"}],
+                        "agents": [{"pane_id": "w1:p2", "workspace_id": "w1", "terminal_id": "term2",
+                                    "agent_status": "blocked", "cwd": str(primary)}]}}}
+                elif "read" in argv:
+                    return subprocess.CompletedProcess(argv, 0, f"Working in {sibling}/docs", "")
+                else:
+                    raise AssertionError(argv)
+                return subprocess.CompletedProcess(argv, 0, json.dumps(value), "")
+            with mock.patch.object(portal_dev_reap, "run", side_effect=command), \
+                 mock.patch.object(portal_dev_reap, "require_tool", side_effect=lambda name: name):
+                unresolved = portal_dev_reap.discover_active_work((primary, sibling))
+                reviewed = portal_dev_reap.discover_active_work((primary, sibling), (f"default/w1:p2={sibling}",))
+                obsolete = portal_dev_reap.discover_active_work((primary, sibling), (f"default/w1:missing={sibling}",))
+            self.assertIn("unresolved", unresolved.error)
+            self.assertEqual(unresolved.paths, [])
+            self.assertEqual(unresolved.unresolved[0]["suggested_paths"], [str(sibling)])
+            self.assertIsNone(reviewed.error)
+            self.assertEqual(reviewed.paths, [sibling.resolve()])
+            self.assertIn("no longer matches", obsolete.error)
+
+    def test_discovery_failure_never_authorizes_stale_cleanup(self):
+        stale = target("worktree", "/repo/cms.stale", "stale", 18000)
+        manager = portal_dev_reap.ProcessRef(123, 1, "process-compose", str(stale.path),
+                                            "stable identity", "10 days", (18001,))
+        with mock.patch.object(portal_dev_reap, "discover_targets", return_value=[stale]), \
+             mock.patch.object(portal_dev_reap, "listener_processes", return_value=[manager]), \
+             mock.patch.object(portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery(error="Herdr unavailable")):
+            result, _ = portal_dev_reap.build_audit(Path("/repo/cms"), outside_active=True)
+        self.assertEqual(result.targets[0].classification, "unknown")
+        self.assertFalse(result.targets[0].actionable)
+        with self.assertRaisesRegex(portal_dev_reap.ReapError, "Herdr unavailable"):
+            portal_dev_reap.apply_cleanup(Path("/repo/cms"), result)
+
+    def test_running_stale_stack_requires_explicit_abandonment_or_outside_active_policy(self):
+        stale = target("worktree", "/repo/cms.stale", "stale", 18000)
+        manager = portal_dev_reap.ProcessRef(123, 1, "process-compose", str(stale.path),
+                                            "stable identity", "10 days", (18001,))
+        with mock.patch.object(portal_dev_reap, "discover_targets", return_value=[stale]), \
+             mock.patch.object(portal_dev_reap, "listener_processes", return_value=[manager]), \
+             mock.patch.object(portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery(paths=[Path("/repo/cms")])):
+            unknown, _ = portal_dev_reap.build_audit(Path("/repo/cms"))
+            outside, _ = portal_dev_reap.build_audit(Path("/repo/cms"), outside_active=True)
+            approved, _ = portal_dev_reap.build_audit(Path("/repo/cms"), abandoned_paths=(stale.path,))
+            protected, _ = portal_dev_reap.build_audit(Path("/repo/cms"), (stale.path,), (stale.path,))
+        self.assertEqual(unknown.targets[0].classification,"unknown")
+        self.assertFalse(unknown.targets[0].actionable)
+        self.assertTrue(approved.targets[0].actionable)
+        self.assertEqual(outside.targets[0].classification, "stale")
+        self.assertTrue(outside.targets[0].actionable)
+        self.assertFalse(protected.targets[0].actionable)
 
 
 if __name__ == "__main__":

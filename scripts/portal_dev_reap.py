@@ -9,6 +9,7 @@ import pwd
 import re
 import shlex
 import shutil
+import socket
 import stat
 import subprocess
 import sys
@@ -101,6 +102,15 @@ class TargetReport:
 
 
 @dataclass
+class Discovery:
+    paths: list[Path] = field(default_factory=list)
+    error: str | None = None
+    evidence: list[dict[str, Any]] = field(default_factory=list)
+    unresolved: list[dict[str, Any]] = field(default_factory=list)
+    node: str = field(default_factory=socket.gethostname)
+
+
+@dataclass
 class Audit:
     schema_version: int
     repository: str
@@ -110,6 +120,10 @@ class Audit:
     protected_paths: list[str]
     targets: list[TargetReport]
     unknown_process_compose: list[dict[str, Any]]
+    abandoned_paths: list[str] = field(default_factory=list)
+    outside_active: bool = False
+    associations: list[str] = field(default_factory=list)
+    discovery: Discovery = field(default_factory=Discovery)
 
 
 def run(
@@ -362,70 +376,103 @@ def listener_processes() -> list[ProcessRef]:
     return processes
 
 
-def parse_herdr_pane_paths(output: str) -> list[Path]:
-    try:
-        payload = json.loads(output)
-        panes = payload["result"]["panes"]
-    except (json.JSONDecodeError, KeyError, TypeError):
-        raise ReapError("herdr returned an unexpected pane inventory") from None
+def discover_active_work(
+    checkout_roots: tuple[Path, ...], associations: tuple[str, ...] = ()
+) -> Discovery:
+    """Local sessions only. Task associations are reviewed input, never old launch records.
 
-    paths: list[Path] = []
-    for pane in panes:
-        if not isinstance(pane, dict):
-            continue
-        for key in ("cwd", "foreground_cwd"):
-            value = pane.get(key)
-            if isinstance(value, str) and value.startswith("/"):
-                paths.append(canonical(value))
-    return paths
-
-
-def herdr_active_paths() -> tuple[list[Path], str | None]:
-    """Return pane paths from every running session on this machine.
-
-    Herdr 0.9 clients can display multiple machines, but each CLI invocation
-    still addresses one machine's server. Enumerating that server's sessions
-    avoids both missing a local named session and treating a same-named remote
-    path as local activity.
+    Recent terminal paths are suggestions, not deletion authority. An agent in
+    the primary checkout may be working in any sibling, so require a mapping.
     """
-    herdr = shutil.which("herdr")
-    if herdr is None:
-        return [], "herdr is not available"
+    discovery = Discovery()
     try:
-        result = run([herdr, "session", "list", "--json"], timeout=10)
-    except subprocess.TimeoutExpired:
-        return [], "herdr local session inventory timed out"
-    if result.returncode != 0:
-        return [], (
-            result.stderr or result.stdout
-        ).strip() or "herdr local session inventory failed"
-    try:
-        payload = json.loads(result.stdout)
-        sessions = payload["sessions"]
-    except (json.JSONDecodeError, KeyError, TypeError):
-        return [], "herdr returned an unexpected local session inventory"
+        herdr = require_tool("herdr")
+        roots = tuple(canonical(path) for path in checkout_roots)
+        mappings: dict[str, list[Path]] = {}
+        for value in associations:
+            key, separator, raw_path = value.partition("=")
+            path = canonical(raw_path)
+            if not separator or "/" not in key or not raw_path.startswith("/") or path not in roots:
+                raise ReapError("--associate requires SESSION/PANE=/exact/registered/checkout")
+            mappings.setdefault(key, []).append(path)
 
-    paths: list[Path] = []
-    for session in sessions:
-        if not isinstance(session, dict) or session.get("running") is not True:
-            continue
-        name = session.get("name")
-        if not isinstance(name, str) or not name:
-            return [], "herdr returned an invalid local session name"
-        try:
-            panes_result = run(
-                [herdr, "--session", name, "pane", "list"], timeout=10
-            )
-        except subprocess.TimeoutExpired:
-            return [], f"herdr pane inventory timed out for local session {name}"
-        if panes_result.returncode != 0:
-            detail = (panes_result.stderr or panes_result.stdout).strip()
-            return [], detail or f"herdr pane inventory failed for local session {name}"
-        try:
-            paths.extend(parse_herdr_pane_paths(panes_result.stdout))
-        except ReapError as error:
-            return [], f"{error} for local session {name}"
-    return list(dict.fromkeys(paths)), None
+        def query(*args: str) -> Any:
+            response = run([herdr, *args], timeout=10)
+            if response.returncode:
+                raise ReapError(f"local Herdr query failed: {' '.join(args)}")
+            return json.loads(response.stdout)
+
+        sessions = query("session", "list", "--json")["sessions"]
+        if not isinstance(sessions, list):
+            raise ReapError("invalid local Herdr session inventory")
+        seen: set[str] = set()
+        running = 0
+        for session in sessions:
+            if not isinstance(session, dict):
+                raise ReapError("invalid local Herdr session")
+            if session.get("running") is not True:
+                continue
+            name, endpoint = session.get("name"), session.get("socket_path")
+            if not isinstance(name, str) or not isinstance(endpoint, str) or not endpoint.startswith("/"):
+                raise ReapError("local session has no name/socket identity")
+            running += 1
+            # No --machine/--remote: named sessions address this node's server.
+            snapshot = query("--session", name, "api", "snapshot")["result"]["snapshot"]
+            agents, workspaces = snapshot["agents"], snapshot["workspaces"]
+            if not isinstance(agents, list) or not isinstance(workspaces, list):
+                raise ReapError("invalid local Herdr snapshot")
+            labels = {item["workspace_id"]: item.get("label") for item in workspaces}
+            for agent in agents:
+                pane = agent["pane_id"]
+                key = f"{name}/{pane}"
+                terminal = agent.get("terminal_id")
+                if not isinstance(terminal, str) or agent["workspace_id"] not in labels:
+                    raise ReapError("agent has no terminal/workspace identity")
+                seen.add(key)
+                entry = {
+                    "session": name, "socket": endpoint, "pane": pane,
+                    "terminal_id": terminal, "agent_session": agent.get("agent_session"),
+                    "workspace": labels[agent["workspace_id"]],
+                    "workspace_id": agent["workspace_id"],
+                }
+                paths = mappings.get(key, [])
+                source = "reviewed task association"
+                if not paths:
+                    source = "agent worktree directory"
+                    for field_name in ("foreground_cwd", "cwd"):
+                        cwd = agent.get(field_name)
+                        if not isinstance(cwd, str) or not cwd.startswith("/"):
+                            continue
+                        # Primary cwd cannot identify a task's sibling checkout.
+                        matches = [root for root in roots[1:] if path_is_within(root, cwd)]
+                        if matches:
+                            paths = [max(matches, key=lambda path: len(str(path)))]
+                            break
+                if paths:
+                    discovery.paths.extend(paths)
+                    discovery.evidence.append({**entry, "paths": [str(path) for path in paths], "source": source})
+                    continue
+                response = run([herdr, "--session", name, "agent", "read", pane,
+                                "--source", "recent-unwrapped", "--lines", "160", "--format", "text"], timeout=10)
+                if response.returncode:
+                    raise ReapError(f"could not inspect unresolved task {key}")
+                suggestions = []
+                for root in roots[1:]:
+                    spellings = (str(root), str(root).replace(str(Path.home()), "~", 1))
+                    if any(re.search(re.escape(value) + r"(?=$|[/\s`'\"):,])", response.stdout) for value in spellings):
+                        suggestions.append(str(root))
+                discovery.unresolved.append({**entry, "suggested_paths": suggestions,
+                                             "resolve_with": f"--associate {key}=/exact/checkout"})
+        if not running:
+            raise ReapError("no running local Herdr sessions; cannot establish current projects")
+        if set(mappings) - seen:
+            raise ReapError("association no longer matches a local agent: " + ", ".join(sorted(set(mappings) - seen)))
+        if discovery.unresolved:
+            discovery.error = "unresolved local tasks; review suggested paths and supply --associate"
+        discovery.paths = list(dict.fromkeys(discovery.paths))
+    except (OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired, ReapError) as error:
+        discovery.error = f"local Herdr discovery failed: {error}"
+    return discovery
 
 
 def process_dict(process: ProcessRef) -> dict[str, Any]:
@@ -468,9 +515,14 @@ def process_descends_from(process: ProcessRef, ancestor_pids: set[int]) -> bool:
 
 
 def build_audit(
-    root: Path, protected_paths: tuple[Path, ...] = ()
+    root: Path, protected_paths: tuple[Path, ...] = (), abandoned_paths: tuple[Path, ...] = (),
+    outside_active: bool = False, associations: tuple[str, ...] = (),
 ) -> tuple[Audit, dict[str, Target]]:
     targets = discover_targets(root)
+    abandoned_paths = tuple(canonical(path) for path in abandoned_paths)
+    if any(path not in {target.path for target in targets if target.kind == "worktree"}
+           for path in abandoned_paths):
+        raise ReapError("--abandoned must name an exact registered linked checkout")
     protected_paths = tuple(
         dict.fromkeys(canonical(path) for path in protected_paths)
     )
@@ -485,7 +537,8 @@ def build_audit(
             f"{unmatched_protections[0]}"
         )
     processes = listener_processes()
-    active_paths, active_error = herdr_active_paths()
+    discovery = discover_active_work(tuple(target.path for target in targets if target.kind != "trash"), associations)
+    active_paths, active_error = discovery.paths, discovery.error
     target_by_path = {str(target.path): target for target in targets}
     owned: dict[str, list[ProcessRef]] = {str(target.path): [] for target in targets}
     extras: dict[str, list[ProcessRef]] = {str(target.path): [] for target in targets}
@@ -522,6 +575,18 @@ def build_audit(
                 foreign.append(process)
 
         reasons = list(target.errors)
+        explicitly_abandoned = target.path in abandoned_paths
+        stale = explicitly_abandoned or (outside_active and not active_error and target.kind == "worktree")
+        if explicitly_protected:
+            reasons.append("explicit --protect selection")
+        if target_active:
+            reasons.append("current local Herdr task association")
+        elif explicitly_abandoned:
+            reasons.append("explicit --abandoned selection; rechecked before shutdown")
+        elif stale:
+            reasons.append("outside current projects under explicit --outside-active policy")
+        else:
+            reasons.append("no session ownership proof; absence of cwd does not prove abandonment")
         if active_error:
             reasons.append(f"active workspace source unavailable: {active_error}")
         checkout_processes = {
@@ -585,21 +650,28 @@ def build_audit(
             classification = "active"
         elif protected:
             classification = "protected"
+        elif active_error:
+            classification = "unknown"
+        elif stale:
+            classification = "stale"
         elif risky and has_runtime:
+            classification = "unknown"
+        elif has_runtime and not explicitly_abandoned:
             classification = "unknown"
         elif target.kind == "trash" and has_runtime:
             classification = "deleted-checkout-orphan"
         elif target.kind == "trash":
             classification = "deleted-checkout"
         else:
-            classification = "inactive"
+            classification = "unowned"
         runtime = "running" if has_runtime else "stopped"
         actionable = (
             has_runtime
             and not protected
             and not risky
             and target.env_values is not None
-            and classification in ("inactive", "deleted-checkout-orphan")
+            and classification == "stale"
+            and bool(manager_pids)
         )
         fingerprint = [
             [process.pid, process.identity, process.cwd]
@@ -631,7 +703,7 @@ def build_audit(
         )
 
     audit = Audit(
-        schema_version=2,
+        schema_version=3,
         repository=str(root),
         active_source="herdr-local-machine-all-running-sessions",
         active_error=active_error,
@@ -639,6 +711,8 @@ def build_audit(
         protected_paths=[str(path) for path in protected_paths],
         targets=reports,
         unknown_process_compose=unknown_process_compose,
+        abandoned_paths=[str(path) for path in abandoned_paths],
+        outside_active=outside_active, associations=list(associations), discovery=discovery,
     )
     return audit, target_by_path
 
@@ -656,6 +730,11 @@ def print_audit(audit: Audit, *, show_apply_hint: bool = True) -> None:
             f"Herdr checkout paths: {len(audit.active_paths)} "
             "(this machine, all running local sessions)"
         )
+    print(f"Local node: {audit.discovery.node}")
+    for entry in audit.discovery.evidence:
+        print(f"Keep: {entry['workspace']} ({entry['session']}/{entry['pane']}): {', '.join(entry['paths'])}; {entry['source']}")
+    for entry in audit.discovery.unresolved:
+        print(f"Unresolved: {entry['workspace']}: {entry['resolve_with']}; suggestions: {entry['suggested_paths']}")
     print(f"Explicitly protected paths: {len(audit.protected_paths)}")
     print()
     print(f"{'CLASS':<25} {'RUNTIME':<8} {'PC':<7} {'AGE':<12} CHECKOUT")
@@ -713,23 +792,12 @@ def print_audit(audit: Audit, *, show_apply_hint: bool = True) -> None:
 
 
 def cleanup_command(target: Target) -> list[str]:
-    if target.env_values is None:
-        raise ReapError(f"missing validated identity for {target.path}")
-    values = target.env_values
-    command = [
-        require_tool("nix"),
-        "run",
-        f"{target.path}#portal-worktree-lifecycle",
-        "--",
-        "cleanup",
-        "--worktree-path",
-        str(target.path),
-        "--worktree-name",
-        values["WORKTREE_NAME"],
-    ]
-    for key, flag_name in PORT_FLAGS.items():
-        command.extend([flag_name, values[key]])
-    return command
+    if target.pc_port is None:
+        raise ReapError(f"missing manager port for {target.path}")
+    # Use the installed maintained lifecycle, never evaluate a historical flake.
+    # Explicit live-manager compatibility does not rewrite old identities.
+    return [require_tool("portal-worktree-lifecycle"), "stop-runtime",
+            "--worktree-path", str(target.path), "--legacy-pc-port", target.pc_port]
 
 
 def report_by_path(audit: Audit, path: str) -> TargetReport | None:
@@ -753,8 +821,13 @@ def fingerprint_is_current(report: TargetReport) -> bool:
     return True
 
 
-def apply_cleanup(root: Path, initial: Audit) -> int:
-    candidates = [target for target in initial.targets if target.actionable]
+def apply_cleanup(root: Path, initial: Audit, only: tuple[Path, ...] = ()) -> int:
+    if initial.active_error:
+        raise ReapError(initial.active_error)
+    selected = {str(canonical(path)) for path in only}
+    candidates = [target for target in initial.targets if target.actionable and (not selected or target.path in selected)]
+    if selected - {target.path for target in candidates}:
+        raise ReapError("selected runtime is not safely stoppable; refresh discovery")
     if not candidates:
         print("No confirmed inactive or orphaned runtimes to stop.")
         return 0
@@ -763,8 +836,11 @@ def apply_cleanup(root: Path, initial: Audit) -> int:
     results: list[tuple[str, str]] = []
     protected_paths = tuple(Path(path) for path in initial.protected_paths)
     print("\nRevalidating candidate inventory")
-    fresh, fresh_targets = build_audit(root, protected_paths)
     for candidate in candidates:
+        fresh, fresh_targets = build_audit(
+            root, protected_paths, tuple(Path(p) for p in initial.abandoned_paths),
+            initial.outside_active, tuple(initial.associations),
+        )
         print(f"\nChecking {candidate.path}")
         current = report_by_path(fresh, candidate.path)
         target = fresh_targets.get(candidate.path)
@@ -786,7 +862,11 @@ def apply_cleanup(root: Path, initial: Audit) -> int:
             failures += 1
             continue
 
-        active_paths, active_error = herdr_active_paths()
+        discovery = discover_active_work(tuple(item.path for item in fresh_targets.values() if item.kind != "trash"),
+                                         tuple(initial.associations))
+        active_paths, active_error = discovery.paths, discovery.error
+        if (initial.discovery.evidence != discovery.evidence or initial.discovery.node != discovery.node):
+            active_error = "task identities/associations changed; review a fresh inventory"
         if active_error:
             print(f"  skipped: active workspace source unavailable: {active_error}")
             results.append((candidate.path, "skipped: Herdr unavailable"))
@@ -832,15 +912,32 @@ def apply_cleanup(root: Path, initial: Audit) -> int:
             )
             failures += 1
         else:
-            results.append((candidate.path, "cleanup completed"))
+            after, _ = build_audit(
+                root, protected_paths, tuple(Path(p) for p in initial.abandoned_paths),
+                initial.outside_active, tuple(initial.associations),
+            )
+            stopped = report_by_path(after, candidate.path)
+            if after.active_error:
+                failures += 1
+                results.append((candidate.path, "failed: final project discovery unavailable"))
+            elif stopped is None or stopped.runtime != "stopped":
+                failures += 1
+                results.append((candidate.path, "failed: runtime remains after shutdown"))
+            else:
+                results.append((candidate.path, "runtime stopped; checkout and data preserved"))
 
     print("\nApply results")
     for path, status in results:
         print(f"- {path}: {status}")
     print("\nFinal audit")
-    final, _targets = build_audit(root, protected_paths)
+    final, _targets = build_audit(
+        root, protected_paths, tuple(Path(p) for p in initial.abandoned_paths),
+        initial.outside_active, tuple(initial.associations),
+    )
     print_audit(final, show_apply_hint=False)
-    remaining = sum(1 for target in final.targets if target.actionable)
+    if final.active_error:
+        return 1
+    remaining = sum(1 for target in final.targets if target.actionable and (not selected or target.path in selected))
     if remaining:
         print(f"{remaining} actionable runtime(s) remain.", file=sys.stderr)
         return 1
@@ -862,6 +959,14 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         ),
         help="primary Portal CMS checkout (default: %(default)s)",
     )
+    parser.add_argument("--outside-active", action="store_true",
+                        help="explicitly classify linked checkouts outside discovered current projects as stale")
+    parser.add_argument("--associate", action="append", default=[], metavar="SESSION/PANE=PATH",
+                        help="reviewed current task-to-checkout association (repeatable, including multiple paths per task)")
+    parser.add_argument("--only", action="append", default=[], type=Path,
+                        help="stop only this exact actionable checkout with --apply (repeatable)")
+    parser.add_argument("--abandoned", action="append", default=[], type=Path,
+                        help="exact checkout reviewed as abandoned (repeatable); absence from Herdr is insufficient")
     parser.add_argument("--json", action="store_true", help="print the audit as JSON")
     parser.add_argument(
         "--apply",
@@ -883,17 +988,17 @@ def main(argv: list[str]) -> int:
     args = parse_args(argv)
     try:
         root = validate_repository(args.repo)
-        audit, _targets = build_audit(root, tuple(args.protect))
+        audit, _targets = build_audit(root, tuple(args.protect), tuple(args.abandoned), args.outside_active, tuple(args.associate))
         if args.json:
-            print(json.dumps(asdict(audit), indent=2, sort_keys=True))
+            print(json.dumps(asdict(audit), indent=2, sort_keys=True, default=str))
         else:
             print_audit(audit)
         if args.apply:
             if args.json:
                 print("--apply cannot be combined with --json", file=sys.stderr)
                 return 2
-            return apply_cleanup(root, audit)
-        return 0
+            return apply_cleanup(root, audit, tuple(args.only))
+        return 2 if audit.active_error else 0
     except (OSError, subprocess.TimeoutExpired, ReapError) as error:
         print(f"portal-dev-reap: {error}", file=sys.stderr)
         return 2
