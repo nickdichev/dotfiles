@@ -20,6 +20,7 @@ let
       wrapProgram $out/bin/portal-dev-reap \
         --prefix PATH : ${
           lib.makeBinPath [
+            pkgs.gh
             pkgs.git
             pkgs.lsof
           ]

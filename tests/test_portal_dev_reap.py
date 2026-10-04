@@ -81,7 +81,46 @@ def audit(
     )
 
 
+# Host probes build_audit would otherwise run against the real machine.
+HOST_PROBES = {
+    "process_snapshot": {},
+    "agent_checkouts": [],
+    "checkout_evidence": {},
+    "stack_health": [],
+    "system_pressure": {},
+}
+REAL = {name: getattr(portal_dev_reap, name) for name in HOST_PROBES}
+MERGED_CLEAN = {"branch": "fix/done", "head": "abc", "dirty": 0, "pr_number": 7,
+                "pr_state": "MERGED", "pr_contains_head": True}
+
+
+def unresolved_discovery(*suggested: str) -> portal_dev_reap.Discovery:
+    return portal_dev_reap.Discovery(
+        error=portal_dev_reap.UNRESOLVED_ERROR,
+        unresolved=[{"workspace": "ios", "suggested_paths": list(suggested),
+                     "resolve_with": "--associate default/w1:p1=/exact/checkout"}],
+    )
+
+
 class PortalDevReapTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.probes = {}
+        for name, value in HOST_PROBES.items():
+            patcher = mock.patch.object(portal_dev_reap, name, return_value=value)
+            self.probes[name] = patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def running_stack(self, discovery, **kwargs):
+        """Audit one running linked checkout with a healthy manager."""
+        stale = target("worktree", "/repo/cms.stale", "stale", 18000)
+        manager = portal_dev_reap.ProcessRef(123, 1, "process-compose", str(stale.path),
+                                            "stable identity", "10-00:00:00", (18001,))
+        with mock.patch.object(portal_dev_reap, "discover_targets", return_value=[stale]), \
+             mock.patch.object(portal_dev_reap, "listener_processes", return_value=[manager]), \
+             mock.patch.object(portal_dev_reap, "discover_active_work", return_value=discovery):
+            result, _ = portal_dev_reap.build_audit(Path("/repo/cms"), **kwargs)
+        return result.targets[0]
+
     def test_parse_lsof_listener_records(self) -> None:
         parsed = portal_dev_reap.parse_lsof_listeners(
             """p123
@@ -752,6 +791,183 @@ n*:19002"""
         self.assertEqual(outside.targets[0].classification, "stale")
         self.assertTrue(outside.targets[0].actionable)
         self.assertFalse(protected.targets[0].actionable)
+
+    def test_process_snapshot_parses_identity_and_survives_malformed_rows(self):
+        table = portal_dev_reap.parse_process_snapshot(
+            "  10     1 Fri Oct  2 15:01:02 2026 13-03:53:44  18544 process-compose   --port 8081\n"
+            "garbage row\n"
+            "  11    10 Fri Oct  2 15:01:03 2026       00:39    512 postgres: idle\n"
+        )
+        self.assertEqual(set(table), {10, 11})
+        self.assertEqual(table[10].ppid, 1)
+        self.assertEqual(table[10].age, "13-03:53:44")
+        self.assertEqual(table[10].rss_kb, 18544)
+        self.assertEqual(portal_dev_reap.identity_of(table[10]),
+                         "Fri Oct 2 15:01:02 2026 process-compose --port 8081")
+        self.assertEqual(portal_dev_reap.descendants(table, {10}), {10, 11})
+
+    def test_cwd_lookup_is_one_batched_call_and_a_timeout_is_not_fatal(self):
+        listing = subprocess.CompletedProcess([], 1, "p10\nfcwd\nn/repo/cms.stale\np11\nfcwd\nn/nix/store/x\n", "")
+        with mock.patch.object(portal_dev_reap, "run", return_value=listing) as run_mock, \
+             mock.patch.object(portal_dev_reap, "canonical", side_effect=Path):
+            cwds = portal_dev_reap.process_cwds("lsof", {11, 10, 12})
+        self.assertEqual(cwds, {10: "/repo/cms.stale", 11: "/nix/store/x"})
+        self.assertEqual(run_mock.call_count, 1)
+        self.assertIn("10,11,12", run_mock.call_args.args[0])
+        with mock.patch.object(portal_dev_reap, "run", side_effect=subprocess.TimeoutExpired(["lsof"], 60)):
+            self.assertEqual(portal_dev_reap.process_cwds("lsof", {10}), {})
+
+    def test_finished_pull_request_is_stoppable_despite_unresolved_herdr_tasks(self):
+        self.probes["checkout_evidence"].return_value = dict(MERGED_CLEAN)
+        merged = self.running_stack(unresolved_discovery())
+        # Never "stale": that class is deletion authority for disk maintenance.
+        self.assertEqual(merged.classification, "pr-merged")
+        self.assertTrue(merged.actionable)
+        self.assertTrue(merged.herdr_independent)
+
+    def test_pull_request_evidence_must_be_complete_to_authorize_a_stop(self):
+        for change in ({"dirty": 2}, {"pr_contains_head": False}, {"pr_state": "OPEN"},
+                       {"pr_state": None, "pr_number": None}):
+            self.probes["checkout_evidence"].return_value = {**MERGED_CLEAN, **change}
+            with self.subTest(change=change):
+                item = self.running_stack(unresolved_discovery())
+                self.assertEqual(item.classification, "unknown")
+                self.assertFalse(item.actionable)
+
+    def test_finished_pull_request_does_not_override_possible_current_work(self):
+        self.probes["checkout_evidence"].return_value = dict(MERGED_CLEAN)
+        mentioned = self.running_stack(unresolved_discovery("/repo/cms.stale"))
+        self.assertEqual(mentioned.classification, "unknown")
+        self.assertFalse(mentioned.actionable)
+        protected = self.running_stack(unresolved_discovery(), protected_paths=(Path("/repo/cms.stale"),))
+        self.assertFalse(protected.actionable)
+        self.probes["agent_checkouts"].return_value = [Path("/repo/cms.stale/frontend")]
+        live = self.running_stack(unresolved_discovery())
+        self.assertEqual(live.classification, "active")
+        self.assertFalse(live.actionable)
+
+    def test_reviewed_abandonment_survives_unresolved_tasks_but_not_failed_discovery(self):
+        path = Path("/repo/cms.stale")
+        reviewed = self.running_stack(unresolved_discovery(), abandoned_paths=(path,))
+        self.assertEqual(reviewed.classification, "stale")
+        self.assertTrue(reviewed.actionable)
+        self.assertTrue(reviewed.herdr_independent)
+        mentioned = self.running_stack(unresolved_discovery(str(path)), abandoned_paths=(path,))
+        self.assertFalse(mentioned.actionable)
+        failed = self.running_stack(portal_dev_reap.Discovery(error="Herdr unavailable"), abandoned_paths=(path,))
+        self.assertEqual(failed.classification, "unknown")
+        self.assertFalse(failed.actionable)
+
+    def test_checkout_evidence_reads_git_state_and_prefers_an_open_pull_request(self):
+        def command(argv, **kwargs):
+            if "status" in argv:
+                out = "# branch.oid abc\n# branch.head fix/done\n1 .M N... 1 1 1 a b file\n? new\n"
+            elif "log" in argv:
+                out = "0\n"
+            elif argv[0] == "gh":
+                self.assertIn("fix/done", argv)
+                out = json.dumps([{"number": 7, "state": "MERGED", "headRefOid": "old"},
+                                  {"number": 9, "state": "OPEN", "headRefOid": "abc"}])
+            else:
+                raise AssertionError(argv)
+            return subprocess.CompletedProcess(argv, 0, out, "")
+        with tempfile.TemporaryDirectory() as directory, \
+             mock.patch.object(portal_dev_reap, "run", side_effect=command), \
+             mock.patch.object(portal_dev_reap.shutil, "which", side_effect=lambda name: name):
+            evidence = REAL["checkout_evidence"](Path(directory))
+        self.assertEqual((evidence["branch"], evidence["dirty"]), ("fix/done", 2))
+        self.assertEqual((evidence["pr_number"], evidence["pr_state"], evidence["pr_contains_head"]),
+                         (9, "OPEN", True))
+        self.assertIsNone(portal_dev_reap.evidence_class(evidence))
+        self.assertEqual(portal_dev_reap.evidence_class(MERGED_CLEAN), "pr-merged")
+
+    def test_checkout_behind_its_merged_pull_request_is_finished_but_local_commits_are_not(self):
+        def evidence_when(ancestor_exit: int):
+            def command(argv, **kwargs):
+                if "status" in argv:
+                    return subprocess.CompletedProcess(argv, 0, "# branch.oid local\n# branch.head fix/done\n", "")
+                if "log" in argv:
+                    return subprocess.CompletedProcess(argv, 0, "0\n", "")
+                if argv[0] == "gh":
+                    pulls = [{"number": 7, "state": "MERGED", "headRefOid": "remote"}]
+                    return subprocess.CompletedProcess(argv, 0, json.dumps(pulls), "")
+                self.assertEqual(argv[-4:], ["merge-base", "--is-ancestor", "local", "remote"])
+                return subprocess.CompletedProcess(argv, ancestor_exit, "", "")
+            with tempfile.TemporaryDirectory() as directory, \
+                 mock.patch.object(portal_dev_reap, "run", side_effect=command), \
+                 mock.patch.object(portal_dev_reap.shutil, "which", side_effect=lambda name: name):
+                return REAL["checkout_evidence"](Path(directory))
+        self.assertEqual(portal_dev_reap.evidence_class(evidence_when(0)), "pr-merged")
+        self.assertIsNone(portal_dev_reap.evidence_class(evidence_when(1)))
+
+    def test_stack_health_reports_crash_loops_and_dead_services(self):
+        services = {"data": [
+            {"name": "portal", "status": "Running", "restarts": 14686, "exit_code": 1, "system_time": "7s"},
+            {"name": "cms-db", "status": "Completed", "restarts": 5, "exit_code": 1},
+            {"name": "portal-migrate", "status": "Completed", "restarts": 0, "exit_code": 0},
+            {"name": "redis", "status": "Running", "restarts": 1, "exit_code": 0},
+        ]}
+        opener = mock.Mock()
+        opener.open.return_value = io.BytesIO(json.dumps(services).encode())
+        with mock.patch.object(portal_dev_reap.urllib.request, "build_opener", return_value=opener):
+            findings = REAL["stack_health"]("8081")
+        self.assertEqual(findings, ["portal restarted 14686 times (current run: 7s)",
+                                    "cms-db exited with code 1 and is not running"])
+        opener.open.side_effect = OSError("refused")
+        with mock.patch.object(portal_dev_reap.urllib.request, "build_opener", return_value=opener):
+            self.assertIn("unreachable", REAL["stack_health"]("8081")[0])
+
+    def test_protected_primary_stack_still_reports_health_and_cost(self):
+        root = Path("/repo/cms")
+        primary = portal_dev_reap.Target(kind="primary", path=root, name="primary",
+                                         ports=dict(portal_dev_reap.PRIMARY_PORTS))
+        manager = portal_dev_reap.ProcessRef(26515, 1, "process-compose", str(root),
+                                            "stable identity", "13-03:54:08", (8081,))
+        info = portal_dev_reap.ProcessInfo
+        gone = "/nix/store/" + "a" * 32 + "-start-postgres/bin/start-postgres"
+        self.probes["process_snapshot"].return_value = {
+            26515: info(26515, 1, "start", "13-03:54:08", 20480, "process-compose --port 8081"),
+            26600: info(26600, 26515, "start", "00:07", 102400, gone),
+        }
+        self.probes["stack_health"].return_value = ["portal restarted 14686 times (current run: 7s)"]
+        with mock.patch.object(portal_dev_reap, "discover_targets", return_value=[primary]), \
+             mock.patch.object(portal_dev_reap, "listener_processes", return_value=[manager]), \
+             mock.patch.object(portal_dev_reap, "discover_active_work", return_value=portal_dev_reap.Discovery()):
+            result, _ = portal_dev_reap.build_audit(root)
+        item = result.targets[0]
+        self.assertEqual(item.classification, "protected")
+        self.assertFalse(item.actionable)
+        self.assertEqual(item.health[0], "portal restarted 14686 times (current run: 7s)")
+        self.assertIn("garbage-collected", item.health[1])
+        self.assertEqual((item.process_count, item.rss_mb, item.age), (2, 120, "13-03:54:08"))
+        with mock.patch("sys.stdout", new_callable=io.StringIO) as output:
+            portal_dev_reap.print_audit(result)
+        self.assertIn("✗ portal restarted 14686 times", output.getvalue())
+        self.assertIn("Unhealthy stacks: 1", output.getvalue())
+
+    def test_apply_stops_herdr_independent_runtime_while_tasks_are_unresolved(self):
+        root = Path("/repo/cms")
+        merged = target("worktree", "/repo/cms.merged", "merged", 18200)
+        blocked = target("worktree", "/repo/cms.blocked", "blocked", 18300)
+        candidate = report(merged, fingerprint=[[81, "merged", str(merged.path)]], classification="pr-merged")
+        candidate.herdr_independent = True
+        other = report(blocked, fingerprint=[[82, "blocked", str(blocked.path)]],
+                       actionable=False, classification="unknown")
+        stopped = report(merged, fingerprint=[], actionable=False, classification="pr-merged")
+        stopped.runtime = "stopped"
+        initial, final = audit([candidate, other]), audit([stopped, other])
+        initial.active_error = final.active_error = portal_dev_reap.UNRESOLVED_ERROR
+        targets = {str(merged.path): merged, str(blocked.path): blocked}
+        with mock.patch.object(portal_dev_reap, "build_audit", side_effect=[(initial, targets), (final, targets), (final, targets)]), \
+             mock.patch.object(portal_dev_reap, "discover_active_work", return_value=unresolved_discovery()), \
+             mock.patch.object(portal_dev_reap, "fingerprint_is_current", return_value=True), \
+             mock.patch.object(portal_dev_reap, "cleanup_command", side_effect=lambda item: ["cleanup", item.name]), \
+             mock.patch.object(portal_dev_reap, "run", return_value=subprocess.CompletedProcess([], 0)) as run_mock, \
+             mock.patch("sys.stdout", new_callable=io.StringIO) as output:
+            result = portal_dev_reap.apply_cleanup(root, initial)
+        self.assertEqual(result, 0)
+        self.assertEqual([call.args[0] for call in run_mock.call_args_list], [["cleanup", "merged"]])
+        self.assertIn("runtime stopped; checkout and data preserved", output.getvalue())
 
 
 if __name__ == "__main__":
