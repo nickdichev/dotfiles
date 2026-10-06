@@ -6,7 +6,7 @@
 }:
 
 let
-  version = "1.2.6";
+  version = "1.2.7";
 in
 stdenv.mkDerivation {
   pname = "onlyeq";
@@ -14,7 +14,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://github.com/zollans/OnlyEQ/releases/download/v${version}/OnlyEQ.app.zip";
-    hash = "sha256-QigpLvC7qFPXS3l+j7uSm7Q/z9SwwETHB/m1wacHA6c=";
+    hash = "sha256-yrjlR3duvACLV6KL+1G88WthabuoDB2kdyuh1MMuTRE=";
   };
 
   sourceRoot = ".";

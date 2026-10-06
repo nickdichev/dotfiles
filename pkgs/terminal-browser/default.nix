@@ -40,20 +40,20 @@
 }:
 
 let
-  version = "0.6.0";
+  version = "0.13.4";
 
   sources = {
     aarch64-darwin = {
       suffix = "darwin-arm64";
-      hash = "sha256-0tGgYLYgjxyMUEoa+CXu0PsFv629iyPx4AZWGcV350k=";
+      hash = "sha256-8BcjDHjGCgfvRFGh6wqScn8LlVqPzYeuw1iRDF0MA8c=";
     };
     aarch64-linux = {
       suffix = "linux-arm64";
-      hash = "sha256-JNBs4m/bhBcRTWFMW/Fu5IGqtXM/SeJPVXynoEGoL0o=";
+      hash = "sha256-DPVn2CGJlaJPts5LBsB8z1ioxReQYFgIc1Xx4vrRlp8=";
     };
     x86_64-linux = {
       suffix = "linux-x64";
-      hash = "sha256-fCN1WTYjoSEJYV7KlM6u7OamGTxMyVW6FZIV8PbAn/c=";
+      hash = "sha256-YnfaqrqxZxGrPxlhzf+tnvrF5wrFXVB24shkltZJ06Q=";
     };
   };
 
@@ -120,7 +120,7 @@ stdenv.mkDerivation {
     cp -R . "$out/"
     # Profile symlinks make the launcher's relative root point outside this package.
     substituteInPlace "$out/bin/terminal-browser" \
-      --replace-fail 'ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)"' "ROOT=\"$out\""
+      --replace-fail 'ROOT="$(CDPATH= cd -- "$(dirname -- "$SELF")/.." && pwd -P)"' "ROOT=\"$out\""
     ${lib.optionalString stdenv.hostPlatform.isDarwin ''
       /usr/bin/codesign --force --deep --sign - --timestamp=none "$out/electron/terminal-browser.app"
     ''}

@@ -20,11 +20,11 @@ let
   raycastPackage =
     if useRaycastOverride then
       pkgs-unstable.raycast.overrideAttrs (_: {
-        version = "1.104.23";
+        version = "2.6.2.0";
         src = pkgs-unstable.fetchurl {
           name = "Raycast.dmg";
-          url = "https://releases.raycast.com/releases/1.104.23/download?build=arm";
-          hash = "sha256-/aotbycZmY8FSOLzUSmRMMfzwsN/2v08oNe4iteY2oE=";
+          url = "https://x.raycast-releases.com/download?platform=macos&architecture=arm64&version=2.6.2.0";
+          hash = "sha256-FeS7qiK/LEOXg/Js49M/Na+pphgIARIZdGmqXBj0xdw=";
         };
       })
     else

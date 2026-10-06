@@ -6,16 +6,16 @@
 }:
 
 let
-  version = "3.4.2";
+  version = "3.8.0";
 
   sources = {
     aarch64-darwin = {
       url = "https://github.com/redis/RedisInsight/releases/download/${version}/Redis-Insight-mac-arm64.dmg";
-      hash = "sha256-A0dU76FlVsUKmCtFs1kFRrNRFFWddyhM7LXSTOcVKag=";
+      hash = "sha256-r1jCGLCbKj0Qum8paWn815KmVE/w29iYRYBOq4bwXds=";
     };
     x86_64-darwin = {
       url = "https://github.com/redis/RedisInsight/releases/download/${version}/Redis-Insight-mac-x64.dmg";
-      hash = "sha256-VMsCWr40SnHog4eTdYPFz18pKlfZZgncYY2S4kc5m8M=";
+      hash = "sha256-MuaLoTnfuyRmWHQTLl0PubSl1ibNKWpB1nfNcToNXBg=";
     };
   };
 
@@ -40,7 +40,7 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
     mkdir -p $out/Applications
-    cp -r "Redis Insight.app" $out/Applications/
+    cp -r */"Redis Insight.app" $out/Applications/
     /usr/bin/codesign --force --deep --sign - "$out/Applications/Redis Insight.app"
     runHook postInstall
   '';

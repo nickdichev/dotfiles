@@ -6,7 +6,7 @@
 }:
 
 let
-  version = "2.3.2";
+  version = "2.4.2";
 in
 stdenv.mkDerivation {
   pname = "orcaslicer";
@@ -14,7 +14,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://github.com/OrcaSlicer/OrcaSlicer/releases/download/v${version}/OrcaSlicer_Mac_universal_V${version}.dmg";
-    hash = "sha256-M09yZbHfkw6UrHWjGABbvmP2cP5xmp53eMMPTXyIfMI=";
+    hash = "sha256-4V57sbZiFOxulrFps4gAQXnE9fcF7/za+MgNSZLuA2Y=";
   };
 
   sourceRoot = ".";

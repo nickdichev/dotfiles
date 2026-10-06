@@ -8,11 +8,11 @@
 
 stdenv.mkDerivation rec {
   pname = "bitwarden-desktop-bin";
-  version = "2026.5.0";
+  version = "2026.9.1";
 
   src = fetchurl {
     url = "https://github.com/bitwarden/clients/releases/download/desktop-v${version}/Bitwarden-${version}-universal-mac.zip";
-    hash = "sha256-ToBO47ipnH+ncA+TqhiBOXjYmekjgX4beC47IcBFlQg=";
+    hash = "sha256-jLa62zqK93zD5LBg+hSFjNf9dL5zYLG26Y3eGv7UCdI=";
   };
 
   sourceRoot = ".";

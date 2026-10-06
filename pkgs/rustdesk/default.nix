@@ -6,16 +6,16 @@
 }:
 
 let
-  version = "1.4.7";
+  version = "1.5.0";
 
   sources = {
     aarch64-darwin = {
       url = "https://github.com/rustdesk/rustdesk/releases/download/${version}/rustdesk-${version}-aarch64.dmg";
-      hash = "sha256-935Rf6eSyNRuuereOiznT2jX9YWST8QgJxn07YIDjq0=";
+      hash = "sha256-OSmwpDIefQ9WGjFwWXmL6ILWXezFloHrdwYfjv5W+/Q=";
     };
     x86_64-darwin = {
       url = "https://github.com/rustdesk/rustdesk/releases/download/${version}/rustdesk-${version}-x86_64.dmg";
-      hash = "sha256-QhwRTep+FebFAVE4R8A6g7l+XhnWvPKnJLNt37FhCbI=";
+      hash = "sha256-HKPL++fyvSi1DJP81Q1KC2cdx20YvifOqZ06ZXZ+tSY=";
     };
   };
 

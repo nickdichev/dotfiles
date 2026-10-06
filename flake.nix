@@ -9,16 +9,16 @@
       url = "github:Ducksss/codex-profiles/v1.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    devenv.url = "github:cachix/devenv/v2.2.2";
+    devenv.url = "github:cachix/devenv/v2.4.0";
 
     herdr = {
       # Keep consumers such as the clan on the same stable client/server protocol.
-      url = "github:herdrdev/herdr/v0.9.1";
+      url = "github:herdrdev/herdr/v0.9.3";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     terminal-browser-src = {
-      url = "github:zenbu-labs/terminal-browser/v0.8.0";
+      url = "github:zenbu-labs/terminal-browser/v0.13.4";
       flake = false;
     };
 

@@ -6,7 +6,7 @@
 }:
 
 let
-  version = "11.4.4";
+  version = "11.8.0";
 in
 stdenvNoCC.mkDerivation {
   pname = "alt-tab-macos-bin";
@@ -14,7 +14,7 @@ stdenvNoCC.mkDerivation {
 
   src = fetchurl {
     url = "https://github.com/lwouis/alt-tab-macos/releases/download/v${version}/AltTab-${version}.zip";
-    hash = "sha256-g+IlQWnHszCLe0+f8xs3bfQ24N3g+o0vtIS1zy/kpQc=";
+    hash = "sha256-a1H7Jlj6siUh3zcTwSjj93xc5vVqpUd03chuHzoDZoY=";
   };
 
   nativeBuildInputs = [ unzip ];
