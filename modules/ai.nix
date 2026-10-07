@@ -80,6 +80,8 @@ in
 
         effortLevel = "high";
 
+        tui = "fullscreen";
+
         attribution = {
           commit = "";
           pr = "";
