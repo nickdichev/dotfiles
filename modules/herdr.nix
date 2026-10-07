@@ -40,17 +40,26 @@ in
 
         xdg.configFile."herdr/config.toml".source = ../config/herdr/config.toml;
 
-        # Herdr owns the generated scripts and Codex hook entry. Declare the
-        # Claude entry so its Home Manager-managed settings file stays a symlink
-        # when the integration installer verifies it.
+        # Declare the Claude integration instead of running Herdr's installer:
+        # its settings file is a Home Manager symlink into the Nix store, which
+        # the installer refuses to touch once the store deduplicates it. The
+        # integration is this hook entry plus the script it runs.
         programs.claude-code.settings.hooks.SessionStart = lib.mkIf config.profiles.ai.enable [
           claudeIntegrationHook
         ];
 
+        home.file.".claude/hooks/herdr-agent-state.sh" = lib.mkIf config.profiles.ai.enable {
+          source = "${inputs.herdr}/src/integration/assets/claude/herdr-agent-state.sh";
+          executable = true;
+          # Replace the copy an earlier installer run left behind.
+          force = true;
+        };
+
+        # Codex keeps its hooks and config in files it rewrites itself, so
+        # Herdr's installer still owns that side.
         home.activation.installHerdrAgentIntegrations = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           if ${lib.boolToString config.profiles.ai.enable}; then
             $DRY_RUN_CMD ${herdr}/bin/herdr integration install codex
-            $DRY_RUN_CMD ${herdr}/bin/herdr integration install claude
           fi
         '';
       }
