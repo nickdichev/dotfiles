@@ -15,20 +15,6 @@ let
     inherit (pkgs) system;
     config.allowUnfree = true;
   };
-  # Set to false to switch back to pkgs-unstable.raycast.
-  useRaycastOverride = true;
-  raycastPackage =
-    if useRaycastOverride then
-      pkgs-unstable.raycast.overrideAttrs (_: {
-        version = "2.6.2.0";
-        src = pkgs-unstable.fetchurl {
-          name = "Raycast.dmg";
-          url = "https://x.raycast-releases.com/download?platform=macos&architecture=arm64&version=2.6.2.0";
-          hash = "sha256-FeS7qiK/LEOXg/Js49M/Na+pphgIARIZdGmqXBj0xdw=";
-        };
-      })
-    else
-      pkgs-unstable.raycast;
   altTabPackage = pkgs.callPackage ../pkgs/alt-tab-macos-bin { };
   altTabBundleIdentifier = "com.lwouis.alt-tab-macos";
   githubPrTitleUserscript = pkgs.writeText "github-pr-title.user.js" ''
@@ -131,7 +117,7 @@ let
   };
 in
 {
-  options.profiles.applications.enable = lib.mkEnableOption "Desktop applications (obsidian, raycast, Hermes, tablepro, rustdesk)";
+  options.profiles.applications.enable = lib.mkEnableOption "Desktop applications (obsidian, vicinae, Hermes, tablepro, rustdesk)";
 
   config = lib.mkIf cfg.enable {
     home.activation.copyUserscripts = lib.mkIf (hasGui && isDarwin) (
@@ -156,8 +142,8 @@ in
     xdg.configFile."macos-profiles/slack-update-policy.mobileconfig" = lib.mkIf (hasGui && isDarwin) {
       source = slackUpdatePolicyProfile;
     };
-    xdg.configFile."raycast/script-commands/sleep-displays.sh" = lib.mkIf (hasGui && isDarwin) {
-      source = ../config/raycast/script-commands/sleep-displays.sh;
+    xdg.dataFile."vicinae/scripts/sleep-displays.sh" = lib.mkIf (hasGui && isAarch64Darwin) {
+      source = ../config/vicinae/scripts/sleep-displays.sh;
     };
     home.activation.configureAltTab = lib.mkIf (hasGui && isDarwin) (
       lib.hm.dag.entryBefore [ "setupLaunchAgents" ] ''
@@ -202,7 +188,6 @@ in
       altTabPackage
       pkgs-unstable.blackhole
       pkgs-unstable.orbstack
-      raycastPackage
 
       (pkgs.callPackage ../pkgs/rustdesk { })
       (pkgs.callPackage ../pkgs/redisinsight { })
@@ -213,6 +198,7 @@ in
     ]
     ++ lib.optionals (hasGui && isAarch64Darwin) [
       (pkgs.callPackage ../pkgs/hermes-desktop { })
+      (pkgs.callPackage ../pkgs/vicinae { })
     ]
     ++ lib.optionals (hasGui && isLinux) [
       pkgs.redisinsight

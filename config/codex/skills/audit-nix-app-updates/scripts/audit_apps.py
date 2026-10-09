@@ -47,6 +47,11 @@ GITHUB_PACKAGES = {
         "file": "pkgs/rustdesk/default.nix",
         "repo": "rustdesk/rustdesk",
     },
+    "vicinae": {
+        "file": "pkgs/vicinae/default.nix",
+        "repo": "vicinaehq/vicinae",
+        "asset_regex": r"Vicinae\.dmg$",
+    },
     "telegram-desktop": {
         "file": "pkgs/telegram-desktop/default.nix",
         "repo": "telegramdesktop/tdesktop",
@@ -57,7 +62,6 @@ BREW_CASKS = {
     "blackhole": "blackhole-2ch",
     "godot": "godot",
     "obsidian": "obsidian",
-    "raycast": "raycast",
     "redisinsight": "redis-insight",
     "rustdesk": "rustdesk",
     "slack": "slack",
@@ -79,7 +83,6 @@ in {
   unstable = {
     blackhole = get unstable.blackhole;
     godot = get unstable.godot;
-    raycast = get unstable.raycast;
   };
 }
 '''
