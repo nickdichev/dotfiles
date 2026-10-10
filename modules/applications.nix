@@ -145,6 +145,9 @@ in
     xdg.dataFile."vicinae/scripts/sleep-displays.sh" = lib.mkIf (hasGui && isAarch64Darwin) {
       source = ../config/vicinae/scripts/sleep-displays.sh;
     };
+    xdg.dataFile."vicinae/scripts/toggle-appearance.sh" = lib.mkIf (hasGui && isAarch64Darwin) {
+      source = ../config/vicinae/scripts/toggle-appearance.sh;
+    };
     home.activation.configureAltTab = lib.mkIf (hasGui && isDarwin) (
       lib.hm.dag.entryBefore [ "setupLaunchAgents" ] ''
         # Home Manager owns AltTab startup and upgrades. Disable the app's
