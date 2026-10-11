@@ -686,6 +686,15 @@ def discover_active_work(
                     spellings = (str(root), str(root).replace(str(Path.home()), "~", 1))
                     if any(re.search(re.escape(value) + r"(?=$|[/\s`'\"):,])", response.stdout) for value in spellings):
                         suggestions.append(str(root))
+                cwds = [agent.get(field_name) for field_name in ("foreground_cwd", "cwd")]
+                if not suggestions and cwds and all(
+                    isinstance(cwd, str) and cwd.startswith("/")
+                    and not any(path_is_within(root, cwd) for root in roots)
+                    for cwd in cwds
+                ):
+                    # Working in another repository and naming no Portal checkout.
+                    discovery.evidence.append({**entry, "paths": [], "source": "outside Portal checkouts"})
+                    continue
                 discovery.unresolved.append({**entry, "suggested_paths": suggestions,
                                              "resolve_with": f"--associate {key}=/exact/checkout"})
         if not running:
@@ -1117,6 +1126,10 @@ def apply_cleanup(root: Path, initial: Audit, only: tuple[Path, ...] = ()) -> in
     if initial.active_error and not any(
         target.actionable and target.herdr_independent for target in initial.targets
     ):
+        if initial.active_error == UNRESOLVED_ERROR:
+            # The normal state while orchestrators run from the primary checkout.
+            print("Skipped: unresolved Herdr tasks; only finished pull requests are stoppable and none are.")
+            return 0
         raise ReapError(initial.active_error)
     selected = {str(canonical(path)) for path in only}
     candidates = [target for target in initial.targets if target.actionable and (not selected or target.path in selected)]

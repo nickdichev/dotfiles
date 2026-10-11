@@ -761,6 +761,44 @@ n*:19002"""
             self.assertEqual(reviewed.paths, [sibling.resolve()])
             self.assertIn("no longer matches", obsolete.error)
 
+    def test_task_in_another_repository_is_ignored_unless_it_names_a_checkout(self):
+        roots = (Path("/repo/cms"), Path("/repo/cms.sibling"))
+        def discover(transcript):
+            def command(argv, **kwargs):
+                if argv[1:] == ["session", "list", "--json"]:
+                    value = {"sessions": [{"name": "default", "running": True, "socket_path": "/local/herdr.sock"}]}
+                elif argv[1:] == ["--session", "default", "api", "snapshot"]:
+                    value = {"result": {"snapshot": {
+                        "workspaces": [{"workspace_id": "w1", "label": "clan"}],
+                        "agents": [{"pane_id": "w1:p1", "workspace_id": "w1", "terminal_id": "term1",
+                                    "cwd": "/repo/clan", "foreground_cwd": "/repo/clan"}]}}}
+                elif "read" in argv:
+                    return subprocess.CompletedProcess(argv, 0, transcript, "")
+                else:
+                    raise AssertionError(argv)
+                return subprocess.CompletedProcess(argv, 0, json.dumps(value), "")
+            with mock.patch.object(portal_dev_reap, "run", side_effect=command), \
+                 mock.patch.object(portal_dev_reap, "require_tool", side_effect=lambda name: name):
+                return portal_dev_reap.discover_active_work(roots)
+        unrelated = discover("Editing modules/clan.nix")
+        self.assertIsNone(unrelated.error)
+        self.assertEqual((unrelated.paths, unrelated.unresolved), ([], []))
+        naming = discover("Checking /repo/cms.sibling/.data/logs")
+        self.assertEqual(naming.error, portal_dev_reap.UNRESOLVED_ERROR)
+        self.assertEqual(naming.unresolved[0]["suggested_paths"], ["/repo/cms.sibling"])
+
+    def test_apply_with_only_unresolved_tasks_and_nothing_finished_is_a_clean_skip(self):
+        blocked = target("worktree", "/repo/cms.blocked", "blocked", 18300)
+        initial = audit([report(blocked, fingerprint=[[82, "blocked", str(blocked.path)]],
+                                actionable=False, classification="unknown")])
+        initial.active_error = portal_dev_reap.UNRESOLVED_ERROR
+        with mock.patch.object(portal_dev_reap, "run") as run_mock, \
+             mock.patch("sys.stdout", new_callable=io.StringIO) as output:
+            result = portal_dev_reap.apply_cleanup(Path("/repo/cms"), initial)
+        self.assertEqual(result, 0)
+        run_mock.assert_not_called()
+        self.assertIn("Skipped: unresolved Herdr tasks", output.getvalue())
+
     def test_discovery_failure_never_authorizes_stale_cleanup(self):
         stale = target("worktree", "/repo/cms.stale", "stale", 18000)
         manager = portal_dev_reap.ProcessRef(123, 1, "process-compose", str(stale.path),
