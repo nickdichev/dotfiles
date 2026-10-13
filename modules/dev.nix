@@ -22,6 +22,9 @@ in
       (pkgs.callPackage ../pkgs/hunk { })
     ];
 
+    # Supply libpq's default trust store for verified PostgreSQL connections.
+    home.file.".postgresql/root.crt".source = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+
     programs.direnv = {
       enable = true;
       enableZshIntegration = true;
