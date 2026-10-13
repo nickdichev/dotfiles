@@ -14,7 +14,12 @@ let
 
   # Determinate Nixd's automatic GC is disabled on dev boxes, so this job owns
   # store GC (`clean all` includes `nix`). Both tools only act on what they can
-  # prove is stale; databases are never part of `all`.
+  # prove is stale; databases are never part of `all`. It cannot delete the
+  # root-owned system generations; the host configuration prunes those.
+  #
+  # launchd fires this hourly. It works every six hours, and on any tick where
+  # the disk is under pressure, when it also drops the idle window to zero.
+  pressureGib = 20;
   portalMaintenance = pkgs.writeShellApplication {
     name = "portal-maintenance";
     text = ''
@@ -26,11 +31,27 @@ let
       cd "$repo"
       status=0
 
+      stamp="$HOME/Library/Caches/portal-maintenance.last-run"
+      free=$(df -g "$HOME" | awk 'NR == 2 { print $4 }')
+      days=1
+      if [ "$free" -lt ${toString pressureGib} ]; then
+        days=0
+      elif [ -n "$(find "$stamp" -mmin -350 2>/dev/null)" ]; then
+        exit 0
+      fi
+      echo "== $(date -u +%FT%TZ) free ''${free} GiB; idle window ''${days}d"
+
       echo "== $(date -u +%FT%TZ) portal-dev-reap --apply"
       portal-dev-reap --repo "$repo" --apply || status=$?
 
-      echo "== $(date -u +%FT%TZ) portal-disk-maintenance clean all"
-      nix run "$repo#portal-disk-maintenance" -- clean all || status=$?
+      echo "== $(date -u +%FT%TZ) portal-disk-maintenance clean all --days $days"
+      nix run "$repo#portal-disk-maintenance" -- clean all --days "$days" || status=$?
+
+      # An LLM advisor decides the worktrees the proofs above cannot; only its
+      # high-confidence advice is applied, and removals keep the branch.
+      echo "== $(date -u +%FT%TZ) portal-disk-maintenance review --auto"
+      nix run "$repo#portal-disk-maintenance" -- review --auto || status=$?
+      touch "$stamp"
 
       echo "== $(date -u +%FT%TZ) done (status $status)"
       exit "$status"
@@ -65,12 +86,7 @@ in
       enable = true;
       config = {
         ProgramArguments = [ (lib.getExe portalMaintenance) ];
-        StartCalendarInterval = [
-          {
-            Hour = 4;
-            Minute = 30;
-          }
-        ];
+        StartInterval = 60 * 60;
         ProcessType = "Background";
         LowPriorityIO = true;
         Nice = 10;
