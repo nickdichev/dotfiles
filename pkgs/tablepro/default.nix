@@ -6,16 +6,16 @@
 }:
 
 let
-  version = "0.77.2";
+  version = "0.80.0";
 
   sources = {
     aarch64-darwin = {
       arch = "arm64";
-      hash = "sha256-xRpn+uCnay/EV4cLqYPfGukcPVoRUl3ShTSdTljVROg=";
+      hash = "sha256-smu4XhzhL/6/7XKWNv/0l7YpaE6Gv2X3xmSwqGH2ktM=";
     };
     x86_64-darwin = {
       arch = "x86_64";
-      hash = "sha256-uRu4WllcJ2VvitcqeVbzmhYhzSwF6wA5mA8bdl/eNhQ=";
+      hash = "sha256-w8TeeUbeQE4nQ7GPfQao7fGfPwuzK590/CYJ7ffHZhE=";
     };
   };
 
