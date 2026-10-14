@@ -22,7 +22,6 @@ in
     ./media-processing.nix
     (import ./maintenance.nix { inherit inputs; })
     (import ./neovim.nix { inherit inputs; })
-    (import ./omniwm.nix { inherit inputs; })
     ./onlyeq.nix
     ./scripts.nix
     ./secrets.nix
@@ -31,6 +30,7 @@ in
     ./hammerspoon.nix
     (import ./terminal.nix { inherit inputs; })
     (import ./utils.nix { inherit inputs; })
+    (import ./window-manager { inherit inputs; })
   ];
 
   options.profiles = {

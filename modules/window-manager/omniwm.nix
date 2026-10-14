@@ -6,7 +6,7 @@
   ...
 }:
 let
-  cfg = config.profiles.omniwm;
+  cfg = config.profiles.windowManager.omniwm;
   hasGui = config.profiles.hasGui;
   isAarch64Darwin = pkgs.stdenv.hostPlatform.system == "aarch64-darwin";
   pkgs-unstable = import inputs.nixpkgs-unstable { inherit (pkgs) system; };
@@ -22,9 +22,7 @@ let
   );
 in
 {
-  options.profiles.omniwm = {
-    enable = lib.mkEnableOption "OmniWM scrolling/tiling window manager";
-
+  options.profiles.windowManager.omniwm = {
     settingsPath = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
@@ -38,13 +36,8 @@ in
 
   # Home Manager's programs.omniwm only exists on master; this mirrors it so
   # consumers on older Home Manager pins can use OmniWM too.
-  config = lib.mkIf (cfg.enable && hasGui && isAarch64Darwin) {
+  config = lib.mkIf (config.profiles.windowManager.manager == "omniwm" && hasGui && isAarch64Darwin) {
     home.packages = [ omniwm ];
-
-    # OmniWM requires "Displays have separate Spaces"; takes effect after logout.
-    targets.darwin.defaults."com.apple.spaces".spans-displays = false;
-    # OmniWM owns workspace order; don't let macOS reshuffle native Spaces.
-    targets.darwin.defaults."com.apple.dock".mru-spaces = false;
 
     launchd.agents.omniwm = {
       enable = true;

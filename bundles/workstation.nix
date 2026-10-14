@@ -14,13 +14,14 @@
     media-processing.enable = true;
     maintenance.enable = true;
     neovim.enable = true;
-    omniwm.enable = true;
     scripts.enable = true;
     secrets.enable = true;
     shell.enable = true;
     ssh.enable = true;
     terminal.enable = true;
     utils.enable = true;
+    # OmniWM is still available: windowManager.manager = "omniwm".
+    windowManager.manager = "aerospace";
     wrk.enable = true;
   };
 }
