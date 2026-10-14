@@ -8,7 +8,6 @@
     dev.enable = true;
     fonts.enable = true;
     git.enable = true;
-    hammerspoon.enable = true;
     herdr.enable = true;
     herdr.terminalBrowser.enable = true;
     media-processing.enable = true;
