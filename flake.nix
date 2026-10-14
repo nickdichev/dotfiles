@@ -22,6 +22,9 @@
       flake = false;
     };
 
+    # Desktop app and backend, repackaged as Hermes.app in pkgs/hermes-desktop.
+    hermes-agent.url = "github:NousResearch/hermes-agent/v0.22.0";
+
     portal-nix-overlay.url = "github:Portal-Wholesale/nix-overlay";
   };
 

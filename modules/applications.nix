@@ -200,7 +200,13 @@ in
 
     ]
     ++ lib.optionals (hasGui && isAarch64Darwin) [
-      (pkgs.callPackage ../pkgs/hermes-desktop { })
+      (pkgs.callPackage ../pkgs/hermes-desktop {
+        hermes-agent = inputs.hermes-agent.packages.${pkgs.system}.default;
+        hermes-desktop = inputs.hermes-agent.packages.${pkgs.system}.desktop;
+        # Same electron upstream built the app and its native modules against.
+        electron = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.system}.electron;
+        icon = "${inputs.hermes-agent}/apps/desktop/assets/icon.icns";
+      })
       (pkgs.callPackage ../pkgs/vicinae { })
     ]
     ++ lib.optionals (hasGui && isLinux) [

@@ -1,60 +1,58 @@
 {
   lib,
-  buildNpmPackage,
-  fetchFromGitHub,
-  electron_42,
+  stdenvNoCC,
+  python3,
+  hermes-agent,
+  hermes-desktop,
+  electron,
+  icon,
 }:
 
-let
-  version = "0.17.6";
-  rev = "d337b736aa1e8ebecfab043842d13e4a2d2f48a3";
-in
-buildNpmPackage {
-  pname = "hermes-desktop";
-  inherit version;
+# Upstream's flake builds the app and its Python backend, but ships them as a
+# Linux-style electron wrapper. Repackage that as Hermes.app so macOS shows a
+# real app in the Dock and launchers.
+stdenvNoCC.mkDerivation {
+  pname = "hermes-desktop-app";
+  version = hermes-desktop.version;
 
-  src = fetchFromGitHub {
-    owner = "NousResearch";
-    repo = "hermes-agent";
-    inherit rev;
-    hash = "sha256-0pfylDk73diMdpQH/YyRWpvon+w4YWBRS3uj8T67qHI=";
-  };
+  dontUnpack = true;
+  dontBuild = true;
 
-  npmWorkspace = "apps/desktop";
-  npmDepsHash = "sha256-o8yTDwsr6mbXuUUybvoqS9+jj/xNfJGs58xvYksls6k=";
-
-  env = {
-    ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
-    GITHUB_SHA = rev;
-    GITHUB_REF_NAME = "main";
-  };
-
-  dontNpmBuild = true;
-
-  buildPhase = ''
-    runHook preBuild
-
-    npm run build --workspace apps/desktop
-
-    electron_dist="$PWD/electron-dist"
-    cp -R ${electron_42.dist}/. "$electron_dist"
-    chmod -R u+w "$electron_dist"
-
-    npm run builder --workspace apps/desktop -- \
-      --dir \
-      -c.electronDist="$electron_dist" \
-      -c.electronVersion=${electron_42.version} \
-      -c.mac.identity=null
-
-    runHook postBuild
-  '';
+  nativeBuildInputs = [ python3 ];
 
   installPhase = ''
     runHook preInstall
 
+    app=$out/Applications/Hermes.app
     mkdir -p $out/Applications
-    cp -R apps/desktop/release/mac-arm64/Hermes.app $out/Applications/
-    /usr/bin/codesign --force --deep --sign - $out/Applications/Hermes.app
+    cp -R ${electron}/Applications/Electron.app $app
+    chmod -R u+w $app
+
+    rm -f $app/Contents/Resources/default_app.asar
+    # codesign rejects symlinks that leave the bundle, so copy the app in.
+    cp -R ${hermes-desktop}/share/hermes-desktop $app/Contents/Resources/app
+    cp ${icon} $app/Contents/Resources/hermes.icns
+
+    python3 - $app/Contents/Info.plist <<'EOF'
+    import plistlib, sys
+    path = sys.argv[1]
+    with open(path, "rb") as f:
+        info = plistlib.load(f)
+    info.update(
+        CFBundleName="Hermes",
+        CFBundleDisplayName="Hermes",
+        CFBundleIdentifier="com.nousresearch.hermes",
+        CFBundleIconFile="hermes.icns",
+        LSEnvironment={
+            "HERMES_DESKTOP_HERMES": "${lib.getExe hermes-agent}",
+            "ELECTRON_IS_DEV": "0",
+        },
+    )
+    with open(path, "wb") as f:
+        plistlib.dump(info, f)
+    EOF
+
+    /usr/bin/codesign --force --deep --sign - $app
 
     runHook postInstall
   '';
@@ -64,6 +62,5 @@ buildNpmPackage {
     homepage = "https://hermes-agent.nousresearch.com/desktop";
     license = lib.licenses.mit;
     platforms = [ "aarch64-darwin" ];
-    mainProgram = "Hermes";
   };
 }
