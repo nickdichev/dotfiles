@@ -14,6 +14,7 @@
     media-processing.enable = true;
     maintenance.enable = true;
     neovim.enable = true;
+    omniwm.enable = true;
     scripts.enable = true;
     secrets.enable = true;
     shell.enable = true;
