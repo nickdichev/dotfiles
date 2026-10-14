@@ -34,6 +34,8 @@ in
 
     # OmniWM requires "Displays have separate Spaces"; takes effect after logout.
     targets.darwin.defaults."com.apple.spaces".spans-displays = false;
+    # OmniWM owns workspace order; don't let macOS reshuffle native Spaces.
+    targets.darwin.defaults."com.apple.dock".mru-spaces = false;
 
     launchd.agents.omniwm = {
       enable = true;
