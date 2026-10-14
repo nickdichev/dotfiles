@@ -32,6 +32,9 @@ in
   config = lib.mkIf (cfg.enable && hasGui && isAarch64Darwin) {
     home.packages = [ omniwm ];
 
+    # OmniWM requires "Displays have separate Spaces"; takes effect after logout.
+    targets.darwin.defaults."com.apple.spaces".spans-displays = false;
+
     launchd.agents.omniwm = {
       enable = true;
       config = {
