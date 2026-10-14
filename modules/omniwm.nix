@@ -10,7 +10,16 @@ let
   hasGui = config.profiles.hasGui;
   isAarch64Darwin = pkgs.stdenv.hostPlatform.system == "aarch64-darwin";
   pkgs-unstable = import inputs.nixpkgs-unstable { inherit (pkgs) system; };
-  omniwm = pkgs-unstable.omniwm;
+  # Ahead of nixpkgs for general.animationSpeed (0.7.5+).
+  omniwm = pkgs-unstable.omniwm.overrideAttrs (
+    finalAttrs: _: {
+      version = "0.7.6";
+      src = pkgs.fetchurl {
+        url = "https://github.com/OmniNull/OmniWM/releases/download/v${finalAttrs.version}/OmniWM-v${finalAttrs.version}.zip";
+        hash = "sha256-7IxhRqbyGnnhxArHDWESF2K5PPU80wjmPrROis4g/Nw=";
+      };
+    }
+  );
 in
 {
   options.profiles.omniwm = {
