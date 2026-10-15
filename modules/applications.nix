@@ -190,7 +190,6 @@ in
       installSlackUpdatePolicy
       altTabPackage
       pkgs-unstable.blackhole
-      pkgs-unstable.orbstack
 
       (pkgs.callPackage ../pkgs/rustdesk { })
       (pkgs.callPackage ../pkgs/redisinsight { })

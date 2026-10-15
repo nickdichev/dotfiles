@@ -285,15 +285,12 @@ in
         vim = "nvim";
         watch = "viddy";
         lis = "listening";
+        mole = "mo";
 
         gg = "lazygit";
-        gd = "lazydocker";
 
         drr = "direnv reload";
 
-        cl = "claude";
-        clc = "claude --continue";
-        clr = "claude --resume";
         dclaude = "claude --dangerously-skip-permissions";
         dc = "dclaude";
         dcc = "dclaude --continue";

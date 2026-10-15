@@ -10,13 +10,6 @@ in
       enable = true;
       enableDefaultConfig = false;
 
-      # These tools manage their own SSH host entries. Missing include files
-      # are ignored by OpenSSH, so this remains portable to non-Darwin hosts.
-      includes = [
-        "~/.orbstack/ssh/config"
-        "~/.colima/ssh_config"
-      ];
-
       settings = {
         "github.com" = {
           HostName = "github.com";

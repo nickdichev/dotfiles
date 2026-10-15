@@ -503,25 +503,6 @@ let
     }
 
     {
-      description = "Run a command in the background, silencing output";
-      example = "bb open .";
-      package = pkgs.writeShellApplication {
-        name = "bb";
-        text = ''
-          if test -t 1; then
-            exec 1>/dev/null
-          fi
-
-          if test -t 2; then
-            exec 2>/dev/null
-          fi
-
-          "$@" &
-        '';
-      };
-    }
-
-    {
       description = "Interactively kill processes by pid, name, or port";
       example = "murder :3000";
       package = pkgs.writers.writeRubyBin "murder" { } ''

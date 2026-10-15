@@ -27,9 +27,9 @@ in
       pkgs.bkt
       pkgs.curl
       pkgs.fd
+      pkgs.glow
       pkgs.graphviz
       # pkgs.inetutils
-      pkgs.lazydocker
       pkgs.lolcat
       pkgs.ripgrep
       pkgs.up
@@ -37,6 +37,8 @@ in
       pkgs.wget
       pkgs-unstable.tailscale
     ];
+
+    programs.nh.enable = true;
 
     programs.bat = {
       enable = true;
