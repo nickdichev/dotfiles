@@ -109,6 +109,22 @@
         }
       );
 
+      # Standalone packages from pkgs/, limited to each package's meta.platforms.
+      # hermes-desktop is omitted because it needs the hermes-agent input's builds.
+      packages = forEachSupportedSystem (
+        { pkgs, ... }:
+        let
+          inherit (inputs.nixpkgs) lib;
+          names = lib.attrNames (
+            lib.filterAttrs (name: type: type == "directory" && name != "hermes-desktop") (
+              builtins.readDir ./pkgs
+            )
+          );
+          all = lib.genAttrs names (name: pkgs.callPackage ./pkgs/${name} { });
+        in
+        lib.filterAttrs (_: pkg: lib.meta.availableOn pkgs.stdenv.hostPlatform pkg) all
+      );
+
       formatter = forEachSupportedSystem ({ pkgs, ... }: pkgs.nixfmt);
     };
 }
