@@ -1,3 +1,7 @@
+# Home Manager links this file read-only, so Herdr cannot record that
+# onboarding finished; settle it here instead.
+onboarding = false
+
 [experimental]
 kitty_graphics = true
 
