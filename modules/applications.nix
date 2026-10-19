@@ -16,6 +16,23 @@ let
     config.allowUnfree = true;
   };
   altTabPackage = pkgs.callPackage ../pkgs/alt-tab-macos-bin { };
+  vicinaePackage = pkgs.callPackage ../pkgs/vicinae { };
+  # Ids derive from the name so a link keeps its open count across switches;
+  # the "hm-" prefix marks the entries this module owns in shortcuts.json.
+  vicinaeQuicklinks = lib.mapAttrsToList (name: link: {
+    id = "hm-${builtins.substring 0 12 (builtins.hashString "sha256" name)}";
+    inherit name;
+    inherit (link) url app;
+    icon =
+      if link.icon != null then
+        link.icon
+      else
+        "icon://favicon/${hostOf link.url}?fallback=icon://builtin/link";
+  }) (lib.filterAttrs (_: link: link.enable) cfg.vicinae.quicklinks);
+  hostOf = url: builtins.head (builtins.match "[a-z]+://([^/:?#]+).*" url);
+  vicinaeQuicklinksFile = pkgs.writeText "vicinae-quicklinks.json" (
+    builtins.toJSON vicinaeQuicklinks
+  );
   altTabBundleIdentifier = "com.lwouis.alt-tab-macos";
   githubPrTitleUserscript = pkgs.writeText "github-pr-title.user.js" ''
     // ==UserScript==
@@ -117,9 +134,99 @@ let
   };
 in
 {
-  options.profiles.applications.enable = lib.mkEnableOption "Desktop applications (obsidian, vicinae, Hermes, tablepro, rustdesk)";
+  options.profiles.applications = {
+    enable = lib.mkEnableOption "Desktop applications (obsidian, vicinae, Hermes, tablepro, rustdesk)";
+
+    vicinae.quicklinks = lib.mkOption {
+      description = ''
+        Vicinae quicklinks keyed by display name. Consumers can add links per
+        machine or set `enable = false` to drop a shared one. Links created in
+        the Vicinae UI are left alone.
+      '';
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            enable = lib.mkOption {
+              type = lib.types.bool;
+              default = true;
+            };
+            url = lib.mkOption {
+              type = lib.types.str;
+              description = "Link to open; may use Vicinae's {argument} placeholders.";
+            };
+            icon = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "Vicinae icon URI; defaults to the site's favicon.";
+            };
+            app = lib.mkOption {
+              type = lib.types.str;
+              default = "default";
+              description = "Application that opens the link.";
+            };
+          };
+        }
+      );
+      default = { };
+    };
+  };
 
   config = lib.mkIf cfg.enable {
+    profiles.applications.vicinae.quicklinks = import ../config/vicinae/quicklinks.nix;
+
+    # Vicinae rewrites shortcuts.json whenever a link is opened or edited, so
+    # it cannot be a store symlink. Merge the declared links into it instead,
+    # carrying over usage stats, and restart Vicinae, which only reads the
+    # file at startup and would otherwise write its stale copy back.
+    home.activation.syncVicinaeQuicklinks = lib.mkIf (hasGui && isAarch64Darwin) (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        shortcuts_file="${config.xdg.dataHome}/vicinae/shortcuts/shortcuts.json"
+        current='[]'
+        if [[ -s "$shortcuts_file" ]]; then
+          current=$(${pkgs.coreutils}/bin/cat "$shortcuts_file")
+        fi
+
+        merged=$(${pkgs.jq}/bin/jq -c --slurpfile declared ${vicinaeQuicklinksFile} \
+          --argjson now "$(${pkgs.coreutils}/bin/date +%s)" '
+          $declared[0] as $declared
+          | . as $current
+          | ($declared | map(.id)) as $ids
+          | ($declared | map(.name)) as $names
+          | [ .[] | select((.id | startswith("hm-") | not) and ((.name | IN($names[])) | not)) ]
+          + [ $declared[] as $d
+              | ([ $current[] | select(.id == $d.id) ] + [ $current[] | select(.name == $d.name) ])[0] as $old
+              | $d + {
+                  openCount: ($old.openCount // 0),
+                  createdAt: ($old.createdAt // $now),
+                  updatedAt: (if $old != null and ($old | {name, url, icon, app}) == ($d | {name, url, icon, app})
+                    then $old.updatedAt else $now end)
+                }
+              + (if $old.lastUsedAt != null then { lastUsedAt: $old.lastUsedAt } else {} end) ]
+        ' <<<"$current")
+
+        if [[ "$merged" != "$(${pkgs.jq}/bin/jq -c . <<<"$current")" ]]; then
+          was_running=false
+          if /usr/bin/pgrep -qx Vicinae; then
+            was_running=true
+            $DRY_RUN_CMD /usr/bin/pkill -x Vicinae
+            for _ in $(${pkgs.coreutils}/bin/seq 50); do
+              /usr/bin/pgrep -qx Vicinae || break
+              ${pkgs.coreutils}/bin/sleep 0.1
+            done
+          fi
+
+          $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p "$(${pkgs.coreutils}/bin/dirname "$shortcuts_file")"
+          if [[ -z "''${DRY_RUN:-}" ]]; then
+            printf '%s\n' "$merged" >"$shortcuts_file"
+          fi
+
+          if $was_running; then
+            $DRY_RUN_CMD /usr/bin/open -g ${vicinaePackage}/Applications/Vicinae.app
+          fi
+        fi
+      ''
+    );
+
     home.activation.copyUserscripts = lib.mkIf (hasGui && isDarwin) (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         userscripts_dir="$HOME/.config/userscripts"
@@ -206,7 +313,7 @@ in
         electron = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.system}.electron;
         icon = "${inputs.hermes-agent}/apps/desktop/assets/icon.icns";
       })
-      (pkgs.callPackage ../pkgs/vicinae { })
+      vicinaePackage
     ]
     ++ lib.optionals (hasGui && isLinux) [
       pkgs.redisinsight
