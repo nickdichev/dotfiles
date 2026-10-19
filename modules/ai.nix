@@ -67,7 +67,6 @@ in
 
       skills = {
         creating-skills = ../config/claude/skills/creating-skills;
-        herdr = herdrSkill;
         playwright-cli = ../config/claude/skills/playwright-cli;
         watch-ci = ../config/skills/watch-ci;
         working-with-nixbot = ../config/skills/working-with-nixbot;
@@ -155,6 +154,14 @@ in
       };
 
       ".agents/skills/herdr" = {
+        source = herdrSkill;
+        recursive = true;
+      };
+
+      # Not in programs.claude-code.skills: that option inspects its value at
+      # evaluation time (lib.pathIsDirectory), which forces herdr to build
+      # while evaluating. home.file only needs the path when it builds.
+      "${config.programs.claude-code.configDir}/skills/herdr" = {
         source = herdrSkill;
         recursive = true;
       };
