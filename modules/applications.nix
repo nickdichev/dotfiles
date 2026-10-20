@@ -9,7 +9,6 @@ let
   cfg = config.profiles.applications;
   hasGui = config.profiles.hasGui;
   isDarwin = pkgs.stdenv.isDarwin;
-  isLinux = pkgs.stdenv.isLinux;
   isAarch64Darwin = pkgs.stdenv.hostPlatform.system == "aarch64-darwin";
   pkgs-unstable = import inputs.nixpkgs-unstable {
     inherit (pkgs) system;
@@ -293,6 +292,7 @@ in
       pkgs.obsidian
       pkgs.slack
       pkgs-unstable.telegram-desktop
+      (pkgs.callPackage ../pkgs/zedis { })
     ]
     ++ lib.optionals (hasGui && isDarwin) [
 
@@ -301,7 +301,6 @@ in
       pkgs-unstable.blackhole
 
       (pkgs.callPackage ../pkgs/rustdesk { })
-      (pkgs.callPackage ../pkgs/redisinsight { })
       (pkgs.callPackage ../pkgs/handy { })
       (pkgs.callPackage ../pkgs/tablepro { })
       (pkgs.callPackage ../pkgs/orcaslicer { })
@@ -316,9 +315,6 @@ in
         icon = "${inputs.hermes-agent}/apps/desktop/assets/icon.icns";
       })
       vicinaePackage
-    ]
-    ++ lib.optionals (hasGui && isLinux) [
-      pkgs.redisinsight
     ];
   };
 }

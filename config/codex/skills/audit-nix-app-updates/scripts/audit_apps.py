@@ -35,9 +35,9 @@ GITHUB_PACKAGES = {
         "repo": "TableProApp/TablePro",
         "asset_regex": r"TablePro-.*-(arm64|x86_64)\.(zip|dmg)$",
     },
-    "redisinsight": {
-        "file": "pkgs/redisinsight/default.nix",
-        "repo": "redis/RedisInsight",
+    "zedis": {
+        "file": "pkgs/zedis/default.nix",
+        "repo": "vicanso/zedis",
     },
     "handy": {
         "file": "pkgs/handy/default.nix",
@@ -62,7 +62,6 @@ BREW_CASKS = {
     "blackhole": "blackhole-2ch",
     "godot": "godot",
     "obsidian": "obsidian",
-    "redisinsight": "redis-insight",
     "rustdesk": "rustdesk",
     "slack": "slack",
 }
@@ -78,7 +77,6 @@ in {
   stable = {
     obsidian = get stable.obsidian;
     slack = get stable.slack;
-    redisinsight = get stable.redisinsight;
   };
   unstable = {
     blackhole = get unstable.blackhole;
