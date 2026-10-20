@@ -34,6 +34,7 @@ let
     builtins.toJSON vicinaeQuicklinks
   );
   altTabBundleIdentifier = "com.lwouis.alt-tab-macos";
+  mergifyUserscript = pkgs.callPackage ../pkgs/mergify-userscript { };
   githubPrTitleUserscript = pkgs.writeText "github-pr-title.user.js" ''
     // ==UserScript==
     // @name        GitHub PR number first in title
@@ -230,11 +231,11 @@ in
     home.activation.copyUserscripts = lib.mkIf (hasGui && isDarwin) (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         userscripts_dir="$HOME/.config/userscripts"
-        userscript_file="$userscripts_dir/github-pr-title.user.js"
 
         $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p "$userscripts_dir"
-        $DRY_RUN_CMD ${pkgs.coreutils}/bin/rm -f "$userscript_file"
-        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 ${githubPrTitleUserscript} "$userscript_file"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/rm -f "$userscripts_dir/github-pr-title.user.js" "$userscripts_dir/mergify.user.js"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 ${githubPrTitleUserscript} "$userscripts_dir/github-pr-title.user.js"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -m 0644 ${mergifyUserscript}/mergify.user.js "$userscripts_dir/mergify.user.js"
       ''
     );
     home.activation.checkSlackUpdatePolicy = lib.mkIf (hasGui && isDarwin) (
