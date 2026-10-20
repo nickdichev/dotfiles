@@ -35,6 +35,7 @@ stdenvNoCC.mkDerivation {
     // @description Mergify panel for GitHub pull requests (from the Mergify Firefox add-on ${version}, Apache-2.0)
     // @version     ${version}
     // @match       https://github.com/*
+    // @inject-into content
     // @run-at      document-idle
     // ==/UserScript==
 

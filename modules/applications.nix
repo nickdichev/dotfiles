@@ -38,8 +38,9 @@ let
   githubPrTitleUserscript = pkgs.writeText "github-pr-title.user.js" ''
     // ==UserScript==
     // @name        GitHub PR number first in title
-    // @match       https://github.com/*/*/pull/*
-    // @run-at      document-start
+    // @match       https://github.com/*
+    // @inject-into content
+    // @run-at      document-end
     // ==/UserScript==
 
     (() => {
