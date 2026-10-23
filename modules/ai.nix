@@ -84,6 +84,7 @@ in
         attribution = {
           commit = "";
           pr = "";
+          sessionUrl = false;
         };
 
         statusLine = {
@@ -95,6 +96,10 @@ in
 
       mcpServers = mcpServers;
     };
+
+    # Even with blank attribution, Claude Code appends a `Claude-Session:` trailer
+    # to commits from remote/bridged sessions unless this is set.
+    home.sessionVariables.CLAUDE_CODE_SUPPRESS_SESSION_ATTRIBUTION = "1";
 
     home.packages = [
       codex-profiles
