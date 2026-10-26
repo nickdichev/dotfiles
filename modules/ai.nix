@@ -66,7 +66,9 @@ in
       commandsDir = ../config/claude/commands;
 
       skills = {
+        clean-stale-herdr = ../config/claude/skills/clean-stale-herdr;
         creating-skills = ../config/claude/skills/creating-skills;
+        herdr-orchestrator = ../config/claude/skills/herdr-orchestrator;
         playwright-cli = ../config/claude/skills/playwright-cli;
         watch-ci = ../config/skills/watch-ci;
         working-with-nixbot = ../config/skills/working-with-nixbot;
