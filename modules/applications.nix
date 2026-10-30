@@ -332,7 +332,6 @@ in
       pkgs-unstable.godot
       pkgs.obsidian
       pkgs.slack
-      pkgs-unstable.telegram-desktop
       (pkgs.callPackage ../pkgs/zedis { })
     ]
     ++ lib.optionals (hasGui && isDarwin) [

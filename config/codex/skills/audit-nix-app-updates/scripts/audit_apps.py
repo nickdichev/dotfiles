@@ -48,10 +48,6 @@ GITHUB_PACKAGES = {
         "repo": "vicinaehq/vicinae",
         "asset_regex": r"Vicinae\.dmg$",
     },
-    "telegram-desktop": {
-        "file": "pkgs/telegram-desktop/default.nix",
-        "repo": "telegramdesktop/tdesktop",
-    },
 }
 
 BREW_CASKS = {
