@@ -16,6 +16,7 @@ let
   };
   altTabPackage = pkgs.callPackage ../pkgs/alt-tab-macos-bin { };
   vicinaePackage = pkgs.callPackage ../pkgs/vicinae { };
+  vicinaeAgentLabel = "org.nix-community.home.vicinae";
   # Ids derive from the name so a link keeps its open count across switches;
   # the "hm-" prefix marks the entries this module owns in shortcuts.json.
   vicinaeQuicklinks = lib.mapAttrsToList (name: link: {
@@ -180,7 +181,7 @@ in
     # carrying over usage stats, and restart Vicinae, which only reads the
     # file at startup and would otherwise write its stale copy back.
     home.activation.syncVicinaeQuicklinks = lib.mkIf (hasGui && isAarch64Darwin) (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      lib.hm.dag.entryAfter [ "writeBoundary" "setupLaunchAgents" ] ''
         shortcuts_file="${config.xdg.dataHome}/vicinae/shortcuts/shortcuts.json"
         current='[]'
         if [[ -s "$shortcuts_file" ]]; then
@@ -221,8 +222,11 @@ in
             printf '%s\n' "$merged" >"$shortcuts_file"
           fi
 
+          # Activation runs under sudo, outside the GUI session, so `open` can
+          # fail with LaunchServices error -600. Don't fail the switch over it.
           if $was_running; then
-            $DRY_RUN_CMD /usr/bin/open -g ${vicinaePackage}/Applications/Vicinae.app
+            $DRY_RUN_CMD /bin/launchctl kickstart "gui/$(/usr/bin/id -u)/${vicinaeAgentLabel}" \
+              || echo "warning: couldn't relaunch Vicinae; start it manually" >&2
           fi
         fi
       ''
@@ -274,6 +278,43 @@ in
         $DRY_RUN_CMD /bin/rm -f "$legacy_agent"
       ''
     );
+    # Vicinae extensions shell out to `node`, which a login item launched by
+    # LaunchServices can't find on launchd's default PATH. Start it from a
+    # launchd agent that sets PATH instead.
+    home.activation.configureVicinae = lib.mkIf (hasGui && isAarch64Darwin) (
+      lib.hm.dag.entryBefore [ "setupLaunchAgents" ] ''
+        if /usr/bin/osascript -e 'tell application "System Events" to exists login item "Vicinae"' 2>/dev/null | /usr/bin/grep -q true; then
+          $DRY_RUN_CMD /usr/bin/osascript -e 'tell application "System Events" to delete login item "Vicinae"' >/dev/null \
+            || echo "warning: couldn't remove the Vicinae login item; remove it in System Settings" >&2
+        fi
+
+        # Stop a copy started outside the agent so the agent's RunAtLoad
+        # launches the one with the right PATH.
+        if ! /bin/launchctl print "gui/$(/usr/bin/id -u)/${vicinaeAgentLabel}" >/dev/null 2>&1 \
+          && /usr/bin/pgrep -qx Vicinae; then
+          $DRY_RUN_CMD /usr/bin/pkill -x Vicinae || true
+        fi
+      ''
+    );
+    launchd.agents.vicinae = lib.mkIf (hasGui && isAarch64Darwin) {
+      enable = true;
+      config = {
+        Label = vicinaeAgentLabel;
+        Program = "${vicinaePackage}/Applications/Vicinae.app/Contents/MacOS/Vicinae";
+        RunAtLoad = true;
+        LimitLoadToSessionType = "Aqua";
+        ProcessType = "Interactive";
+        AssociatedBundleIdentifiers = "com.vicinaehq.Vicinae";
+        EnvironmentVariables.PATH = lib.concatStringsSep ":" [
+          (lib.makeBinPath [ pkgs.nodejs ])
+          "${config.home.profileDirectory}/bin"
+          "/usr/bin"
+          "/bin"
+          "/usr/sbin"
+          "/sbin"
+        ];
+      };
+    };
     launchd.agents.alt-tab = lib.mkIf (hasGui && isDarwin) {
       enable = true;
       config = {
