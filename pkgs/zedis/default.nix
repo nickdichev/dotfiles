@@ -12,24 +12,24 @@
 }:
 
 let
-  version = "0.14.0";
+  version = "0.15.1";
 
   sources = {
     aarch64-darwin = {
       file = "Zedis-aarch64.dmg";
-      hash = "sha256-lQRL9++5RXVyVnTgqmGZa1uuQqyxnBidXDutdfhoYw4=";
+      hash = "sha256-9Z3l8W6Mty/s6cbcQBGP9msy2yPYLPZlNH7fJHyT2Gw=";
     };
     x86_64-darwin = {
       file = "Zedis-x86_64.dmg";
-      hash = "sha256-u/J3nI/uUSck075JNEiOKS7/CEwMZAn/KL+V/WkMCZ0=";
+      hash = "sha256-uiosbscLFSuhvn+XLxdlVZwfXajwkOnOmW1OrPOHt3Q=";
     };
     aarch64-linux = {
       file = "zedis-linux-aarch64.tar.gz";
-      hash = "sha256-Of/OD+6l36FuV0DaxHrbcEvHd/IuxCOYbgeYFq63tnc=";
+      hash = "sha256-k3x2Kk15uefnbmizDkyvjbJWU5K7HO/oUtOMy/wRv3k=";
     };
     x86_64-linux = {
       file = "zedis-linux-x86_64.tar.gz";
-      hash = "sha256-WWvU8XpFKQvEeeN5Am+zLBgB/+LGLYEQse9z5TdzVg8=";
+      hash = "sha256-BdgT+ebV02Yfi1uc92Dw2MKMscw2GdH67UaId3efZHc=";
     };
   };
 

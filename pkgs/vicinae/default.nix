@@ -6,7 +6,7 @@
 }:
 
 let
-  version = "0.29.1";
+  version = "0.29.2";
 in
 stdenvNoCC.mkDerivation {
   pname = "vicinae";
@@ -14,7 +14,7 @@ stdenvNoCC.mkDerivation {
 
   src = fetchurl {
     url = "https://github.com/vicinaehq/vicinae/releases/download/v${version}/Vicinae.dmg";
-    hash = "sha256-6DzvD5rVz/MXLUUgBUUo5PQd59ks0KTAp4kOzk79bh8=";
+    hash = "sha256-el8p0VnIHL9Jr1QA2PnLsuZbsGpy3Q1Ok8hIqtPqpOA=";
   };
 
   sourceRoot = ".";

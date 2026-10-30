@@ -2,37 +2,22 @@
   lib,
   stdenv,
   fetchurl,
-  unzip,
 }:
 
 let
-  version = "0.80.0";
-
-  sources = {
-    aarch64-darwin = {
-      arch = "arm64";
-      hash = "sha256-smu4XhzhL/6/7XKWNv/0l7YpaE6Gv2X3xmSwqGH2ktM=";
-    };
-    x86_64-darwin = {
-      arch = "x86_64";
-      hash = "sha256-w8TeeUbeQE4nQ7GPfQao7fGfPwuzK590/CYJ7ffHZhE=";
-    };
-  };
-
-  source = sources.${stdenv.hostPlatform.system};
+  version = "0.83.0";
 in
 stdenv.mkDerivation {
   pname = "tablepro";
   inherit version;
 
   src = fetchurl {
-    url = "https://github.com/TableProApp/TablePro/releases/download/v${version}/TablePro-${version}-${source.arch}.zip";
-    inherit (source) hash;
+    # Universal (arm64 + x86_64) app bundle.
+    url = "https://github.com/TableProApp/TablePro/releases/download/v${version}/TablePro-${version}.tar.xz";
+    hash = "sha256-PioL1eIeFjcQSpyDISm7rtj1MGasWC1INkzJu34mUMI=";
   };
 
   sourceRoot = ".";
-
-  nativeBuildInputs = [ unzip ];
 
   dontStrip = true;
   dontPatchShebangs = true;
@@ -43,7 +28,7 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
     mkdir -p $out/Applications
-    cp -R TablePro-${source.arch}.app $out/Applications/TablePro.app
+    cp -R TablePro.app $out/Applications/TablePro.app
     runHook postInstall
   '';
 
@@ -51,7 +36,10 @@ stdenv.mkDerivation {
     description = "Native database client for macOS";
     homepage = "https://tableproapp.com";
     license = lib.licenses.unfree;
-    platforms = builtins.attrNames sources;
+    platforms = [
+      "aarch64-darwin"
+      "x86_64-darwin"
+    ];
     mainProgram = "TablePro";
     sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
   };

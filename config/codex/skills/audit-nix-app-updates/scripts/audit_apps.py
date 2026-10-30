@@ -26,14 +26,10 @@ GITHUB_PACKAGES = {
         "file": "pkgs/hammerspoon/default.nix",
         "repo": "Hammerspoon/hammerspoon",
     },
-    "hunk": {
-        "file": "pkgs/hunk/default.nix",
-        "repo": "modem-dev/hunk",
-    },
     "tablepro": {
         "file": "pkgs/tablepro/default.nix",
         "repo": "TableProApp/TablePro",
-        "asset_regex": r"TablePro-.*-(arm64|x86_64)\.(zip|dmg)$",
+        "asset_regex": r"TablePro-[0-9.]+\.(tar\.xz|dmg)$",
     },
     "zedis": {
         "file": "pkgs/zedis/default.nix",

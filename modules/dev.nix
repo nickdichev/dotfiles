@@ -19,7 +19,6 @@ in
       pkgs.just
       pkgs-unstable.niks3
       inputs.devenv.packages.${pkgs.system}.devenv
-      (pkgs.callPackage ../pkgs/hunk { })
     ];
 
     # Supply libpq's default trust store for verified PostgreSQL connections.
