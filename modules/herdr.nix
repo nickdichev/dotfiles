@@ -25,10 +25,16 @@ let
   ];
   terminalBrowser = pkgs.callPackage ../pkgs/terminal-browser { };
   terminalBrowserPlugin = "${inputs.terminal-browser-src}/herdr-plugin";
+  desktop = pkgs.callPackage ../pkgs/herdr-app { };
+  desktopSupported = lib.meta.availableOn pkgs.stdenv.hostPlatform desktop;
 in
 {
   options.profiles.herdr = {
     enable = lib.mkEnableOption "Herdr terminal agent multiplexer";
+
+    desktop.enable = lib.mkEnableOption "Herdr desktop app and its core backend" // {
+      default = config.profiles.hasGui && desktopSupported;
+    };
 
     terminalBrowser.enable = lib.mkEnableOption "Terminal Browser with its Herdr plugin";
   };
@@ -63,6 +69,16 @@ in
           fi
         '';
       }
+
+      (lib.mkIf cfg.desktop.enable {
+        assertions = [
+          {
+            assertion = desktopSupported;
+            message = "Herdr desktop does not publish a binary for ${pkgs.system}.";
+          }
+        ];
+        home.packages = lib.optional desktopSupported desktop;
+      })
 
       (lib.mkIf cfg.terminalBrowser.enable {
         assertions = [
