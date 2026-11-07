@@ -85,6 +85,7 @@
         maintenance = import ./modules/maintenance.nix { inherit inputs; };
         neovim = import ./modules/neovim.nix { inherit inputs; };
         onlyeq = import ./modules/onlyeq.nix;
+        orchestrator = import ./modules/orchestrator.nix;
         scripts = import ./modules/scripts.nix;
         secrets = import ./modules/secrets.nix;
         shell = import ./modules/shell.nix { inherit inputs; };
@@ -123,6 +124,14 @@
           all = lib.genAttrs names (name: pkgs.callPackage ./pkgs/${name} { });
         in
         lib.filterAttrs (_: pkg: lib.meta.availableOn pkgs.stdenv.hostPlatform pkg) all
+      );
+
+      checks = forEachSupportedSystem (
+        { pkgs, ... }:
+        import ./tests/orchestrator.nix {
+          inherit pkgs;
+          herdr-orch = self.packages.${pkgs.system}.herdr-orch;
+        }
       );
 
       formatter = forEachSupportedSystem ({ pkgs, ... }: pkgs.nixfmt);

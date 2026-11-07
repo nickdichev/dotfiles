@@ -23,6 +23,7 @@ in
     (import ./maintenance.nix { inherit inputs; })
     (import ./neovim.nix { inherit inputs; })
     ./onlyeq.nix
+    ./orchestrator.nix
     ./scripts.nix
     ./secrets.nix
     (import ./shell.nix { inherit inputs; })
