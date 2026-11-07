@@ -100,6 +100,26 @@ in
       fallbackCheckMinutes = int 120 "Interval of the orchestrator's one CronCreate fallback, for a dead watcher. Over an hour, so a quiet hour usually costs no orchestrator turn.";
       maxNudges = int 1 "Canned nudges the watcher may send a worker between reports before escalating.";
       reportGraceSeconds = int 120 "How long a new report may wait for the worker's own message before the watcher announces it.";
+      waitingMaxMinutes = int 120 "A worker whose report says WAITING_CI or WAITING_REVIEW gets no nudges; after this long the watcher escalates the wait.";
+    };
+
+    olive = {
+      enable = mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Gate "ready" reports on the Olive PR review. For PRs in `repos`, the
+          watcher reads Olive's summary comment and sends one OLIVE event when
+          every specialist has reported on the PR's current head, and
+          `herdr-orch olive <pr>` lists its blocking items.
+        '';
+      };
+      repos = mkOption {
+        type = types.listOf types.str;
+        default = [ "Portal-Wholesale/cms" ];
+        description = "`owner/repo` names whose PRs Olive reviews.";
+      };
+      marker = str "<!-- olive-pr-specialist-review:v1 -->" "HTML comment that marks Olive's summary comment.";
     };
 
     classifier = {
@@ -142,7 +162,7 @@ in
     };
 
     nudges = {
-      report = str "Write your report file now at {report} from the template in your brief (status, summary, PR, tests, open questions, files touched; at most 40 lines), then notify the orchestrator as your brief says and stop." "Sent to a worker that went idle without a report. {report} is replaced with its path.";
+      report = str "Write your report file now at {report} from the template in your brief (status, summary, PR, head, tests, typecheck, open questions, files touched; at most 40 lines), then notify the orchestrator as your brief says and stop. If you are only waiting on CI or a review, use status WAITING_CI or WAITING_REVIEW and don't notify." "Sent to a worker that went idle without a report. {report} is replaced with its path.";
       routine = str "Use your judgement within the brief's scope and continue. Record the choice under open questions in your report." "Sent when the classifier is sure a question is routine.";
       blocked = str "You look stuck or in a loop. Stop retrying. Write your report at {report} with status BLOCKED, what you tried and what you need, then notify the orchestrator and stop." "Sent when the classifier is sure a worker is stuck or looping.";
     };

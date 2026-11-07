@@ -80,7 +80,11 @@ rec {
     ) "watcher.stallMinutes must exceed the debounce"
     ++ lib.optional (
       !(cfg.orchestrator.rotateAtPercent > 0 && cfg.orchestrator.rotateAtPercent < 100)
-    ) "orchestrator.rotateAtPercent must be between 0 and 100";
+    ) "orchestrator.rotateAtPercent must be between 0 and 100"
+    ++ lib.optional (cfg.olive.enable && cfg.olive.marker == "") "olive.marker must be set when olive is enabled"
+    ++ map (repo: "olive.repos: \"${repo}\" is not owner/repo") (
+      lib.filter (repo: builtins.match "[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+" repo == null) cfg.olive.repos
+    );
 
   # The rendered file uses snake_case keys; scripts/herdr_orch.py reads them.
   toSettings = cfg: {
@@ -104,6 +108,10 @@ rec {
       fallback_check_minutes = cfg.watcher.fallbackCheckMinutes;
       max_nudges = cfg.watcher.maxNudges;
       report_grace_seconds = cfg.watcher.reportGraceSeconds;
+      waiting_max_minutes = cfg.watcher.waitingMaxMinutes;
+    };
+    olive = {
+      inherit (cfg.olive) enable repos marker;
     };
     classifier = {
       inherit (cfg.classifier) backend;

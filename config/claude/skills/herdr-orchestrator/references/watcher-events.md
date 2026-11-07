@@ -9,10 +9,18 @@
 | `[watch] <w> BLOCKED (waiting on a prompt)` | Claude is showing a question or permission UI. | Read the pane, then answer with `agent prompt` or `agent send-keys`, or escalate. |
 | `[watch] <w> STALLED (no new output for Nm)` | Working, but its output hasn't changed for `watcher.stall_minutes`. | Read the pane. If it's waiting on something long, leave it; if it's wedged, send `esc`/`ctrl+c` and re-brief it. |
 | `[watch] <w> GONE` / `UNKNOWN state` | The agent left its pane, or Herdr can't tell its state. | Check the pane; relaunch with `dc` if needed. |
-| `[watch] <w> PR <url> state=… checks=… merge=…` | A tracked PR's checks finished, it became conflicted, or it merged or closed. | `fail` → the worker fixes CI; `CONFLICTING` → the worker rebases; `pass` → review, or report it ready. |
+| `[watch] <w> PR <url> head=<sha12> state=… checks=… merge=…` | A tracked PR's checks finished on that head, it became conflicted, or it merged or closed. | `fail` → the worker fixes CI; `CONFLICTING` → the worker rebases; `pass` → the next PR gate. Never "ready" on this event alone. |
+| `[watch] <w> OLIVE <url> head=<sha12> reports=N/N blocking=K` | Olive's summary comment shows every specialist report for the PR's current head. Sent once per head. | Run the Olive gate (`herdr-orch olive <url>`) and triage each blocking item. |
+| `[watch] <w> WAITING_CI\|WAITING_REVIEW for Nm (over Lm)` | The worker's report has said it is waiting for longer than `watcher.waiting_max_minutes`. | Check the PR's checks or the review; re-run CI, chase the reviewer, or re-brief the worker. |
 | `[watch] <w> <REASON> unsure label=L conf=C` | Tier 2: the classifier's confidence fell in the unsure band. | Treat it as the matching escalation above. |
 | `[watch] <w> <REASON> label=real_question …` | Tier 2: a question that needs you. | Read the pane and decide, or escalate. |
 | `[watch] orchestrator ROTATE ctx=N%` | Your context passed `orchestrator.rotate_at_percent`. | Follow Rotate in SKILL.md. |
+
+## Heads and waits
+
+- **Stale heads**: PR and Olive events carry the head SHA they describe. Just before sending, the watcher re-reads the PR's head and drops any event whose head has moved on (it logs the drop). A new head gets its own events.
+- **Waiting workers**: while a worker's latest report says `WAITING_CI` or `WAITING_REVIEW` and it hasn't started working again since, the watcher doesn't announce that report and sends it no idle or stall nudges. It still reports `GONE`, `UNKNOWN` and permission prompts, and escalates a wait over `watcher.waiting_max_minutes`.
+- **Olive**: for PRs in `olive.repos`, the watcher reads Olive's summary comment (the one with `olive.marker`) at each PR poll. A partial review, or one of an older head, sends nothing.
 
 ## Tier 2 (only when `classifier.backend` isn't `off`)
 

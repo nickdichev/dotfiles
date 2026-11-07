@@ -39,6 +39,7 @@
       "usage_source": null
     }
   ],
+  "pr_gates": {},
   "decisions": [],
   "escalations": [],
   "handoff": null
@@ -57,6 +58,38 @@ The run directory `<state_dir>/<HERDR_WORKSPACE_ID>/<slug>/` holds:
 - `<worker>.report.md`: worker reports;
 - `watch-state.json`: watcher state, `heartbeat_at`, and the session IDs it has seen for each agent;
 - `classifier.jsonl`: one line per tier-2 classification (label, confidence, cost; no terminal text).
+
+## PR gates
+
+One entry per implementation PR, keyed by URL. It records where the PR stands in the gates of SKILL.md §5, so a restart doesn't repeat or skip one.
+
+```json
+"pr_gates": {
+  "<PR url>": {
+    "task": "<bead id or plan step>",
+    "head": "<current head SHA>",
+    "ci": "pending|pass|fail",
+    "reviews": [
+      {"worker": "<slug>-<task>-review", "head": "<sha>", "verdict": "approve | changes needed: N blocking", "comment": "<url>"}
+    ],
+    "fix_rounds": [
+      {"n": 1, "worker": "<slug>-<task>-fix1", "pre_fix_head": "<sha>", "fix_head": "<sha>",
+       "rereview": "<slug>-<task>-rereview1", "rereview_verdict": "clean | N blocking"}
+    ],
+    "olive": {
+      "gate": "WAITING_REVIEW|TRIAGE|CLEAR|NOT_CONFIGURED",
+      "head": "<sha the gate was run on>",
+      "items": [
+        {"specialist": "Backend", "item": "<one line>", "first_head": "<sha>",
+         "status": "fix|fixed|disputed|deferred", "ref": "<fix commit | reason | question and answer>"}
+      ]
+    }
+  }
+}
+```
+
+- `olive.items` keeps every blocking item from every head. When a fix round's head clears an item from Olive's list, set it `fixed` with the commit. The ready report lists them all.
+- A PR is ready only as SKILL.md's ready report says; `pr_gates` is where you check it.
 
 ## Handoff
 

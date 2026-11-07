@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import json
 import os
 import re
@@ -41,7 +42,10 @@ CONFIG_PATH = Path(
 CLAUDE_PROJECTS = HOME / ".claude" / "projects"
 
 AGENT_STATUSES = ("idle", "working", "blocked", "done", "unknown")
-REPORT_STATUSES = ("DONE", "BLOCKED", "QUESTION")
+REPORT_STATUSES = ("DONE", "BLOCKED", "QUESTION", "WAITING_CI", "WAITING_REVIEW")
+# A worker in one of these is parked until a PR event (CI or Olive) arrives.
+# The watcher neither nudges it nor announces the report.
+WAITING_STATUSES = ("WAITING_CI", "WAITING_REVIEW")
 BACKENDS = ("off", "haiku", "jev")
 EFFORTS = ("low", "medium", "high", "xhigh", "max")
 MODEL_ALIASES = ("opus", "sonnet", "haiku", "fable")
@@ -139,6 +143,11 @@ def validate_config(cfg: dict[str, Any]) -> dict[str, Any]:
     for key in ("poll_seconds", "idle_minutes", "stall_minutes", "pr_poll_seconds"):
         if watcher[key] <= 0:
             raise ConfigError(f"watcher.{key} must be positive")
+    if watcher.get("waiting_max_minutes", 1) <= 0:
+        raise ConfigError("watcher.waiting_max_minutes must be positive")
+    olive = cfg.get("olive") or {}
+    if olive.get("enable") and not olive.get("marker"):
+        raise ConfigError("olive.marker must be set when olive is enabled")
     if watcher["fallback_check_minutes"] < 60:
         raise ConfigError("watcher.fallback_check_minutes must be at least 60")
     if not 0 < cfg["orchestrator"]["rotate_at_percent"] < 100:
@@ -202,9 +211,10 @@ class PrInfo:
     state: str  # OPEN | MERGED | CLOSED
     checks: str  # pending | pass | fail | none
     merge: str  # MERGEABLE | CONFLICTING | UNKNOWN
+    head: str = ""  # head commit SHA the checks belong to
 
     def key(self) -> str:
-        return f"{self.state}/{self.checks}/{self.merge}"
+        return f"{self.head[:12]}/{self.state}/{self.checks}/{self.merge}"
 
     def notable(self) -> bool:
         return (
@@ -234,13 +244,89 @@ def rollup_checks(rollup: list[dict[str, Any]]) -> str:
 
 def gh_pr_info(url: str) -> PrInfo:
     data = json.loads(
-        run(["gh", "pr", "view", url, "--json", "state,mergeable,statusCheckRollup"], timeout=60)
+        run(["gh", "pr", "view", url, "--json", "state,mergeable,statusCheckRollup,headRefOid"], timeout=60)
     )
     return PrInfo(
         state=data.get("state", "OPEN"),
         checks=rollup_checks(data.get("statusCheckRollup") or []),
         merge=data.get("mergeable") or "UNKNOWN",
+        head=data.get("headRefOid") or "",
     )
+
+
+def gh_pr_head(url: str) -> str:
+    return json.loads(run(["gh", "pr", "view", url, "--json", "headRefOid"], timeout=60)).get("headRefOid") or ""
+
+
+# --- Olive review comment --------------------------------------------------
+
+PR_PARTS = re.compile(r"https://github\.com/([\w.-]+)/([\w.-]+)/pull/(\d+)")
+
+
+@dataclass
+class OliveInfo:
+    """What the Olive summary comment says, parsed without a model."""
+
+    revision: str  # short head SHA Olive reviewed, "" if not found
+    done: int  # specialist reports available
+    total: int
+    blocking: list[tuple[str, str]]  # (specialist, one-line item)
+    url: str = ""  # the comment's html_url
+
+    @property
+    def complete(self) -> bool:
+        return self.total > 0 and self.done >= self.total
+
+    def covers(self, head: str) -> bool:
+        return bool(self.revision and head and head.startswith(self.revision))
+
+
+def parse_olive(body: str, url: str = "") -> OliveInfo:
+    revision = re.search(r"Reviewed revision: \[`([0-9a-f]{7,40})`\]", body)
+    count = re.search(r"(\d+)/(\d+) specialist reports available", body)
+    # Each specialist section ("### Backend") may end with a "**Blocking**"
+    # list of "> - " items, closed by a <details> block or the next heading.
+    items: list[list[str]] = []
+    specialist, in_block = "", False
+    for line in body.splitlines():
+        if line.startswith("### "):
+            specialist, in_block = line[4:].strip(), False
+        elif line.strip() == "**Blocking**":
+            in_block = True
+        elif in_block and (line.startswith("<details>") or line.startswith("**")):
+            in_block = False
+        elif in_block and line.startswith("> - "):
+            items.append([specialist, line[4:].strip()])
+        elif in_block and items and line.startswith("> ") and line[2:].strip():
+            items[-1][1] += " " + line[2:].strip()
+    return OliveInfo(
+        revision=revision.group(1) if revision else "",
+        done=int(count.group(1)) if count else 0,
+        total=int(count.group(2)) if count else 0,
+        blocking=[(s, html.unescape(t)) for s, t in items],
+        url=url,
+    )
+
+
+def olive_enabled(cfg: dict[str, Any], pr_url: str) -> bool:
+    olive = cfg.get("olive") or {}
+    match = PR_PARTS.match(pr_url)
+    return bool(olive.get("enable") and match and f"{match.group(1)}/{match.group(2)}" in olive.get("repos", []))
+
+
+def gh_olive(cfg: dict[str, Any], pr_url: str) -> OliveInfo | None:
+    """The Olive summary comment on a PR, or None if Olive hasn't posted."""
+    match = PR_PARTS.match(pr_url)
+    if not match:
+        return None
+    owner, repo, number = match.groups()
+    marker = cfg["olive"]["marker"]
+    out = run([
+        "gh", "api", "--paginate", f"repos/{owner}/{repo}/issues/{number}/comments",
+        "--jq", f'.[] | select(.body | contains({json.dumps(marker)})) | {{url: .html_url, body}}',
+    ], timeout=60)
+    found = [json.loads(line) for line in out.splitlines() if line.strip()]
+    return parse_olive(found[-1]["body"], found[-1]["url"]) if found else None
 
 
 # --- Report files ----------------------------------------------------------
@@ -265,7 +351,7 @@ def read_report(path: Path) -> ReportInfo | None:
         return None
     status = "UNKNOWN"
     for line in text.splitlines():
-        match = re.match(r"\s*status:\s*([A-Za-z]+)", line)
+        match = re.match(r"\s*status:\s*([A-Za-z_]+)", line)
         if match:
             status = match.group(1).upper()
             break
@@ -416,6 +502,8 @@ class Action:
     text: str = ""
     reason: str = ""
     key: str = ""
+    pr: str = ""  # PR events: the PR URL and the head SHA they describe
+    head: str = ""
 
 
 @dataclass
@@ -425,6 +513,7 @@ class Observation:
     reports: dict[str, ReportInfo | None]  # worker -> report
     pane_sigs: dict[str, str] = field(default_factory=dict)  # working workers only
     prs: dict[str, PrInfo] = field(default_factory=dict)  # PRs polled this cycle
+    olive: dict[str, OliveInfo | None] = field(default_factory=dict)  # Olive-tracked PRs polled this cycle
     orchestrator_ctx_pct: float | None = None
     # Worker -> time of the orchestrator's latest turn quoting `[<worker>]`.
     mentions: dict[str, float] = field(default_factory=dict)
@@ -520,6 +609,13 @@ class Engine:
                 ws["pending"] = None
 
             report = obs.reports.get(name)
+            # A worker parked on CI or review is woken by the PR or Olive
+            # event, so its report needs no announcement and it gets no
+            # nudges; only an over-long wait is escalated.
+            # A report older than the worker's latest working spell no longer
+            # describes it, so resumed work is watched as usual.
+            waiting = bool(report and report.status in WAITING_STATUSES
+                           and report.mtime >= ws["working_since"])
             if report:
                 if report.sig != ws["report_sig"]:
                     ws.update(report_sig=report.sig, nudges=0)
@@ -528,7 +624,7 @@ class Engine:
                 # the grace period, so one finish costs one orchestrator turn.
                 key = f"{name}:report:{report.sig}"
                 notified = obs.mentions.get(name, 0.0) >= report.mtime - 5
-                if notified:
+                if notified or waiting:
                     self.state["emitted"].setdefault(key, obs.now)
                 elif obs.now - report.mtime >= w_cfg["report_grace_seconds"]:
                     # Deduped by key, so a failed delivery is retried next poll.
@@ -543,6 +639,14 @@ class Engine:
                 self.notify(actions, obs.now, name, "GONE (agent no longer in its pane)", key=episode)
             elif status == "unknown":
                 self.notify(actions, obs.now, name, "UNKNOWN state", key=episode)
+            elif waiting and status in ("idle", "done", "working"):
+                assert report is not None
+                limit = w_cfg.get("waiting_max_minutes", 120)
+                waited = obs.now - report.mtime
+                if waited >= limit * 60:
+                    self.notify(actions, obs.now, name,
+                                f"{report.status} for {int(waited // 60)}m (over {limit}m) report={self.report_path(name)}",
+                                key=f"{name}:waiting:{report.sig}")
             elif status == "blocked" and not reported:
                 if self.classifier_on:
                     self.emit(actions, Action("classify", name, reason="blocked", key=episode), obs.now)
@@ -587,20 +691,38 @@ class Engine:
         return prs
 
     def _step_prs(self, actions: list[Action], obs: Observation) -> None:
+        tracked = self.tracked_prs(obs.reports)
         for url, info in obs.prs.items():
             entry = self.state["prs"].setdefault(url, {"key": None, "checked_at": 0.0, "changes": 0})
             entry["checked_at"] = obs.now
             entry["state"] = info.state
+            entry["head"] = info.head
             # Count changes so a PR that goes green again after a new push
             # notifies again rather than matching the earlier event.
             if info.key() != entry["key"]:
                 entry["key"] = info.key()
                 entry["changes"] = entry.get("changes", 0) + 1
             if info.notable():
-                worker = self.tracked_prs(obs.reports).get(url, "pr")
-                self.notify(actions, obs.now, worker,
-                            f"PR {url} state={info.state} checks={info.checks} merge={info.merge}",
-                            key=f"pr:{url}:{entry['changes']}")
+                worker = tracked.get(url, "pr")
+                head = f" head={info.head[:12]}" if info.head else ""
+                self.emit(actions, Action(
+                    "notify", worker,
+                    f"[watch] {worker} PR {url}{head} state={info.state} checks={info.checks} merge={info.merge}",
+                    key=f"pr:{url}:{entry['changes']}", pr=url, head=info.head,
+                ), obs.now)
+        # Olive: one event per reviewed head, once every specialist reported
+        # on the PR's current head. Earlier heads' reviews stay silent.
+        for url, olive in obs.olive.items():
+            head = self.state["prs"].get(url, {}).get("head", "")
+            if olive is None or not olive.complete or not olive.covers(head):
+                continue
+            worker = tracked.get(url, "pr")
+            self.emit(actions, Action(
+                "notify", worker,
+                f"[watch] {worker} OLIVE {url} head={head[:12]} reports={olive.done}/{olive.total} "
+                f"blocking={len(olive.blocking)} (run: herdr-orch olive {url})",
+                key=f"olive:{url}:{olive.revision}", pr=url, head=head,
+            ), obs.now)
 
     def _step_orchestrator(self, actions: list[Action], obs: Observation) -> None:
         pane = self.ledger.get("orchestrator_pane", "")
@@ -943,7 +1065,8 @@ def cmd_watch(args: argparse.Namespace) -> int:
                     pane_sigs[w["name"]] = pane_signature(herdr_read(w["pane_id"], 40))
                 except (subprocess.SubprocessError, OSError):
                     pass
-        prs = {}
+        prs: dict[str, PrInfo] = {}
+        olive: dict[str, OliveInfo | None] = {}
         for url in engine.tracked_prs(reports):
             entry = state["prs"].get(url, {})
             if entry.get("state") in ("MERGED", "CLOSED"):
@@ -953,6 +1076,12 @@ def cmd_watch(args: argparse.Namespace) -> int:
                     prs[url] = gh_pr_info(url)
                 except (subprocess.SubprocessError, OSError, ValueError) as exc:
                     log(f"gh pr view {url} failed: {exc}")
+                    continue
+                if prs[url].state == "OPEN" and olive_enabled(cfg, url):
+                    try:
+                        olive[url] = gh_olive(cfg, url)
+                    except (subprocess.SubprocessError, OSError, ValueError) as exc:
+                        log(f"olive comment for {url} failed: {exc}")
         ctx, mentions = None, {}
         orch_session = ((orch or {}).get("agent_session") or {}).get("value")
         if orch_session:
@@ -964,12 +1093,12 @@ def cmd_watch(args: argparse.Namespace) -> int:
             time.sleep(w_cfg["poll_seconds"])
             continue
 
-        actions = engine.step(Observation(now, agents, reports, pane_sigs, prs, ctx, mentions))
+        actions = engine.step(Observation(now, agents, reports, pane_sigs, prs, olive, ctx, mentions))
         for action in [a for a in actions if a.kind == "classify"]:
             actions.remove(action)
             actions += engine.on_classified(action, classify_worker(cfg, backend, ledger, action), time.time())
 
-        deliver(engine, ledger, actions, dry_run=args.dry_run)
+        deliver(engine, ledger, drop_stale(actions, gh_pr_head), dry_run=args.dry_run)
         state["heartbeat_at"] = utc_now()
         write_json(state_path, state)
         if args.once:
@@ -1025,6 +1154,31 @@ def classify_worker(cfg, backend, ledger, action: Action) -> Classification | No
     return result
 
 
+def drop_stale(actions: list[Action], head_of) -> list[Action]:
+    """Drop PR and Olive events whose head is no longer the PR's head.
+
+    The PR may have moved between the poll and delivery (a worker pushed a
+    fix), and an event about the old head would send the orchestrator after
+    a result that no longer matters. `head_of(url)` returns the live head,
+    or raises; on failure the event is kept.
+    """
+    heads: dict[str, str] = {}
+    kept = []
+    for action in actions:
+        if action.kind == "notify" and action.pr and action.head:
+            if action.pr not in heads:
+                try:
+                    heads[action.pr] = head_of(action.pr)
+                except (subprocess.SubprocessError, OSError, ValueError) as exc:
+                    log(f"head check for {action.pr} failed: {exc}")
+                    heads[action.pr] = action.head
+            if heads[action.pr] and heads[action.pr] != action.head:
+                log(f"dropped stale event (head now {heads[action.pr][:12]}): {action.text}")
+                continue
+        kept.append(action)
+    return kept
+
+
 def deliver(engine: Engine, ledger: dict[str, Any], actions: list[Action], *, dry_run: bool) -> None:
     """Send nudges to workers, and all notifications as one orchestrator prompt."""
     names = {w["name"]: w.get("pane_id") for w in ledger.get("workers", [])}
@@ -1060,6 +1214,42 @@ def cmd_classify(args: argparse.Namespace) -> int:
     result = backend.classify(redact(text))
     print(json.dumps(result.__dict__))
     return 0
+
+
+def olive_gate(cfg: dict[str, Any], url: str, head: str, olive: OliveInfo | None) -> dict[str, Any]:
+    """Whether a PR may be reported ready, as far as Olive is concerned."""
+    out: dict[str, Any] = {"pr": url, "head": head[:12], "olive": None, "blocking": []}
+    if not olive_enabled(cfg, url):
+        out["gate"] = "NOT_CONFIGURED"
+        return out
+    if olive is not None:
+        out["olive"] = {"revision": olive.revision, "reports": f"{olive.done}/{olive.total}", "comment": olive.url}
+        out["blocking"] = [{"specialist": s, "item": t} for s, t in olive.blocking]
+    if olive is None or not olive.covers(head) or not olive.complete:
+        out["gate"] = "WAITING_REVIEW"
+        out["blocking"] = []  # Findings on another head, or partial, don't count.
+    else:
+        out["gate"] = "TRIAGE" if olive.blocking else "CLEAR"
+    return out
+
+
+def cmd_olive(args: argparse.Namespace) -> int:
+    """Print the Olive gate for a PR: exit 0 when Olive finished on the head."""
+    cfg = load_config()
+    head = gh_pr_head(args.pr)
+    olive = gh_olive(cfg, args.pr) if olive_enabled(cfg, args.pr) else None
+    gate = olive_gate(cfg, args.pr, head, olive)
+    if args.json:
+        print(json.dumps(gate, indent=2))
+    else:
+        seen = gate["olive"]
+        print(f"pr: {args.pr}\nhead: {gate['head']}")
+        print(f"olive: {seen['revision']} {seen['reports']} {seen['comment']}" if seen else "olive: no comment")
+        print(f"gate: {gate['gate']}")
+        for i, item in enumerate(gate["blocking"], 1):
+            text = item["item"] if args.full else item["item"][:300]
+            print(f"{i}. [{item['specialist']}] {text}")
+    return 3 if gate["gate"] == "WAITING_REVIEW" else 0
 
 
 def cmd_config(args: argparse.Namespace) -> int:
@@ -1497,6 +1687,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--session", action="append", help="Report on a Claude session ID instead (repeatable)")
     p.add_argument("--json", action="store_true")
     p.set_defaults(func=cmd_report)
+
+    p = sub.add_parser("olive", help="Olive gate for a PR: its blocking items on the current head (exit 3 while waiting)")
+    p.add_argument("pr", help="PR URL")
+    p.add_argument("--json", action="store_true")
+    p.add_argument("--full", action="store_true", help="Don't shorten the items")
+    p.set_defaults(func=cmd_olive)
 
     p = sub.add_parser("config", help="Print the rendered config")
     p.set_defaults(func=cmd_config)

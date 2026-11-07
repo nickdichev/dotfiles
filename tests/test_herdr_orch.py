@@ -42,7 +42,9 @@ CONFIG = {
         "fallback_check_minutes": 60,
         "max_nudges": 1,
         "report_grace_seconds": 120,
+        "waiting_max_minutes": 120,
     },
+    "olive": {"enable": True, "repos": ["o/r"], "marker": "<!-- olive-pr-specialist-review:v1 -->"},
     "classifier": {
         "backend": "off",
         "band_low": 0.3,
@@ -138,6 +140,8 @@ class ConfigTests(unittest.TestCase):
     def test_rendered_config_is_valid(self) -> None:
         cfg = herdr_orch.load_config(Path(os.environ["HERDR_ORCH_RENDERED_CONFIG"]))
         self.assertEqual(cfg["classifier"]["backend"], "off")
+        self.assertTrue(cfg["olive"]["enable"])
+        self.assertIn("Portal-Wholesale/cms", cfg["olive"]["repos"])
 
 
 class ReportTests(unittest.TestCase):
@@ -160,8 +164,8 @@ class ReportTests(unittest.TestCase):
             self.assertEqual(herdr_orch.read_report(path).status, "UNKNOWN")
 
 
-def report(sig: str = "r1", mtime: float = 0.0, prs: list[str] | None = None) -> ReportInfo:
-    return ReportInfo(sig=sig, mtime=mtime, status="DONE", prs=prs or [])
+def report(sig: str = "r1", mtime: float = 0.0, prs: list[str] | None = None, status: str = "DONE") -> ReportInfo:
+    return ReportInfo(sig=sig, mtime=mtime, status=status, prs=prs or [])
 
 
 class EngineTests(unittest.TestCase):
@@ -458,3 +462,151 @@ class HelperTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+OLIVE_BODY = """<!-- olive-pr-specialist-review:v1 -->
+
+## Olive PR review
+
+**Open · {done}/4 specialist reports available**
+
+Reviewed revision: [`{rev}`](https://github.com/o/r/commit/{rev}) · base at review [`0b9612ee545c`](https://github.com/o/r/commit/0b96)
+
+### Database
+
+> Summary paragraph.
+>
+> ### M1 (Medium): not a section heading, it is quoted
+
+**Blocking**
+
+> - Bound the keyword arguments (&gt;20 keywords).
+
+<details>
+<summary>Architecture</summary>
+
+> - Not blocking: a bullet inside the details block.
+
+</details>
+
+### React
+
+**Blocking**
+
+> - F1: is_saved is hard-coded
+>   to false for signed-in viewers.
+> - F2: sequential await inside Promise.all.
+
+### Tests
+
+> No blocking test findings at this head.
+"""
+
+HEAD = "e1ff79dd9cbe0e52364e61845b9dc889c6c0a85f"
+URL = "https://github.com/o/r/pull/1"
+
+
+def olive(done: int = 4, rev: str = HEAD[:12]):
+    return herdr_orch.parse_olive(OLIVE_BODY.format(done=done, rev=rev), "https://github.com/o/r/pull/1#c1")
+
+
+class OliveTests(unittest.TestCase):
+    def test_parses_revision_progress_and_blocking_items(self) -> None:
+        info = olive()
+        self.assertEqual((info.revision, info.done, info.total), (HEAD[:12], 4, 4))
+        self.assertTrue(info.complete and info.covers(HEAD))
+        specialists = [s for s, _ in info.blocking]
+        self.assertEqual(specialists, ["Database", "React", "React"])
+        self.assertIn("F1: is_saved is hard-coded to false for signed-in viewers.", [t for _, t in info.blocking])
+        self.assertNotIn("Tests", specialists)
+        self.assertEqual(info.blocking[0][1], "Bound the keyword arguments (>20 keywords).")
+
+    def test_gate(self) -> None:
+        cfg = copy.deepcopy(CONFIG)
+        self.assertEqual(herdr_orch.olive_gate(cfg, URL, HEAD, None)["gate"], "WAITING_REVIEW")
+        self.assertEqual(herdr_orch.olive_gate(cfg, URL, HEAD, olive(done=1))["gate"], "WAITING_REVIEW")
+        stale = herdr_orch.olive_gate(cfg, URL, HEAD, olive(rev="71d3aa7737a8"))
+        self.assertEqual((stale["gate"], stale["blocking"]), ("WAITING_REVIEW", []))
+        done = herdr_orch.olive_gate(cfg, URL, HEAD, olive())
+        self.assertEqual(done["gate"], "TRIAGE")
+        self.assertEqual(len(done["blocking"]), 3)
+        other = herdr_orch.olive_gate(cfg, "https://github.com/x/y/pull/2", HEAD, None)
+        self.assertEqual(other["gate"], "NOT_CONFIGURED")
+
+    def test_event_once_when_complete_on_current_head(self) -> None:
+        h = Harness()
+        r = report(prs=[URL])
+        h.step(obs(0, report=r))
+        pending = {URL: PrInfo("OPEN", "pending", "MERGEABLE", HEAD)}
+        self.assertEqual(h.step(obs(100, report=r, prs=pending, olive={URL: olive(done=2)})), [])
+        self.assertEqual(h.step(obs(400, report=r, prs=pending, olive={URL: olive(rev="71d3aa7737a8")})), [])
+        actions = h.step(obs(700, report=r, prs=pending, olive={URL: olive()}))
+        self.assertEqual(len(actions), 1)
+        self.assertIn(f"OLIVE {URL} head={HEAD[:12]} reports=4/4 blocking=", actions[0].text)
+        self.assertEqual((actions[0].pr, actions[0].head), (URL, HEAD))
+        self.assertEqual(h.step(obs(1000, report=r, prs=pending, olive={URL: olive()})), [])
+
+
+class HeadTests(unittest.TestCase):
+    def test_pr_events_carry_the_head(self) -> None:
+        h = Harness()
+        r = report(prs=[URL])
+        h.step(obs(0, report=r))
+        actions = h.step(obs(100, report=r, prs={URL: PrInfo("OPEN", "fail", "MERGEABLE", HEAD)}))
+        self.assertIn(f"head={HEAD[:12]} state=OPEN checks=fail", actions[0].text)
+
+    def test_new_head_with_same_result_notifies_again(self) -> None:
+        h = Harness()
+        r = report(prs=[URL])
+        h.step(obs(0, report=r))
+        self.assertEqual(len(h.step(obs(100, report=r, prs={URL: PrInfo("OPEN", "pass", "MERGEABLE", "a" * 40)}))), 1)
+        self.assertEqual(len(h.step(obs(400, report=r, prs={URL: PrInfo("OPEN", "pass", "MERGEABLE", "b" * 40)}))), 1)
+
+    def test_drop_stale(self) -> None:
+        old = herdr_orch.Action("notify", "run-a", "PR old", pr=URL, head="a" * 40)
+        plain = herdr_orch.Action("notify", "run-a", "REPORT")
+        self.assertEqual(herdr_orch.drop_stale([old, plain], lambda _: "b" * 40), [plain])
+        self.assertEqual(herdr_orch.drop_stale([old], lambda _: "a" * 40), [old])
+
+        def broken(_: str) -> str:
+            raise OSError("gh down")
+
+        self.assertEqual(herdr_orch.drop_stale([old], broken), [old])
+
+
+class WaitingTests(unittest.TestCase):
+    def test_waiting_report_is_neither_announced_nor_nudged(self) -> None:
+        h = Harness()
+        h.step(obs(0))
+        waiting = report(mtime=20, status="WAITING_CI")
+        self.assertEqual(h.step(obs(30, "idle", report=waiting)), [])
+        for t in (200, 1000, 3000, 6000):
+            self.assertEqual(h.step(obs(t, "idle", report=waiting)), [], t)
+
+    def test_long_wait_escalates_once(self) -> None:
+        h = Harness()
+        h.step(obs(0))
+        waiting = report(mtime=20, status="WAITING_REVIEW")
+        h.step(obs(30, "idle", report=waiting))
+        actions = h.step(obs(20 + 121 * MIN, "idle", report=waiting))
+        self.assertEqual(len(actions), 1)
+        self.assertIn("WAITING_REVIEW for 121m (over 120m)", actions[0].text)
+        self.assertEqual(h.step(obs(20 + 130 * MIN, "idle", report=waiting)), [])
+
+    def test_resumed_work_is_watched_again(self) -> None:
+        h = Harness()
+        h.step(obs(0, "idle"))
+        waiting = report(mtime=20, status="WAITING_CI")
+        h.step(obs(30, "idle", report=waiting))
+        h.step(obs(100, "working", report=waiting))
+        h.step(obs(200, "working", report=waiting))  # Debounced: working since 100.
+        h.step(obs(300, "idle", report=waiting))
+        h.step(obs(400, "idle", report=waiting))  # Idle since 300.
+        actions = h.step(obs(300 + 11 * MIN, "idle", report=waiting))
+        self.assertEqual([a.kind for a in actions], ["nudge"])
+
+    def test_report_statuses(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "r.md"
+            path.write_text("status: WAITING_CI\nsummary: pushed, CI pending\n")
+            self.assertEqual(herdr_orch.read_report(path).status, "WAITING_CI")
