@@ -17,6 +17,19 @@ let
   altTabPackage = pkgs.callPackage ../pkgs/alt-tab-macos-bin { };
   vicinaePackage = pkgs.callPackage ../pkgs/vicinae { };
   vicinaeAgentLabel = "org.nix-community.home.vicinae";
+  # Vicinae deploys its extension manager into $TMPDIR once at startup, and
+  # macOS purges files there that go unused for a few days. Once the bundle is
+  # gone the manager crashes and stays down, so restart Vicinae to redeploy it.
+  # The socket is created at startup too; waiting until it is 10 minutes old
+  # keeps a Vicinae that can't deploy the bundle from restarting in a tight loop.
+  vicinaeWatchdog = pkgs.writeShellScript "vicinae-extension-watchdog" ''
+    dir="$(/usr/bin/getconf DARWIN_USER_TEMP_DIR)vicinae"
+    [ -S "$dir/vicinae.sock" ] || exit 0
+    [ -e "$dir/extension-manager.js" ] && exit 0
+    [ -n "$(/usr/bin/find "$dir/vicinae.sock" -mmin +10)" ] || exit 0
+    echo "$(/bin/date -u +%FT%TZ) extension manager bundle missing; restarting Vicinae"
+    /bin/launchctl kickstart -k "gui/$(/usr/bin/id -u)/${vicinaeAgentLabel}"
+  '';
   # Ids derive from the name so a link keeps its open count across switches;
   # the "hm-" prefix marks the entries this module owns in shortcuts.json.
   vicinaeQuicklinks = lib.mapAttrsToList (name: link: {
@@ -313,6 +326,17 @@ in
           "/usr/sbin"
           "/sbin"
         ];
+      };
+    };
+    launchd.agents.vicinae-watchdog = lib.mkIf (hasGui && isAarch64Darwin) {
+      enable = true;
+      config = {
+        ProgramArguments = [ "${vicinaeWatchdog}" ];
+        StartInterval = 10 * 60;
+        LimitLoadToSessionType = "Aqua";
+        ProcessType = "Background";
+        StandardOutPath = "${config.home.homeDirectory}/Library/Logs/vicinae-watchdog.log";
+        StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/vicinae-watchdog.log";
       };
     };
     launchd.agents.alt-tab = lib.mkIf (hasGui && isDarwin) {
