@@ -5,6 +5,9 @@ onboarding = false
 [experimental]
 kitty_graphics = true
 
+[ui.sound]
+enabled = false
+
 [theme]
 name = "dracula"
 
